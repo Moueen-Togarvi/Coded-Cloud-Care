@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const HospitalUser = require('../models/HospitalUser');
-const { requireHospitalAuth } = require('../middleware/hospitalAuth');
-const { cleanInputData, normalizeEmail } = require('../utils/hospitalHelpers');
+const { requireHospitalAuth, bridgeHospitalAuth } = require('../middleware/hospitalAuth');
+const { cleanInputData } = require('../utils/hospitalHelpers');
 
 /**
  * @route   POST /api/hospital/auth/login
- * @desc    Login user and create session
+ * @desc    Login user (staff) and create session
  * @access  Public
  */
 router.post('/login', async (req, res) => {
@@ -45,6 +45,7 @@ router.post('/login', async (req, res) => {
         req.session.hospitalUserId = user._id.toString();
         req.session.hospitalUsername = user.username;
         req.session.hospitalRole = user.role;
+        req.session.isMasterUser = false; // This is a local staff user
 
         return res.json({
             success: true,
@@ -53,6 +54,7 @@ router.post('/login', async (req, res) => {
             role: user.role,
             name: user.name,
             user_id: user._id.toString(),
+            is_master_user: false
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -87,10 +89,10 @@ router.post('/logout', (req, res) => {
 
 /**
  * @route   GET /api/hospital/auth/session
- * @desc    Check if user is logged in
+ * @desc    Check if user is logged in (supports Master JWT bridge)
  * @access  Public
  */
-router.get('/session', (req, res) => {
+router.get('/session', bridgeHospitalAuth, (req, res) => {
     if (req.session && req.session.hospitalUserId) {
         return res.json({
             success: true,
@@ -98,6 +100,8 @@ router.get('/session', (req, res) => {
             username: req.session.hospitalUsername,
             role: req.session.hospitalRole,
             user_id: req.session.hospitalUserId,
+            name: req.hospitalUser ? req.hospitalUser.name : (req.session.hospitalUsername || 'User'),
+            is_master_user: req.session.isMasterUser || false
         });
     }
     return res.json({
@@ -113,6 +117,14 @@ router.get('/session', (req, res) => {
  */
 router.post('/change_password', requireHospitalAuth, async (req, res) => {
     try {
+        if (req.session.isMasterUser) {
+            return res.status(403).json({
+                success: false,
+                error: 'Action not allowed',
+                message: 'Master users must change password through the main account settings'
+            });
+        }
+
         const data = cleanInputData(req.body);
         const { old_password, new_password } = data;
 

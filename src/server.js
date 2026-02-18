@@ -23,6 +23,16 @@ const hospitalPatientsRoutes = require('./routes/hospitalPatients');
 const hospitalDashboardRoutes = require('./routes/hospitalDashboard');
 const hospitalCanteenRoutes = require('./routes/hospitalCanteen');
 const hospitalExpensesRoutes = require('./routes/hospitalExpenses');
+const hospitalOverheadsRoutes = require('./routes/hospitalOverheads');
+const hospitalAccountsRoutes = require('./routes/hospitalAccounts');
+const hospitalCallMeetingRoutes = require('./routes/hospitalCallMeeting');
+const hospitalUtilityBillsRoutes = require('./routes/hospitalUtilityBills');
+const hospitalEmployeesRoutes = require('./routes/hospitalEmployees');
+const hospitalExportRoutes = require('./routes/hospitalExport');
+const hospitalReportsRoutes = require('./routes/hospitalReports');
+const hospitalPsychSessionsRoutes = require('./routes/hospitalPsychSessions');
+const hospitalAttendanceRoutes = require('./routes/hospitalAttendance');
+const hospitalEmergencyRoutes = require('./routes/hospitalEmergency');
 
 // Initialize Express app
 const app = express();
@@ -69,13 +79,49 @@ app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/accounting', accountingRoutes);
 app.use('/api/settings', settingsRoutes);
 
-// Hospital PMS routes
+// Hospital PMS routes (prefixed)
 app.use('/api/hospital/auth', hospitalAuthRoutes);
 app.use('/api/hospital/users', hospitalUsersRoutes);
 app.use('/api/hospital/patients', hospitalPatientsRoutes);
 app.use('/api/hospital/dashboard', hospitalDashboardRoutes);
 app.use('/api/hospital/canteen', hospitalCanteenRoutes);
 app.use('/api/hospital/expenses', hospitalExpensesRoutes);
+app.use('/api/hospital/overheads', hospitalOverheadsRoutes);
+app.use('/api/hospital/accounts', hospitalAccountsRoutes);
+app.use('/api/hospital/call_meeting_tracker', hospitalCallMeetingRoutes);
+app.use('/api/hospital/utility_bills', hospitalUtilityBillsRoutes);
+app.use('/api/hospital/employees', hospitalEmployeesRoutes);
+app.use('/api/hospital/export', hospitalExportRoutes);
+app.use('/api/hospital/payment-records', hospitalExportRoutes);
+app.use('/api/hospital/reports', hospitalReportsRoutes);
+app.use('/api/hospital/psych-sessions', hospitalPsychSessionsRoutes);
+app.use('/api/hospital/attendance', hospitalAttendanceRoutes);
+app.use('/api/hospital/emergency', hospitalEmergencyRoutes);
+
+// ─── Hospital PMS API Aliases ────────────────────────────────────────────────
+// The Hospital PMS index.html calls /api/auth/*, /api/patients/*, etc.
+// (without the /hospital/ prefix). These aliases forward them correctly.
+app.use('/api/auth', hospitalAuthRoutes);
+app.use('/api/patients', (req, res, next) => {
+  // Only forward if this looks like a Hospital PMS request (has hospital session)
+  if (req.session && req.session.hospitalUserId) {
+    return hospitalPatientsRoutes(req, res, next);
+  }
+  next();
+});
+app.use('/api/canteen', hospitalCanteenRoutes);
+app.use('/api/overheads', hospitalOverheadsRoutes);
+app.use('/api/accounts', hospitalAccountsRoutes);
+app.use('/api/call_meeting_tracker', hospitalCallMeetingRoutes);
+app.use('/api/utility_bills', hospitalUtilityBillsRoutes);
+app.use('/api/employees', hospitalEmployeesRoutes);
+app.use('/api/export', hospitalExportRoutes);
+app.use('/api/payment-records', hospitalExportRoutes);
+app.use('/api/reports', hospitalReportsRoutes);
+app.use('/api/psych-sessions', hospitalPsychSessionsRoutes);
+app.use('/api/attendance', hospitalAttendanceRoutes);
+app.use('/api/emergency', hospitalEmergencyRoutes);
+app.use('/api/users', hospitalUsersRoutes);
 
 // Serve static files for Hospital PMS (must be before the HTML route)
 app.use('/static', express.static(path.join(__dirname, '../Rooh adding in the coed cloud/static')));

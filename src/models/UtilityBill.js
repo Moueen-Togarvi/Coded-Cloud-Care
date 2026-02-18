@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Utility Bill Schema
@@ -46,6 +47,7 @@ utilityBillSchema.index({ billType: 1 });
 utilityBillSchema.index({ year: -1, month: -1 });
 utilityBillSchema.index({ isPaid: 1 });
 
-const UtilityBill = mongoose.model('UtilityBill', utilityBillSchema);
+const UtilityBill = getHospitalDB().model('UtilityBill', utilityBillSchema);
+
 
 module.exports = UtilityBill;

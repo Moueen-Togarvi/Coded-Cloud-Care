@@ -10,7 +10,6 @@ let hospitalConnection = null;
 const connectHospitalDB = async () => {
     try {
         if (hospitalConnection) {
-            console.log('✓ Hospital PMS DB already connected');
             return hospitalConnection;
         }
 
@@ -21,24 +20,14 @@ const connectHospitalDB = async () => {
         }
 
         // Create separate connection for Hospital PMS
-        hospitalConnection = await mongoose.createConnection(HOSPITAL_MONGO_URI, {
+        hospitalConnection = mongoose.createConnection(HOSPITAL_MONGO_URI, {
             maxPoolSize: 10,
             minPoolSize: 2,
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
         });
 
-        console.log('✓ Hospital PMS Database connected successfully');
-        console.log(`✓ Database: ${hospitalConnection.name}`);
-
-        // Handle connection events
-        hospitalConnection.on('error', (err) => {
-            console.error('Hospital PMS DB connection error:', err);
-        });
-
-        hospitalConnection.on('disconnected', () => {
-            console.warn('Hospital PMS DB disconnected');
-        });
+        console.log('✓ Hospital PMS Database connection initializing...');
 
         return hospitalConnection;
     } catch (error) {
@@ -49,7 +38,14 @@ const connectHospitalDB = async () => {
 
 const getHospitalDB = () => {
     if (!hospitalConnection) {
-        throw new Error('Hospital PMS database not connected. Call connectHospitalDB() first.');
+        // If called before connectHospitalDB (e.g. at startup for models),
+        // we can still return a buffered connection if we initialize it here
+        const HOSPITAL_MONGO_URI = process.env.HOSPITAL_MONGO_URI || process.env.MONGO_URI;
+        if (HOSPITAL_MONGO_URI) {
+            hospitalConnection = mongoose.createConnection(HOSPITAL_MONGO_URI);
+            return hospitalConnection;
+        }
+        throw new Error('Hospital PMS database not connected and no URI available');
     }
     return hospitalConnection;
 };
@@ -57,4 +53,5 @@ const getHospitalDB = () => {
 module.exports = {
     connectHospitalDB,
     getHospitalDB,
+    hospitalConnection, // Added this export
 };

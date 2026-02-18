@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Hospital Patient Schema
@@ -90,6 +91,6 @@ hospitalPatientSchema.index({ isDischarged: 1 });
 hospitalPatientSchema.index({ admissionDate: -1 });
 hospitalPatientSchema.index({ createdAt: -1 });
 
-const HospitalPatient = mongoose.model('HospitalPatient', hospitalPatientSchema);
+const HospitalPatient = getHospitalDB().model('HospitalPatient', hospitalPatientSchema);
 
 module.exports = HospitalPatient;

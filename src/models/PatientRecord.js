@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Patient Record Schema
@@ -34,6 +35,6 @@ patientRecordSchema.index({ patient_id: 1 });
 patientRecordSchema.index({ record_type: 1 });
 patientRecordSchema.index({ createdAt: -1 });
 
-const PatientRecord = mongoose.model('PatientRecord', patientRecordSchema);
+const PatientRecord = getHospitalDB().model('PatientRecord', patientRecordSchema);
 
 module.exports = PatientRecord;

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Call/Meeting Tracker Schema
@@ -39,6 +40,7 @@ callMeetingTrackerSchema.index({ patient_id: 1 });
 callMeetingTrackerSchema.index({ date: -1 });
 callMeetingTrackerSchema.index({ type: 1 });
 
-const CallMeetingTracker = mongoose.model('CallMeetingTracker', callMeetingTrackerSchema);
+const CallMeetingTracker = getHospitalDB().model('CallMeetingTracker', callMeetingTrackerSchema);
+
 
 module.exports = CallMeetingTracker;

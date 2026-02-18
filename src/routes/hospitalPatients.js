@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const ExcelJS = require('exceljs');
 const HospitalPatient = require('../models/HospitalPatient');
+const HospitalExpense = require('../models/HospitalExpense');
 const CanteenSale = require('../models/CanteenSale');
 const PatientRecord = require('../models/PatientRecord');
 const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hospitalAuth');
-const { cleanInputData } = require('../utils/hospitalHelpers');
+const { cleanInputData, calculateProratedFee, parseAmount } = require('../utils/hospitalHelpers');
 
 /**
  * @route   GET /api/hospital/patients
@@ -260,6 +262,172 @@ router.get('/:patient_id/records', requireHospitalAuth, async (req, res) => {
             error: 'Internal server error',
             message: error.message,
         });
+    }
+});
+
+/**
+ * @route   POST /api/hospital/patients/:id/payment
+ * @desc    Record a patient payment and auto-log as expense
+ * @access  Admin
+ */
+router.post('/:id/payment', requireHospitalRole(['Admin']), async (req, res) => {
+    try {
+        const data = cleanInputData(req.body);
+        const amountPaid = parseInt(data.amount || 0);
+        const paymentMethod = data.payment_method || 'Cash';
+        const screenshot = data.screenshot || '';
+
+        const patient = await HospitalPatient.findById(req.params.id);
+        if (!patient) return res.status(404).json({ success: false, error: 'Patient not found' });
+
+        const currentReceived = parseAmount(patient.receivedAmount);
+        const newTotal = currentReceived + amountPaid;
+
+        await HospitalPatient.findByIdAndUpdate(req.params.id, { $set: { receivedAmount: String(newTotal) } });
+
+        // Auto-log as incoming expense
+        const expenseNote = `Partial payment from ${patient.name} via ${paymentMethod}`;
+        const expense = new HospitalExpense({
+            type: 'incoming',
+            amount: amountPaid,
+            category: 'Patient Fee',
+            description: expenseNote,
+            note: expenseNote,
+            paymentMethod,
+            patient_id: req.params.id,
+            screenshot,
+            date: new Date(),
+            recorded_by: req.session?.hospitalUsername || 'Admin',
+            auto: true,
+        });
+        await expense.save();
+
+        return res.json({ success: true, message: 'Payment recorded successfully', new_total: newTotal });
+    } catch (error) {
+        console.error('Patient payment error:', error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/hospital/patients/:id/payment_history
+ * @desc    Get payment history for a patient
+ * @access  Admin
+ */
+router.get('/:id/payment_history', requireHospitalRole(['Admin']), async (req, res) => {
+    try {
+        const patient = await HospitalPatient.findById(req.params.id);
+        if (!patient) return res.json([]);
+
+        const targetName = (patient.name || '').trim().toLowerCase();
+        const targetIdStr = req.params.id;
+
+        const cursor = await HospitalExpense.find({ type: 'incoming', category: 'Patient Fee' }).sort({ date: 1 });
+
+        const history = cursor.filter((doc) => {
+            const docPatientId = String(doc.patient_id || '');
+            if (docPatientId === targetIdStr) return true;
+            const note = (doc.note || doc.description || '').toLowerCase();
+            return targetName && note.includes(`from ${targetName}`);
+        }).map((doc) => ({
+            _id: doc._id.toString(),
+            amount: doc.amount,
+            date: doc.date ? doc.date.toISOString().split('T')[0] : '-',
+            payment_method: doc.paymentMethod || 'Cash',
+            note: doc.note || doc.description || '',
+            recorded_by: doc.recorded_by || 'Admin',
+        }));
+
+        return res.json(history);
+    } catch (error) {
+        console.error('Payment history error:', error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/hospital/patients/:id/discharge-bill
+ * @desc    Generate discharge bill Excel
+ * @access  Admin, Doctor
+ */
+router.get('/:id/discharge-bill', requireHospitalRole(['Admin', 'Doctor']), async (req, res) => {
+    try {
+        const patient = await HospitalPatient.findById(req.params.id).lean();
+        if (!patient) return res.status(404).json({ success: false, error: 'Patient not found' });
+
+        // Days elapsed
+        let daysElapsed = 0;
+        if (patient.admissionDate) {
+            try {
+                const admDt = new Date(patient.admissionDate);
+                daysElapsed = Math.max(0, Math.floor((new Date() - admDt) / (1000 * 60 * 60 * 24)));
+            } catch (_) { }
+        }
+
+        // Canteen total for this patient
+        const canteenAgg = await CanteenSale.aggregate([
+            { $match: { patient_id: patient._id } },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]);
+        const canteenTotal = canteenAgg[0]?.total || 0;
+
+        const monthlyFee = calculateProratedFee(patient.monthlyFee, daysElapsed);
+        const laundryAmount = patient.laundryStatus ? (patient.laundryAmount || 0) : 0;
+        const receivedAmount = parseAmount(patient.receivedAmount);
+        const totalCharges = monthlyFee + canteenTotal + laundryAmount;
+        const balanceDue = totalCharges - receivedAmount;
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Discharge Bill');
+
+        worksheet.columns = [
+            { header: 'Patient Name', key: 'patient_name', width: 20 },
+            { header: 'Father Name', key: 'father_name', width: 20 },
+            { header: 'CNIC', key: 'cnic', width: 18 },
+            { header: 'Admission Date', key: 'admission_date', width: 18 },
+            { header: 'Discharge Date', key: 'discharge_date', width: 18 },
+            { header: 'Days Stayed', key: 'days_stayed', width: 12 },
+            { header: 'Monthly Fee', key: 'monthly_fee', width: 14 },
+            { header: 'Canteen Charges', key: 'canteen', width: 16 },
+            { header: 'Laundry Charges', key: 'laundry', width: 16 },
+            { header: 'Total Charges', key: 'total_charges', width: 15 },
+            { header: 'Amount Paid', key: 'amount_paid', width: 14 },
+            { header: 'Balance Due', key: 'balance_due', width: 14 },
+        ];
+
+        // Style header
+        worksheet.getRow(1).eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF366092' } };
+            cell.alignment = { horizontal: 'center', wrapText: true };
+        });
+
+        worksheet.addRow({
+            patient_name: patient.name || '',
+            father_name: patient.fatherName || '',
+            cnic: patient.cnic || '',
+            admission_date: patient.admissionDate || '',
+            discharge_date: patient.dischargeDate || new Date().toISOString().split('T')[0],
+            days_stayed: daysElapsed,
+            monthly_fee: monthlyFee,
+            canteen: canteenTotal,
+            laundry: laundryAmount,
+            total_charges: totalCharges,
+            amount_paid: receivedAmount,
+            balance_due: balanceDue,
+        });
+
+        worksheet.pageSetup = { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 1 };
+
+        const filename = `discharge_bill_${(patient.name || 'patient').replace(/\s+/g, '_')}.xlsx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        console.error('Discharge bill error:', error);
+        return res.status(500).json({ success: false, message: error.message });
     }
 });
 

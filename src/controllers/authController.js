@@ -154,6 +154,14 @@ const login = async (req, res) => {
     // Generate JWT token
     const token = generateToken(user._id);
 
+    // Bridge session for Hospital PMS users
+    if (user.productId === 'hospital-pms') {
+      req.session.hospitalUserId = user._id.toString();
+      req.session.hospitalUsername = user.email;
+      req.session.hospitalRole = 'Admin';
+      req.session.isMasterUser = true;
+    }
+
     res.status(200).json({
       success: true,
       message: 'Login successful',

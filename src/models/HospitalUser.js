@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Hospital PMS User Schema
@@ -73,6 +74,6 @@ hospitalUserSchema.methods.comparePassword = async function (candidatePassword) 
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
-const HospitalUser = mongoose.model('HospitalUser', hospitalUserSchema);
+const HospitalUser = getHospitalDB().model('HospitalUser', hospitalUserSchema);
 
 module.exports = HospitalUser;

@@ -132,4 +132,25 @@ router.get('/admissions', requireHospitalAuth, async (req, res) => {
     }
 });
 
+/**
+ * @route   GET /api/hospital/dashboard/debug
+ * @desc    Debug dashboard data
+ * @access  Private
+ */
+router.get('/debug', requireHospitalAuth, async (req, res) => {
+    try {
+        const patients = await HospitalPatient.find({}, { name: 1, isDischarged: 1 });
+        const canteen = await CanteenSale.find().limit(10);
+
+        return res.json({
+            success: true,
+            patientsCount: patients.length,
+            canteenSample: canteen,
+            session: req.session,
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;
