@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Cloud Care Systems</title>
+<link rel="icon" type="image/png" href="../images/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            --secondary-bg: #F9FAFB;
+            --text-dark: #111827;
+            --text-gray: #6B7280;
+            --white: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+
+        .d-flex {
+            display: flex !important;
+        }
+
+        .align-items-center {
+            align-items: center !important;
+        }
+
+        .justify-content-between {
+            justify-content: space-between !important;
+        }
+
+        .w-100 {
+            width: 100% !important;
+        }
+
+        .d-none {
+            display: none !important;
+        }
+
+        @media (min-width: 992px) {
+            .d-lg-flex {
+                display: flex !important;
+            }
+
+            .d-lg-none {
+                display: none !important;
+            }
+
+            .d-lg-block {
+                display: block !important;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1200px;
+            /* background: rgba(255, 255, 255, 0.8) !important; */
+            background: rgba(255, 255, 255, 0.95) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 100px;
+            padding: 0.8rem 1.5rem !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2000;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 991px) {
+            .navbar {
+                width: 95%;
+                border-radius: 30px;
+                padding: 0.6rem 1.2rem !important;
+                flex-wrap: wrap;
+                flex-wrap: wrap;
+            }
+
+            .nav-links {
+                display: none !important;
+            }
+
+            .mobile-menu {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                gap: 15px;
+                padding-top: 20px;
+                text-align: center;
+            }
+
+            .mobile-menu.active {
+                display: flex !important;
+            }
+
+            .mobile-menu .btn {
+                color: #ffffff !important;
+                width: 100%;
+            }
+
+            .navbar-toggler {
+                border: none;
+                background: none;
+                color: var(--text-dark);
+                padding: 0;
+            }
+
+            .btn-nav-primary {
+                padding: 0.5rem 1.2rem !important;
+                font-size: 0.8rem !important;
+            }
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: 28px;
+            height: 28px;
+        }
+
+        @media (min-width: 992px) {
+            .brand-logo {
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        .brand-text {
+            font-size: 16px;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (min-width: 992px) {
+            .brand-text {
+                font-size: 20px;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-gray);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        .btn-nav-primary {
+            background: var(--primary-color);
+            color: white !important;
+            padding: 0.7rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: none;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        @media (min-width: 1200px) {
+            .btn-nav-primary {
+                padding: 0.7rem 2.2rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        .btn-nav-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Mobile Menu Button (Hidden on Desktop) */
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        .contact-hero {
+            padding: 120px 5% 40px;
+            /* Increased to clear navbar */
+            text-align: center;
+            background-color: var(--secondary-bg);
+        }
+
+        @media (min-width: 992px) {
+            .contact-hero {
+                padding: 140px 5% 60px;
+            }
+        }
+
+        .contact-hero h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (min-width: 992px) {
+            .contact-hero h1 {
+                font-size: 3rem;
+            }
+        }
+
+
+
+        /* --- Contact Section Styles --- */
+        .contact-section {
+            padding: 4rem 5%;
+            background-color: #ffffff;
+            color: #111827;
+        }
+
+        .contact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .header-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .header-text h2 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .header-text .highlight {
+            color: var(--primary-color);
+        }
+
+        .header-text p {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            max-width: 500px;
+        }
+
+        .header-image {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            min-width: 300px;
+        }
+
+        .header-image img {
+            max-width: 350px;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .contact-grid {
+            display: flex;
+            gap: 4rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        /* Form Card */
+        .form-card {
+            flex: 2;
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f3f4f6;
+            min-width: 300px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            color: #1f2937;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            background-color: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        textarea.form-control {
+            padding: 14px;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Info Card */
+        .info-card {
+            flex: 1;
+            background-color: #F3F4F6;
+            padding: 2rem;
+            border-radius: 16px;
+            min-width: 280px;
+            margin-top: 2rem;
+        }
+
+        .info-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .info-content h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .info-content p,
+        .info-content a {
+            color: #4B5563;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            text-decoration: none;
+            display: block;
+        }
+
+        /* --- Responsive Design (Mobile) --- */
+        @media (max-width: 900px) {
+            .contact-grid {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .form-card,
+            .info-card {
+                width: 100%;
+            }
+
+            .header-image {
+                justify-content: center;
+            }
+
+            .header-text {
+                text-align: center;
+            }
+
+            .header-image img {
+                max-width: 280px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                /* Hide by default on mobile */
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--white);
+                padding: 2rem;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+
+            .nav-links.active {
+                display: flex;
+                /* Show when active */
+            }
+
+            .nav-links a {
+                width: 100%;
+                padding: 10px;
+                display: block;
+            }
+
+            .navbar {
+                padding: 1rem 5%;
+            }
+
+            .header-text h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<div class="mouse-cursor cursor-outer"></div>
+<div class="mouse-cursor cursor-inner"></div>
+
+<style>
+    /* --- MOUSE CURSOR STYLES --- */
+    .mouse-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none; /* Click through */
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999; /* Sab se upar */
+        transition: width 0.3s, height 0.3s, background-color 0.3s;
+    }
+
+    /* Inner Dot */
+    .cursor-inner {
+        width: 8px;
+        height: 8px;
+        background-color: #4f46e5; /* Theme Purple */
+    }
+
+    /* Outer Ring with Medical Plus */
+    .cursor-outer {
+        width: 40px;
+        height: 40px;
+        border: 1px solid rgba(79, 70, 229, 0.5);
+        background-color: rgba(79, 70, 229, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+    }
+
+    /* The Plus Sign (+) */
+    .cursor-outer::after {
+        content: '+';
+        font-family: Arial, sans-serif;
+        font-size: 20px;
+        color: #4f46e5;
+        font-weight: 300;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+    }
+
+    /* Hover Effect (Expand) */
+    body.mouse-hover .cursor-outer {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(79, 70, 229, 0.1);
+        border-color: #4f46e5;
+    }
+
+    body.mouse-hover .cursor-inner {
+        opacity: 0; /* Dot gayab */
+    }
+
+    body.mouse-hover .cursor-outer::after {
+        opacity: 1;
+        transform: scale(1.2) rotate(90deg); /* Rotate animation */
+    }
+
+    /* Hide on Mobile */
+    @media (max-width: 991px) {
+        .mouse-cursor { display: none; }
+    }
+
+    /* --- BUBBLE STYLES --- */
+    .magic-bubble {
+        position: fixed;
+        border-radius: 50%;
+        /* Glassy Purple Bubble */
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(79, 70, 229, 0.6));
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        pointer-events: none;
+        z-index: 9998; /* Cursor k neeche */
+        
+        /* Initial State for Animation */
+        top: var(--start-y);
+        left: var(--start-x);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+
+        /* Animation Call */
+        animation: floatToCeiling var(--duration) ease-out forwards;
+    }
+
+    @keyframes floatToCeiling {
+        0% {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            top: var(--start-y);
+        }
+        10% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        85% {
+            /* Chatt (Ceiling) par pohanch gaya */
+            top: 0px; 
+            transform: translate(-50%, 0) scale(1);
+            opacity: 0.8;
+        }
+        100% {
+            /* Pop & Vanish */
+            top: -10px;
+            transform: translate(-50%, -20px) scale(1.5); /* Thora phool kr phat gaya */
+            opacity: 0;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // --- PART A: MOUSE TRACKER LOGIC ---
+        const cursorInner = document.querySelector('.cursor-inner');
+        const cursorOuter = document.querySelector('.cursor-outer');
+        
+        let mouseX = 0;
+        let mouseY = 0;
+        let outerX = 0;
+        let outerY = 0;
+        const speed = 0.15; // Elasticity Speed
+
+        // Track Mouse
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Inner Dot moves instantly
+            cursorInner.style.left = mouseX + 'px';
+            cursorInner.style.top = mouseY + 'px';
+        });
+
+        // Animation Loop for Outer Ring
+        function animateCursor() {
+            outerX += (mouseX - outerX) * speed;
+            outerY += (mouseY - outerY) * speed;
+            
+            cursorOuter.style.left = outerX + 'px';
+            cursorOuter.style.top = outerY + 'px';
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Hover Effect on Clickable Items
+        const clickables = document.querySelectorAll('a, button, .btn, .card, input, textarea');
+        clickables.forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('mouse-hover'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('mouse-hover'));
+        });
+
+
+        // --- PART B: BUBBLE CLICK LOGIC ---
+        document.addEventListener('click', function(e) {
+            
+            // Create Bubble
+            const bubble = document.createElement('div');
+            bubble.classList.add('magic-bubble');
+
+            // 1. Random Size
+            const size = Math.random() * 20 + 15; // 15px se 35px
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+
+            // 2. Position Set (CSS Variables)
+            bubble.style.setProperty('--start-x', `${e.clientX}px`);
+            bubble.style.setProperty('--start-y', `${e.clientY}px`);
+
+            // 3. Dynamic Duration (Distance to Top)
+            // Jitna neeche click, utna time lagega upar jane mein (Realistic Physics)
+            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8; 
+            bubble.style.setProperty('--duration', `${duration}s`);
+
+            // 4. Random Wobble (Thora left-right hilna)
+            const wobble = (Math.random() - 0.5) * 30;
+            bubble.style.marginLeft = `${wobble}px`;
+
+            document.body.appendChild(bubble);
+
+            // Cleanup after animation
+            setTimeout(() => {
+                bubble.remove();
+            }, duration * 1000 + 100); 
+        });
+
+    });
+</script>
+<body>
+    <nav class="navbar">
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <a class="navbar-brand" href="../../index.html">
+                <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
+                <span class="brand-text">Cloud Care Systems.</span>
+            </a>
+
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler d-lg-none" type="button" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
+            </button>
+
+            <!-- Desktop Nav Links -->
+            <div class="nav-links d-none d-lg-flex">
+                <a href="../../index.html">Home</a>
+                <a href="f.html">Features</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="Contact.html" class="active" style="color: var(--primary-color); font-weight: 600;">Contact</a>
+            </div>
+
+            <a href="#" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
+        </div>
+
+        <!-- Mobile Menu (Collapsible) -->
+        <div class="nav-links mobile-menu d-lg-none" id="mobileMenu">
+            <a href="../../index.html">Home</a>
+            <a href="f.html">Features</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="Contact.html" class="active" style="color: var(--primary-color);">Contact</a>
+            <a href="#" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
+        </div>
+    </nav>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+    </script>
+
+    <section class="contact-section">
+        <div class="contact-header">
+            <div class="header-text">
+                <h2>Questions? <span class="highlight">Let's talk.</span></h2>
+                <p>We're here to answer your questions regarding our services. Fill out the form and we'll be in touch
+                    as
+                    soon as possible.</p>
+            </div>
+            <div class="header-image">
+                <img src="https://img.freepik.com/free-vector/flat-design-illustration-customer-support_23-2148887720.jpg?w=740"
+                    alt="Contact Support Illustration">
+            </div>
+        </div>
+
+        <div class="contact-grid">
+
+            <div class="form-card">
+                <form>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fa-regular fa-user"></i>
+                            <input type="text" class="form-control" placeholder="Enter Your Full Name">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <div class="input-wrapper">
+                            <i class="fa-regular fa-envelope"></i>
+                            <input type="email" class="form-control" placeholder="Enter Your Email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" class="form-control" style="padding-left: 14px;"
+                            placeholder="I need a PMS for my clinic">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea class="form-control" placeholder="Tell us about your requirement..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Send Message</button>
+                </form>
+            </div>
+
+            <div class="info-card">
+                <h3>Contact Information</h3>
+
+                <div class="info-item">
+                    <div class="info-icon"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="info-content">
+                        <h4>Email Us</h4>
+                        <a href="mailto:hashim@codedclouds.org">hashim@codedclouds.org</a>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon"><i class="fa-solid fa-phone-volume"></i></div>
+                    <div class="info-content">
+                        <h4>Call Us</h4>
+                        <p>+966-557385262</p>
+                        <p>+92 302 5815858</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <style>
+        .pms-footer {
+            background-color: #0F172A;
+            /* Dark Theme Bg */
+            color: #9CA3AF;
+            /* Gray Text */
+            padding: 1.5rem 5%;
+            font-family: 'Inter', sans-serif;
+            border-top: 1px solid #1E293B;
+            font-size: 0.9rem;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .footer-center {
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-center strong {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .footer-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            margin-left: 20px;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+            .footer-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links a {
+                margin: 0 10px;
+            }
+        }
+    </style>
+
+    <footer class="pms-footer">
+        <div class="footer-container">
+
+            <div class="footer-left">
+                &copy; 2026 Cloud Care System. All rights reserved.
+            </div>
+
+            <a href="https://codedclouds.org">
+                <div class="footer-center">
+                    Powered by <strong>CODED CLOUDS</strong> <i class="fa-solid fa-bolt"></i>
+                </div>
+            </a>
+
+            <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+            </div>
+
+        </div>
+    </footer>
+    <script>
+        const menuToggle = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('nav-links');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+
+            // Toggle Icon
+            const icon = menuToggle.querySelector('i');
+            if (navLinks.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            } else {
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
+        });
+    </script>
+
+</body>
+
+</html>
