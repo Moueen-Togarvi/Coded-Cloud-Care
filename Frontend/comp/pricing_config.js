@@ -33,7 +33,7 @@ const pricingData = [
     },
     {
         id: "pharmacy-pos",
-        name: "Pharamacy POS",
+        name: "Pharmacy POS",
         description: "Efficient Point of Sale for pharmacies.",
         highlight: false,
         image: "../images/d1.png",

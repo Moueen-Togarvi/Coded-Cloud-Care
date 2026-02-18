@@ -9,12 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const tierParam = urlParams.get('tier');
   const planName = urlParams.get('planName') || 'Basic Plan';
   const price = urlParams.get('price');
-  const productId = urlParams.get('product') || 'hospital-pms';
+  const productId = urlParams.get('product'); // Don't default to hospital-pms here
 
   // Extract and use software name from global config
-  const softwareName = (window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId])
+  const softwareName = (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId])
     ? window.PRODUCT_CONFIG[productId].name
-    : 'Hospital PMS';
+    : 'Select Software';
 
   // Map pricing page parameters to backend plan types
   // Valid plan types: 'subscription', 'one-time', 'white-label', 'basic'
@@ -115,6 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Redirect immediately using central config
       if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
+        // Save the new productId as well to ensure future logins go to the right place
+        saveAuthToken(data.data.token, productId);
         window.location.href = window.PRODUCT_CONFIG[productId].landingPage;
       } else {
         window.location.href = '/Frontend/comp/dashboard.html';

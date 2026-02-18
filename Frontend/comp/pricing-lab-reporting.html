@@ -624,81 +624,83 @@
             <!-- Tiered cards will be injected here -->
         </div>
     </section>
+    function renderTieredCards() {
+    // Hardcoded ID for this specific page
+    const productId = 'lab-reporting';
 
-    <script>
-        function renderTieredCards() {
-            // Hardcoded ID for this specific page
-            const productId = 'lab-reporting';
+    // Check if pricingData is loaded
+    if (typeof pricingData === 'undefined') {
+    console.error("pricingData is undefined. Script might not be loaded.");
+    document.getElementById('product-name').textContent = "Error Loading Data";
+    return;
+    }
 
-            // Check if pricingData is loaded
-            if (typeof pricingData === 'undefined') {
-                console.error("pricingData is undefined. Script might not be loaded.");
-                document.getElementById('product-name').textContent = "Error Loading Data";
-                return;
-            }
+    const product = pricingData.find(p => p.id === productId);
+    if (!product) {
+    document.getElementById('product-name').textContent = "Product Not Found";
+    document.getElementById('product-desc').innerHTML = "Please select a product from the <a href='pricing.html'
+        style='color: var(--primary-color); text-decoration: underline;'>Pricing Page</a>.";
+    return;
+    }
 
-            const product = pricingData.find(p => p.id === productId);
-            if (!product) {
-                document.getElementById('product-name').textContent = "Product Not Found";
-                document.getElementById('product-desc').innerHTML = "Please select a product from the <a href='pricing.html' style='color: var(--primary-color); text-decoration: underline;'>Pricing Page</a>.";
-                return;
-            }
+    document.getElementById('product-name').textContent = product.name;
+    document.getElementById('product-desc').textContent = product.description;
 
-            document.getElementById('product-name').textContent = product.name;
-            document.getElementById('product-desc').textContent = product.description;
+    const container = document.getElementById('tiered-cards-container');
 
-            const container = document.getElementById('tiered-cards-container');
+    const tiers = [
+    { key: 'monthly', data: product.pricing.monthly, label: 'Monthly' },
+    { key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true },
+    { key: 'outright', data: product.pricing.outright, label: 'Lifetime' }
+    ];
 
-            const tiers = [
-                { key: 'monthly', data: product.pricing.monthly, label: 'Monthly' },
-                { key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true },
-                { key: 'outright', data: product.pricing.outright, label: 'Lifetime' }
-            ];
-
-            container.innerHTML = tiers.map(tier => `
-        <div class="price-card ${tier.featured ? 'featured' : ''}">
-          ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
-          <div class="plan-tier">${tier.label} Access</div>
-          <div class="price-value">
+    container.innerHTML = tiers.map(tier => `
+    <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}">
+        ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
+        <div class="plan-tier">${tier.label} Access</div>
+        <div class="price-value">
             <span class="currency">PKR</span> ${tier.data.price}
             <span class="price-period">/${tier.data.period}</span>
-          </div>
-          
-          <ul class="features-list">
-            ${product.features.map(f => `
-                <li><i class="fa-solid fa-circle-check"></i> ${f}</li>
-            `).join('')}
-          </ul>
-
-          <button class="btn-select" onclick="selectPlan('${product.id}', '${tier.key}')">
-            Select Plan
-          </button>
         </div>
-      `).join('');
-        }
 
-        function selectPlan(planId, tierKey) {
-            const plan = pricingData.find(p => p.id === planId);
-            if (!plan) return;
+        <ul class="features-list">
+            ${product.features.map(f => `
+            <li><i class="fa-solid fa-circle-check"></i> ${f}</li>
+            `).join('')}
+        </ul>
 
-            const tier = plan.pricing[tierKey];
+        <button id="btn-select-${tier.key}-${productId}" class="btn-select"
+            onclick="selectPlan('${product.id}', '${tier.key}')">
+            Select Plan
+        </button>
+    </div>
+    `).join('');
+    }
 
-            // Map tier keys to plan types expected by backend
-            const planTypeMap = {
-                'monthly': 'subscription',
-                'yearly': 'subscription',
-                'outright': 'one-time'
-            };
+    function selectPlan(planId, tierKey) {
+    const plan = pricingData.find(p => p.id === planId);
+    if (!plan) return;
 
-            const planType = planTypeMap[tierKey] || 'subscription';
-            const planName = `${plan.name} - ${tier.label}`;
-            const price = tier.price;
+    const tier = plan.pricing[tierKey];
 
-            window.location.href = `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
-        }
+    // Map tier keys to plan types expected by backend
+    const planTypeMap = {
+    'monthly': 'subscription',
+    'yearly': 'subscription',
+    'outright': 'one-time'
+    };
 
-        // Run when DOM is ready
-        document.addEventListener('DOMContentLoaded', renderTieredCards);
+    const planType = planTypeMap[tierKey] || 'subscription';
+    const planName = `${plan.name} - ${tier.label}`;
+    const price = tier.price;
+
+    // Redirect to signup with plan information
+    window.location.href =
+    `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
+    }
+
+    // Run when DOM is ready
+    document.addEventListener('DOMContentLoaded', renderTieredCards);
     </script>
 </body>
 

@@ -1489,12 +1489,12 @@
             height: auto;
             max-height: 100px;
             /* Logo ka size control karo */
- 
+
             transition: all 0.3s;
         }
 
         /* HOVER EFFECT (Mouse le janay par color aye) */
-        .slide img:hover {  
+        .slide img:hover {
             transform: scale(1.1);
         }
 
@@ -1928,233 +1928,266 @@
     <!--priceeeeeeeee-->
     <style>
         /* --- THEME COLOR VARIABLE (From your image) --- */
-:root {
-    --theme-purple: #4f46e5; /* Ye tumhari image wala color hai */
-}
+        :root {
+            --theme-purple: #4f46e5;
+            /* Ye tumhari image wala color hai */
+        }
 
-/* --- SECTION BASE (Light Background) --- */
-.software-selector-light {
-    padding: 80px 0;
-    background-color: #f8fafc; /* Very Light Grey/White */
-    position: relative;
-    overflow: hidden;
-}
+        /* --- SECTION BASE (Light Background) --- */
+        .software-selector-light {
+            padding: 80px 0;
+            background-color: #f8fafc;
+            /* Very Light Grey/White */
+            position: relative;
+            overflow: hidden;
+        }
 
-/* Add some faint blobs in background for glass effect to show */
-.software-selector-light::before {
-    content: '';
-    position: absolute;
-    top: -10%;
-    left: -10%;
-    width: 40%;
-    height: 40%;
-    background: var(--theme-purple);
-    filter: blur(120px);
-    opacity: 0.1;
-    z-index: 0;
-}
+        /* Add some faint blobs in background for glass effect to show */
+        .software-selector-light::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 40%;
+            height: 40%;
+            background: var(--theme-purple);
+            filter: blur(120px);
+            opacity: 0.1;
+            z-index: 0;
+        }
 
-/* --- BENTO GRID LAYOUT --- */
-.light-bento-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 200px);
-    gap: 20px;
-    max-width: 1100px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-}
+        /* --- BENTO GRID LAYOUT --- */
+        .light-bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 200px);
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
 
-/* --- LIGHT GLASS CARDS --- */
-.glass-bento-card {
-    background: rgba(255, 255, 255, 0.7); /* White Transparent */
-    backdrop-filter: blur(20px); /* THE FROSTED GLASS EFFECT */
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 24px;
-    padding: 25px;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1); /* Soft Shadow */
-}
+        /* --- LIGHT GLASS CARDS --- */
+        .glass-bento-card {
+            background: rgba(255, 255, 255, 0.7);
+            /* White Transparent */
+            backdrop-filter: blur(20px);
+            /* THE FROSTED GLASS EFFECT */
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            /* Soft Shadow */
+        }
 
-/* Hover Effect: Purple Border & Glow */
-.glass-bento-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    border-color: var(--theme-purple);
-    box-shadow: 0 15px 35px rgba(79, 70, 229, 0.2); /* Purple shadow */
-}
+        /* Hover Effect: Purple Border & Glow */
+        .glass-bento-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--theme-purple);
+            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.2);
+            /* Purple shadow */
+        }
 
-/* Text Colors for Light BG */
-.glass-bento-card h3 {
-    color: #1e293b; /* Dark Text */
-    font-weight: 700;
-    font-size: 1.4rem;
-    margin-bottom: 5px;
-}
+        /* Text Colors for Light BG */
+        .glass-bento-card h3 {
+            color: #1e293b;
+            /* Dark Text */
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
 
-.glass-bento-card p {
-    color: #64748b; /* Medium Grey Text */
-    font-size: 0.9rem;
-    margin: 0;
-}
+        .glass-bento-card p {
+            color: #64748b;
+            /* Medium Grey Text */
+            font-size: 0.9rem;
+            margin: 0;
+        }
 
-/* --- GRID SPANS (Sizes) --- */
-.card-large-light { grid-column: span 2; }
-.card-tall-light { grid-row: span 2; }
-.card-wide-light { grid-column: span 2; }
+        /* --- GRID SPANS (Sizes) --- */
+        .card-large-light {
+            grid-column: span 2;
+        }
 
-/* --- ICONS & DECORATION --- */
-.icon-holder-light {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 15px;
-}
-.icon-holder-light img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    /* Light background k liye shadow adjust */ 
-}
+        .card-tall-light {
+            grid-row: span 2;
+        }
 
-/* Background Faded Icon */
-.bg-icon-light {
-    position: absolute;
-    bottom: -20px;
-    right: -20px;
-    font-size: 8rem;
-    color: rgba(0, 0, 0, 0.03); /* Very light grey icon */
-    transform: rotate(-15deg);
-    transition: transform 0.4s;
-}
-.glass-bento-card:hover .bg-icon-light {
-    transform: rotate(0deg) scale(1.1);
-    color: rgba(79, 70, 229, 0.05); /* Purple tint on hover */
-}
+        .card-wide-light {
+            grid-column: span 2;
+        }
 
-/* --- THEME TYPOGRAPHY & BADGE --- */
-.theme-badge {
-    background: rgba(79, 70, 229, 0.1); /* Light Purple BG */
-    color: var(--theme-purple);
-}
+        /* --- ICONS & DECORATION --- */
+        .icon-holder-light {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 15px;
+        }
 
-.theme-text-gradient {
-    background: linear-gradient(to right, var(--theme-purple), #818cf8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
+        .icon-holder-light img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Light background k liye shadow adjust */
+        }
 
-/* --- THEME SHINE BUTTON (Purple) --- */
-.theme-shine-btn {
-    position: relative;
-    display: inline-block;
-    padding: 15px 40px;
-    background: var(--theme-purple); /* Theme Color */
-    color: white;
-    font-weight: bold;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: 50px;
-    text-decoration: none;
-    overflow: hidden;
-    transition: transform 0.3s;
-    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
-}
+        /* Background Faded Icon */
+        .bg-icon-light {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 8rem;
+            color: rgba(0, 0, 0, 0.03);
+            /* Very light grey icon */
+            transform: rotate(-15deg);
+            transition: transform 0.4s;
+        }
 
-.theme-shine-btn:hover {
-    transform: scale(1.05);
-    color: white;
-    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.6);
-}
+        .glass-bento-card:hover .bg-icon-light {
+            transform: rotate(0deg) scale(1.1);
+            color: rgba(79, 70, 229, 0.05);
+            /* Purple tint on hover */
+        }
 
-/* The White Shine Line */
-.theme-shine-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.8) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: skewX(-25deg);
-    animation: shineEffect 3s infinite;
-}
+        /* --- THEME TYPOGRAPHY & BADGE --- */
+        .theme-badge {
+            background: rgba(79, 70, 229, 0.1);
+            /* Light Purple BG */
+            color: var(--theme-purple);
+        }
 
-/* --- MOBILE RESPONSIVE --- */
-@media (max-width: 991px) {
-    .light-bento-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto;
-        padding: 0 20px;
-    }
-    .card-large-light, .card-tall-light, .card-wide-light {
-        grid-column: span 1;
-        grid-row: auto;
-        min-height: 200px;
-    }
-    .bg-icon-light { font-size: 6rem; }
-}
+        .theme-text-gradient {
+            background: linear-gradient(to right, var(--theme-purple), #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- THEME SHINE BUTTON (Purple) --- */
+        .theme-shine-btn {
+            position: relative;
+            display: inline-block;
+            padding: 15px 40px;
+            background: var(--theme-purple);
+            /* Theme Color */
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 50px;
+            text-decoration: none;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .theme-shine-btn:hover {
+            transform: scale(1.05);
+            color: white;
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.6);
+        }
+
+        /* The White Shine Line */
+        .theme-shine-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.8) 50%,
+                    rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-25deg);
+            animation: shineEffect 3s infinite;
+        }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 991px) {
+            .light-bento-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                padding: 0 20px;
+            }
+
+            .card-large-light,
+            .card-tall-light,
+            .card-wide-light {
+                grid-column: span 1;
+                grid-row: auto;
+                min-height: 200px;
+            }
+
+            .bg-icon-light {
+                font-size: 6rem;
+            }
+        }
     </style>
     <!--ctaaaaaa-->
     <style>
         /* --- SECTION BASE --- */
-.video-cta-section {
-    padding: 100px 0;
-    background-color: #ffffff; /* Pure White Background */
-}
+        .video-cta-section {
+            padding: 100px 0;
+            background-color: #ffffff;
+            /* Pure White Background */
+        }
 
-/* --- VIDEO WRAPPER & STYLING --- */
-.video-wrapper-seamless {
-    width: 100%;
-    max-width: 900px; /* Bari screens par video bohat ziyada fail na jaye */
-    margin: 0 auto; /* Center align */
-    overflow: hidden;
-    /* Crucial: No border, no shadow requested */
-    border: none;
-    box-shadow: none;
-    background: transparent;
-}
+        /* --- VIDEO WRAPPER & STYLING --- */
+        .video-wrapper-seamless {
+            width: 100%;
+            max-width: 900px;
+            /* Bari screens par video bohat ziyada fail na jaye */
+            margin: 0 auto;
+            /* Center align */
+            overflow: hidden;
+            /* Crucial: No border, no shadow requested */
+            border: none;
+            box-shadow: none;
+            background: transparent;
+        }
 
-.scroll-video {
-    width: 100%;
-    height: 400px;
-    display: block; /* Removes bottom gap */
-    /* Ensure no native borders appear */
-    border: none;
-    outline: none;
-}
+        .scroll-video {
+            width: 100%;
+            height: 400px;
+            display: block;
+            /* Removes bottom gap */
+            /* Ensure no native borders appear */
+            border: none;
+            outline: none;
+        }
 
-/* --- CTA CONTENT STYLING --- */
-.cta-content-box h2 {
-    color: #1e293b; /* Clean Dark Text */
-    /* Optional: Agar heading bhi purple gradient karni hai to ye uncomment karo: */
-    /* background: linear-gradient(to right, #4f46e5, #818cf8);
+        /* --- CTA CONTENT STYLING --- */
+        .cta-content-box h2 {
+            color: #1e293b;
+            /* Clean Dark Text */
+            /* Optional: Agar heading bhi purple gradient karni hai to ye uncomment karo: */
+            /* background: linear-gradient(to right, #4f46e5, #818cf8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     */
-}
+        }
 
-/* Mobile Responsive Adjustments */
-@media (max-width: 768px) {
-    .video-cta-section {
-        padding: 60px 0;
-    }
-    .cta-content-box h2 {
-        font-size: 2rem; /* Heading thori choti mobile par */
-    }
-}
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 768px) {
+            .video-cta-section {
+                padding: 60px 0;
+            }
+
+            .cta-content-box h2 {
+                font-size: 2rem;
+                /* Heading thori choti mobile par */
+            }
+        }
     </style>
     <!--contactttt-->
     <style>
@@ -2225,91 +2258,91 @@
         }
 
         /* --- Footer Styles --- */
-.footer {
-    padding: 60px 0 30px 0;
-    background-color: #111827;
-    color: #d1d5db;
-    font-size: 0.95rem;
-}
+        .footer {
+            padding: 60px 0 30px 0;
+            background-color: #111827;
+            color: #d1d5db;
+            font-size: 0.95rem;
+        }
 
-.footer-brand {
-    color: white;
-    font-weight: 800;
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    display: block;
-    text-decoration: none;
-}
+        .footer-brand {
+            color: white;
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: block;
+            text-decoration: none;
+        }
 
-.footer h5 {
-    color: white;
-    font-weight: 700;
-    margin-bottom: 20px;
-    font-size: 1.1rem;
-}
+        .footer h5 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
 
-.footer-link {
-    color: #9ca3af;
-    text-decoration: none;
-    margin-bottom: 12px;
-    display: block;
-    transition: color 0.2s;
-}
+        .footer-link {
+            color: #9ca3af;
+            text-decoration: none;
+            margin-bottom: 12px;
+            display: block;
+            transition: color 0.2s;
+        }
 
-.footer-link:hover {
-    color: #4f46e5;
-}
+        .footer-link:hover {
+            color: #4f46e5;
+        }
 
-.social-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: white;
-    margin-right: 10px;
-    transition: 0.3s;
-    text-decoration: none;
-}
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            margin-right: 10px;
+            transition: 0.3s;
+            text-decoration: none;
+        }
 
-.social-icon:hover {
-    background: #4f46e5;
-    transform: translateY(-3px);
-}
+        .social-icon:hover {
+            background: #4f46e5;
+            transform: translateY(-3px);
+        }
 
-.footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 50px;
-    padding-top: 30px;
-    text-align: center;
-    font-size: 0.85rem;
-}
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px;
+            padding-top: 30px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
 
-.shiny-link {
-    font-weight: 800;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    background: linear-gradient(to right, #9ca3af 0%, #fff 50%, #9ca3af 100%);
-    background-size: 200% auto;
-    color: #fff;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shine-anim 3s linear infinite;
-}
+        .shiny-link {
+            font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #9ca3af 0%, #fff 50%, #9ca3af 100%);
+            background-size: 200% auto;
+            color: #fff;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine-anim 3s linear infinite;
+        }
 
-@keyframes shine-anim {
-    to {
-        background-position: 200% center;
-    }
-}
+        @keyframes shine-anim {
+            to {
+                background-position: 200% center;
+            }
+        }
 
-.shiny-link:hover {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
+        .shiny-link:hover {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
     </style>
     <style>
         /* --- BENTO BOX GRID FEATURE SECTION --- */
@@ -2428,10 +2461,12 @@
         position: fixed;
         top: 0;
         left: 0;
-        pointer-events: none; /* Click through */
+        pointer-events: none;
+        /* Click through */
         border-radius: 50%;
         transform: translate(-50%, -50%);
-        z-index: 9999; /* Sab se upar */
+        z-index: 9999;
+        /* Sab se upar */
         transition: width 0.3s, height 0.3s, background-color 0.3s;
     }
 
@@ -2439,7 +2474,8 @@
     .cursor-inner {
         width: 8px;
         height: 8px;
-        background-color: #4f46e5; /* Theme Purple */
+        background-color: #4f46e5;
+        /* Theme Purple */
     }
 
     /* Outer Ring with Medical Plus */
@@ -2474,17 +2510,21 @@
     }
 
     body.mouse-hover .cursor-inner {
-        opacity: 0; /* Dot gayab */
+        opacity: 0;
+        /* Dot gayab */
     }
 
     body.mouse-hover .cursor-outer::after {
         opacity: 1;
-        transform: scale(1.2) rotate(90deg); /* Rotate animation */
+        transform: scale(1.2) rotate(90deg);
+        /* Rotate animation */
     }
 
     /* Hide on Mobile */
     @media (max-width: 991px) {
-        .mouse-cursor { display: none; }
+        .mouse-cursor {
+            display: none;
+        }
     }
 
     /* --- BUBBLE STYLES --- */
@@ -2495,8 +2535,9 @@
         background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(79, 70, 229, 0.6));
         box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         pointer-events: none;
-        z-index: 9998; /* Cursor k neeche */
-        
+        z-index: 9998;
+        /* Cursor k neeche */
+
         /* Initial State for Animation */
         top: var(--start-y);
         left: var(--start-x);
@@ -2513,32 +2554,36 @@
             opacity: 0;
             top: var(--start-y);
         }
+
         10% {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
         }
+
         85% {
             /* Chatt (Ceiling) par pohanch gaya */
-            top: 0px; 
+            top: 0px;
             transform: translate(-50%, 0) scale(1);
             opacity: 0.8;
         }
+
         100% {
             /* Pop & Vanish */
             top: -10px;
-            transform: translate(-50%, -20px) scale(1.5); /* Thora phool kr phat gaya */
+            transform: translate(-50%, -20px) scale(1.5);
+            /* Thora phool kr phat gaya */
             opacity: 0;
         }
     }
 </style>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        
+    document.addEventListener("DOMContentLoaded", function () {
+
         // --- PART A: MOUSE TRACKER LOGIC ---
         const cursorInner = document.querySelector('.cursor-inner');
         const cursorOuter = document.querySelector('.cursor-outer');
-        
+
         let mouseX = 0;
         let mouseY = 0;
         let outerX = 0;
@@ -2549,7 +2594,7 @@
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
-            
+
             // Inner Dot moves instantly
             cursorInner.style.left = mouseX + 'px';
             cursorInner.style.top = mouseY + 'px';
@@ -2559,10 +2604,10 @@
         function animateCursor() {
             outerX += (mouseX - outerX) * speed;
             outerY += (mouseY - outerY) * speed;
-            
+
             cursorOuter.style.left = outerX + 'px';
             cursorOuter.style.top = outerY + 'px';
-            
+
             requestAnimationFrame(animateCursor);
         }
         animateCursor();
@@ -2576,8 +2621,8 @@
 
 
         // --- PART B: BUBBLE CLICK LOGIC ---
-        document.addEventListener('click', function(e) {
-            
+        document.addEventListener('click', function (e) {
+
             // Create Bubble
             const bubble = document.createElement('div');
             bubble.classList.add('magic-bubble');
@@ -2593,7 +2638,7 @@
 
             // 3. Dynamic Duration (Distance to Top)
             // Jitna neeche click, utna time lagega upar jane mein (Realistic Physics)
-            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8; 
+            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8;
             bubble.style.setProperty('--duration', `${duration}s`);
 
             // 4. Random Wobble (Thora left-right hilna)
@@ -2605,11 +2650,12 @@
             // Cleanup after animation
             setTimeout(() => {
                 bubble.remove();
-            }, duration * 1000 + 100); 
+            }, duration * 1000 + 100);
         });
 
     });
 </script>
+
 <body>
 
     <nav class="navbar">
@@ -2640,13 +2686,15 @@
             <a href="./Frontend/comp/Contact.html">Contact</a>
             <a href="#" class="btn btn-custom-primary w-100 mt-2">Book a Demo</a>
         </div>
-    </nav>    <script>
+    </nav>
+    <script>
         function toggleMenu() {
             const menu = document.getElementById('mobileMenu');
             menu.classList.toggle('active');
             // Re-initialize icons if needed, though simple toggle shouldn't need it
         }
-    </script> <style>
+    </script>
+    <style>
         /* Mobile Menu Specific Styles */
         @media (max-width: 991px) {
             .mobile-menu {
@@ -2662,7 +2710,8 @@
                 display: flex !important;
             }
         }
-    </style><section class="hero-section" data-aos="fade-up"
+    </style>
+    <section class="hero-section" data-aos="fade-up"
         style="position: relative; overflow: hidden; padding-left: 0; padding-right: 0;">
         <div class="hero-bg-shape"></div>
 
@@ -3412,102 +3461,112 @@
     </section>
     <!--priceeeeeeeeeee-->
     <section class="software-selector-light">
-    <div class="container">
-        
-        <div class="text-center mb-5">
-            <span class="badge theme-badge px-3 py-2 rounded-pill mb-3">Choose Your Solution</span>
-            <h2 class="fw-bold text-dark display-5">Select Your <span class="theme-text-gradient">Software</span></h2>
-            <p class="text-muted">Click on the module you want to purchase.</p>
+        <div class="container">
+
+            <div class="text-center mb-5">
+                <span class="badge theme-badge px-3 py-2 rounded-pill mb-3">Choose Your Solution</span>
+                <h2 class="fw-bold text-dark display-5">Select Your <span class="theme-text-gradient">Software</span>
+                </h2>
+                <p class="text-muted">Click on the module you want to purchase.</p>
+            </div>
+
+            <div class="light-bento-grid">
+
+                <a id="software-card-hospital" href="./Frontend/comp/pricing-hospital-pms.html"
+                    class="glass-bento-card card-large-light">
+                    <div class="card-content">
+                        <div class="icon-holder-light">
+                            <img src="./Frontend/images/icons-p/hos.png" alt="Hospital Icon">
+                        </div>
+                        <div>
+                            <h3>Hospital PMS</h3>
+                            <p>Complete Management for 100+ Beds</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-hospital bg-icon-light"></i>
+                </a>
+
+                <a id="software-card-pharmacy" href="./Frontend/comp/pricing-pharmacy-pos.html"
+                    class="glass-bento-card card-tall-light">
+                    <div class="card-content vertical-center">
+                        <div class="icon-holder-light mb-3">
+                            <img src="./Frontend/images/icons-p/pharma.png" alt="Pharmacy Icon">
+                        </div>
+                        <h3>Pharmacy<br>POS</h3>
+                        <p>Retail & Wholesale</p>
+                    </div>
+                    <i class="bi bi-capsule bg-icon-light"></i>
+                </a>
+
+                <a id="software-card-lab" href="./Frontend/comp/in-progress.html"
+                    class="glass-bento-card card-small-light">
+                    <div class="card-content">
+                        <div class="icon-holder-light">
+                            <img src="./Frontend/images/icons-p/testing.png" alt="Lab Icon">
+                        </div>
+                        <h3>Lab Reporting</h3>
+                    </div>
+                    <i class="bi bi-microscope bg-icon-light"></i>
+                </a>
+
+                <a id="software-card-clinic" href="./Frontend/comp/in-progress.html"
+                    class="glass-bento-card card-medium-light">
+                    <div class="card-content">
+                        <div class="icon-holder-light">
+                            <img src="./Frontend/images/icons-p/clinc.png" alt="Clinic Icon">
+                        </div>
+                        <div>
+                            <h3>Private Clinic</h3>
+                            <p>Specialist Practice Solution</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-person-pulse bg-icon-light"></i>
+                </a>
+
+                <a id="software-card-inventory" href="./Frontend/comp/in-progress.html"
+                    class="glass-bento-card card-wide-light">
+                    <div class="card-content">
+                        <div class="icon-holder-light">
+                            <img src="./Frontend/images/icons-p/stock.png" alt="Inventory Icon">
+                        </div>
+                        <div>
+                            <h3>Lab Inventory</h3>
+                            <p>Smart Reagent & Stock Tracking</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-box-seam bg-icon-light"></i>
+                </a>
+
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="./Frontend/comp/pricing.html" class="theme-shine-btn">
+                    View Full Pricing Plans
+                </a>
+            </div>
+
         </div>
-
-        <div class="light-bento-grid">
-
-            <a href="./Frontend/comp/pricing-hospital-pms.html" class="glass-bento-card card-large-light">
-                <div class="card-content">
-                    <div class="icon-holder-light">
-                         <img src="./Frontend/images/icons-p/hos.png" alt="Pharmacy Icon">
-                    </div>
-                    <div>
-                        <h3>Hospital PMS</h3>
-                        <p>Complete Management for 100+ Beds</p>
-                    </div>
-                </div>
-                <i class="bi bi-hospital bg-icon-light"></i>
-            </a>
-
-            <a href="./Frontend/comp/pricing-pharmacy-pos.html" class="glass-bento-card card-tall-light">
-                <div class="card-content vertical-center">
-                    <div class="icon-holder-light mb-3">
-                        <img src="./Frontend/images/icons-p/pharma.png" alt="Pharmacy Icon">
-                    </div>
-                    <h3>Pharmacy<br>POS</h3>
-                    <p>Retail & Wholesale</p>
-                </div>
-                <i class="bi bi-capsule bg-icon-light"></i>
-            </a>
-
-            <a href="./Frontend/comp/pricing-lab-reporting.html" class="glass-bento-card">
-                <div class="card-content">
-                    <div class="icon-holder-light">
-                        <img src="./Frontend/images/icons-p/lab.png" alt="Lab Icon">
-                    </div>
-                    <h3>Lab Reporting</h3>                    
-                    <p>Make Lab Work easy</p>
-                </div>
-            </a>
-
-            <a href= "./Frontend/comp/pricing-quick-invoice.html" class="glass-bento-card">
-                <div class="card-content">
-                    <div class="icon-holder-light">
-                        <img src="./Frontend/images/icons-p/inv.png" alt="Invoice Icon">
-                    </div>
-                    <h3>Quick Invoice</h3>
-                    <p>Manage you Invoices</p>
-                </div>
-            </a>
-
-            <a href="./Frontend/comp/pricing-private-clinic-lite.html" class="glass-bento-card card-wide-light">
-                <div class="card-content d-flex align-items-center gap-3">
-                    <div class="icon-holder-light small">
-                        <img src="./Frontend/images/icons-p/priv.png" alt="Doctor Icon">
-                    </div>
-                    <div>
-                        <h3 class="mb-0">Private Clinic Lite</h3>
-                        <small class="text-muted">For Solo Practitioners</small>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <div class="text-center mt-5">
-            <a href="./Frontend/comp/pricing.html" class="theme-shine-btn">
-                View Full Pricing Plans
-            </a>
-        </div>
-
-    </div>
-</section>
+    </section>
     <!--Ctaaaaaaaaa-->
     <section class="video-cta-section">
-    <div class="container text-center">
-        
-        <div class="video-wrapper-seamless">
-            <img src="./Frontend/images/doc.png" class="scroll-video" alt="">
-        </div>
+        <div class="container text-center">
 
-        <div class="cta-content-box mt-5">
-            <h2 class="fw-bold display-5 text-dark mb-4">
-                Ready to manage your Hospital?
-            </h2>
-            
-            <a href="demo.html" class="theme-shine-btn px-5 py-3">
-                Get a Free Demo
-            </a>
-        </div>
+            <div class="video-wrapper-seamless">
+                <img src="./Frontend/images/doc.png" class="scroll-video" alt="">
+            </div>
 
-    </div>
-</section> 
+            <div class="cta-content-box mt-5">
+                <h2 class="fw-bold display-5 text-dark mb-4">
+                    Ready to manage your Hospital?
+                </h2>
+
+                <a href="demo.html" class="theme-shine-btn px-5 py-3">
+                    Get a Free Demo
+                </a>
+            </div>
+
+        </div>
+    </section>
     <!--contactttt-->
     <section id="contact" class="contact-section">
         <div class="container">
@@ -3656,7 +3715,7 @@
         </div>
     </footer>
 
- 
+
 
 
 
@@ -3990,9 +4049,3 @@
 </body>
 
 </html>
-
-
-
-
-
-

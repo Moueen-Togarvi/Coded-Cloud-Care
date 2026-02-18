@@ -5,33 +5,28 @@ const PRODUCT_CONFIG = {
   'hospital-pms': {
     name: 'Hospital PMS',
     landingPage: '/hospital-pms',
-    description: 'Complete hospital management system',
-    keywords: ['hospital-pms', 'rooh', 'hms']
+    description: 'Complete hospital management system'
   },
-  pharmacy: {
-    name: 'Pharmacy Management',
+  'pharmacy-pos': {
+    name: 'Pharmacy POS',
     landingPage: '/Frontend/pharmacy/index.html',
-    description: 'Comprehensive pharmacy management solution',
-    keywords: ['pharmacy']
+    description: 'Comprehensive pharmacy management solution'
+  },
+  'lab-reporting': {
+    name: 'Lab Reporting',
+    landingPage: '/Frontend/comp/in-progress.html',
+    description: 'Pathology and diagnostic reporting'
   },
   'quick-invoice': {
     name: 'Quick Invoice',
-    landingPage: '/Frontend/comp/dashboard.html',
-    description: 'Fast and easy invoicing',
-    keywords: ['dashboard']
+    landingPage: '/Frontend/comp/in-progress.html',
+    description: 'Fast and easy invoicing'
   },
-  'asset-management': {
-    name: 'Asset Management',
-    landingPage: '/Frontend/comp/dashboard.html',
-    description: 'Track and manage your assets',
-    keywords: ['dashboard']
-  },
-  'ai-chatbot': {
-    name: 'AI Chatbot',
-    landingPage: '/Frontend/comp/dashboard.html',
-    description: 'Intelligent customer support',
-    keywords: ['dashboard']
-  },
+  'private-clinic-lite': {
+    name: 'Private Clinic Lite',
+    landingPage: '/Frontend/comp/in-progress.html',
+    description: 'Essential tools for private practitioners'
+  }
 };
 
 // Make it globally accessible
@@ -122,6 +117,16 @@ const isAuthenticated = () => {
 // Redirect to appropriate dashboard based on product ID
 const checkAuthAndRedirect = () => {
   if (isAuthenticated()) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlProductId = urlParams.get('product');
+
+    // If a specific product is requested in the URL, use that if valid
+    if (urlProductId && PRODUCT_CONFIG[urlProductId]) {
+      window.location.href = PRODUCT_CONFIG[urlProductId].landingPage;
+      return;
+    }
+
+    // Otherwise use the stored productId
     let productId = sessionStorage.getItem('productId') || localStorage.getItem('productId');
 
     if (productId && PRODUCT_CONFIG[productId]) {

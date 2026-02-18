@@ -660,7 +660,7 @@
             ];
 
             container.innerHTML = tiers.map(tier => `
-        <div class="price-card ${tier.featured ? 'featured' : ''}">
+        <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}">
           ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
           <div class="plan-tier">${tier.label} Access</div>
           <div class="price-value">
@@ -674,7 +674,7 @@
             `).join('')}
           </ul>
 
-          <button class="btn-select" onclick="selectPlan('${product.id}', '${tier.key}')">
+          <button id="btn-select-${tier.key}-${productId}" class="btn-select" onclick="selectPlan('${product.id}', '${tier.key}')">
             Select Plan
           </button>
         </div>
@@ -698,6 +698,7 @@
             const planName = `${plan.name} - ${tier.label}`;
             const price = tier.price;
 
+            // Ensure productId is passed to Signup.html
             window.location.href = `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
         }
 

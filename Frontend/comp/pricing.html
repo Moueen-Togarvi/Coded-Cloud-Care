@@ -1268,7 +1268,6 @@
       const price = tier.price;
 
       // Redirect to signup with plan information
-      // Using plan and planName parameters as expected by signup.js
       window.location.href = `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
     }
 
@@ -1286,13 +1285,13 @@
       const pageMap = {
         'hospital-pms': 'pricing-hospital-pms.html',
         'pharmacy-pos': 'pricing-pharmacy-pos.html',
-        'lab-reporting': 'pricing-lab-reporting.html',
-        'quick-invoice': 'pricing-quick-invoice.html',
-        'private-clinic-lite': 'pricing-private-clinic-lite.html'
+        'lab-reporting': 'in-progress.html',
+        'quick-invoice': 'in-progress.html',
+        'private-clinic-lite': 'in-progress.html'
       };
 
       container.innerHTML = pricingData.map(plan => `
-        <div class="software-card ${plan.highlight ? 'highlight' : ''}">
+        <div id="pricing-software-card-${plan.id}" class="software-card ${plan.highlight ? 'highlight' : ''}">
           <img src="${plan.image}" alt="${plan.name}" class="software-img">
           <div class="plan-name">${plan.name}</div>
           <p class="description">${plan.description}</p>
@@ -1303,7 +1302,7 @@
             `).join('')}
           </ul>
 
-          <a href="${pageMap[plan.id]}" class="btn-view-pricing">
+          <a id="btn-view-pricing-${plan.id}" href="${pageMap[plan.id]}" class="btn-view-pricing">
             Get Started
           </a>
         </div>
