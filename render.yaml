@@ -1,0 +1,11 @@
+services:
+  # Frontend Static Site
+  - type: web
+    name: pms-frontend
+    env: static
+    staticPublishPath: .
+    buildCommand: ""
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate

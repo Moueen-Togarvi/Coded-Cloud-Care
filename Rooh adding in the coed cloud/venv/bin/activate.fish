@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV '/home/moueen-togarvi/code/Dashboard-Site-health-coded/Rooh adding in the coed cloud/venv'
+set -gx VIRTUAL_ENV '/home/moueen-togarvi/code/Coded-Cloud-Care/Rooh adding in the coed cloud/venv'
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

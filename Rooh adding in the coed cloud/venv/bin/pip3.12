@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/home/moueen-togarvi/code/Dashboard-Site-health-coded/Rooh adding in the coed cloud/venv/bin/python3" "$0" "$@"
+'''exec' "/home/moueen-togarvi/code/Coded-Cloud-Care/Rooh adding in the coed cloud/venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

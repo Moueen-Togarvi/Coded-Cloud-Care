@@ -1,0 +1,17 @@
+/home/moueen-togarvi/code/Dashboard-Site-health-coded/src/controllers/pharmacyController.js:1309
+    recordSale,
+    ^
+
+ReferenceError: recordSale is not defined
+    at Object.<anonymous> (/home/moueen-togarvi/code/Dashboard-Site-health-coded/src/controllers/pharmacyController.js:1309:5)
+    at Module._compile (node:internal/modules/cjs/loader:1804:14)
+    at Object..js (node:internal/modules/cjs/loader:1936:10)
+    at Module.load (node:internal/modules/cjs/loader:1525:32)
+    at Module._load (node:internal/modules/cjs/loader:1327:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1548:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/home/moueen-togarvi/code/Dashboard-Site-health-coded/src/routes/pharmacy.js:38:5)
+
+Node.js v24.13.1
