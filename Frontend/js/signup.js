@@ -11,6 +11,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const price = urlParams.get('price');
   const productId = urlParams.get('product'); // Don't default to hospital-pms here
 
+  // Check for existing session and redirect if valid
+  const token = sessionStorage.getItem('authToken');
+  // Note: productId is already defined above, so we don't redeclare it here.
+
+  // If user is already logged in with a valid session, redirect
+  if (token && sessionStorage.getItem('loginTimestamp')) {
+    const now = Date.now();
+    const loginTimestamp = parseInt(sessionStorage.getItem('loginTimestamp'));
+    // Check if session is less than 1 minute old (for quick redirect after login)
+    if (now - loginTimestamp < 60000) {
+      if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
+        window.location.href = window.PRODUCT_CONFIG[productId].landingPage;
+        return;
+      }
+    } else {
+      // If session is older than 1 minute, clear it (it's handled by checkAuthAndRedirect for longer sessions)
+      sessionStorage.clear();
+    }
+  }
+
   // Extract and use software name from global config
   const softwareName = (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId])
     ? window.PRODUCT_CONFIG[productId].name

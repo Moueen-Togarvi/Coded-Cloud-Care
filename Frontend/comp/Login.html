@@ -418,6 +418,43 @@
         text-align: center;
       }
     }
+
+    /* Selected Software Info */
+    #selected-software-container {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: var(--bg-soft);
+      border-radius: 12px;
+      display: none;
+      /* Hidden by default, shown via JS */
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba(79, 70, 229, 0.1);
+    }
+
+    .selected-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    .selected-name {
+      font-weight: 700;
+      color: var(--text-dark);
+      font-size: 0.9rem;
+    }
+
+    .selected-label {
+      font-size: 0.75rem;
+      color: var(--text-gray);
+      display: block;
+    }
   </style>
 </head>
 <div class="mouse-cursor cursor-outer"></div>
@@ -715,6 +752,10 @@
         <div class="mobile-logo">
           <img src="../images/logo.png" alt="PMS Logo" style="height: 35px" />
           <span>PMS.</span>
+        </div>
+
+        <div id="selected-software-container">
+          <!-- Populated by JS -->
         </div>
 
         <div class="form-header">

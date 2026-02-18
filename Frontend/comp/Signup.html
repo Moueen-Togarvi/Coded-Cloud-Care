@@ -738,6 +738,17 @@
       </div>
     </div>
 
+    <script>
+      // Preserve product parameter in Login link
+      window.addEventListener('DOMContentLoaded', () => {
+        const loginLink = document.querySelector('.signup-link a[href="./Login.html"]');
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('product');
+        if (productId && loginLink) {
+          loginLink.href = `./Login.html?product=${productId}`;
+        }
+      });
+    </script>
     <!-- Auth Scripts -->
     <script src="../comp/pricing_config.js"></script>
     <script src="../js/auth.js"></script>

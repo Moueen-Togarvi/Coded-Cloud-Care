@@ -3,6 +3,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check if user is already logged in
   checkAuthAndRedirect();
 
+  // Show selected software if product param exists
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get('product');
+  const softwareContainer = document.getElementById('selected-software-container');
+
+  if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId] && softwareContainer) {
+    const product = window.PRODUCT_CONFIG[productId];
+
+    // Icon mapping based on product
+    const icons = {
+      'hospital-pms': 'fa-hospital',
+      'pharmacy-pos': 'fa-pills',
+      'lab-reporting': 'fa-flask',
+      'quick-invoice': 'fa-file-invoice-dollar',
+      'private-clinic-lite': 'fa-user-md'
+    };
+
+    const iconClass = icons[productId] || 'fa-cubes';
+
+    softwareContainer.innerHTML = `
+      <div id="selected-product-${productId}" class="selected-icon">
+        <i class="fa-solid ${iconClass}"></i>
+      </div>
+      <div>
+        <span class="selected-label">Logging into</span>
+        <span class="selected-name">${product.name}</span>
+      </div>
+    `;
+    softwareContainer.style.display = 'flex';
+  }
+
   const loginForm = document.querySelector('form');
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
@@ -43,15 +74,19 @@ document.addEventListener('DOMContentLoaded', () => {
       // Extract productId from response user data
       const userProductId = data.data.user ? data.data.user.productId : null;
 
+      // PRIORITIZE: If we have a product selection from the URL, use that.
+      // Otherwise fallback to what the server says about the user.
+      const finalProductId = productId || userProductId;
+
       // Save token using standard utility
-      saveAuthToken(data.data.token, userProductId);
+      saveAuthToken(data.data.token, finalProductId);
 
       // Show success message
       showSuccess('Login successful! Redirecting...');
 
       // Redirect immediately using central config
-      if (userProductId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[userProductId]) {
-        window.location.href = window.PRODUCT_CONFIG[userProductId].landingPage;
+      if (finalProductId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[finalProductId]) {
+        window.location.href = window.PRODUCT_CONFIG[finalProductId].landingPage;
       } else {
         window.location.href = '/Frontend/comp/dashboard.html';
       }

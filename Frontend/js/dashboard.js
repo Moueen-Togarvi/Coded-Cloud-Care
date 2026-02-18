@@ -6,18 +6,21 @@
       return true;
     }
 
-    const productId = sessionStorage.getItem('productId') || localStorage.getItem('productId');
+    const productId = sessionStorage.getItem('productId');
     const currentPath = window.location.pathname;
 
     // Use the central config for checks
     if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
       const config = window.PRODUCT_CONFIG[productId];
-      const isCorrectProduct = config.keywords.some(keyword =>
-        currentPath.toLowerCase().includes(keyword.toLowerCase())
+
+      // Relaxed check: Only redirect if they are on a DIFFERENT product's landing page
+      // but their productId is set to another. 
+      // For now, let's just make it less aggressive.
+      const belongsToAnotherProduct = Object.keys(window.PRODUCT_CONFIG).some(pid =>
+        pid !== productId && currentPath.includes(window.PRODUCT_CONFIG[pid].landingPage)
       );
 
-      // If they are on a page that doesn't match their product keywords, redirect them
-      if (!isCorrectProduct) {
+      if (belongsToAnotherProduct && !currentPath.includes(config.landingPage)) {
         console.warn(`Unauthorized access. Redirecting ${productId} to ${config.landingPage}`);
         window.location.href = config.landingPage;
         return true;
@@ -51,11 +54,12 @@ async function loadUserProfile() {
     if (data.success && data.data) {
       const user = data.data.user;
 
-      // Ensure local productId matches what's in the profile
-      if (user.productId) {
+      // Update productId ONLY if not already set or specifically changed
+      if (user.productId && !sessionStorage.getItem('productId')) {
         sessionStorage.setItem('productId', user.productId);
-        localStorage.setItem('productId', user.productId);
       }
+      // Never write to localStorage as per security policy
+      localStorage.removeItem('productId');
 
       displayUserInfo(user);
     } else {

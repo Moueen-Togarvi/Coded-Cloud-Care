@@ -81,37 +81,67 @@ const showInfo = (message) => {
 };
 
 // Token Management
+const SESSION_TIMEOUT = 1 * 60 * 1000; // 1 minute in milliseconds
+
 const saveAuthToken = (token, productId) => {
   sessionStorage.setItem('authToken', token);
   sessionStorage.setItem('token', token);
-  localStorage.setItem('authToken', token);
-  localStorage.setItem('token', token);
+  sessionStorage.setItem('loginTimestamp', Date.now().toString());
 
   if (productId) {
     sessionStorage.setItem('productId', productId);
-    localStorage.setItem('productId', productId);
   } else {
     sessionStorage.removeItem('productId');
-    localStorage.removeItem('productId');
   }
+
+  // Clear localStorage to ensure no persistent sessions
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
+  localStorage.removeItem('productId');
 };
 
 const getAuthToken = () => {
-  return sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+  return sessionStorage.getItem('authToken');
 };
 
 const removeAuthToken = () => {
   sessionStorage.removeItem('authToken');
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('productId');
+  sessionStorage.removeItem('loginTimestamp');
+
+  // Also clear localStorage
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
   localStorage.removeItem('productId');
 };
 
-// Check if user is authenticated
+// Check if user is authenticated and session is still valid
 const isAuthenticated = () => {
-  return !!getAuthToken();
+  const token = getAuthToken();
+  if (!token) return false;
+
+  const loginTimestamp = sessionStorage.getItem('loginTimestamp');
+  if (!loginTimestamp) return false;
+
+  const now = Date.now();
+  const elapsed = now - parseInt(loginTimestamp);
+
+  if (elapsed > SESSION_TIMEOUT) {
+    removeAuthToken();
+    return false;
+  }
+
+  // Update timestamp on activity (optional but requested "always auth mangy")
+  // For "always auth" we might NOT want to update it, but let's stick to simple expiry for now.
+  return true;
+};
+
+// Helper to enforce auth on a page
+const verifySession = () => {
+  if (!isAuthenticated()) {
+    window.location.href = '/Frontend/comp/Login.html';
+  }
 };
 
 // Redirect to appropriate dashboard based on product ID
@@ -180,6 +210,7 @@ if (typeof module !== 'undefined' && module.exports) {
     removeAuthToken,
     isAuthenticated,
     checkAuthAndRedirect,
+    verifySession,
     logout,
     authenticatedFetch,
   };
