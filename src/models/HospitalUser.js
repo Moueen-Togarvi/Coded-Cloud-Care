@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Hospital PMS User Schema
@@ -9,10 +8,15 @@ const { getHospitalDB } = require('../config/hospitalDatabase');
  */
 const hospitalUserSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         username: {
             type: String,
             required: true,
-            unique: true,
             trim: true,
             lowercase: true,
         },
@@ -33,7 +37,6 @@ const hospitalUserSchema = new mongoose.Schema(
         email: {
             type: String,
             required: true,
-            unique: true,
             lowercase: true,
             trim: true,
             validate: {
@@ -49,9 +52,9 @@ const hospitalUserSchema = new mongoose.Schema(
     }
 );
 
-// Index for faster queries
-hospitalUserSchema.index({ username: 1 });
-hospitalUserSchema.index({ email: 1 });
+// Compound unique indexes for multi-tenant isolation
+hospitalUserSchema.index({ tenantId: 1, username: 1 }, { unique: true });
+hospitalUserSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 hospitalUserSchema.index({ role: 1 });
 
 // Hash password before saving
@@ -74,6 +77,6 @@ hospitalUserSchema.methods.comparePassword = async function (candidatePassword) 
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
-const HospitalUser = getHospitalDB().model('HospitalUser', hospitalUserSchema);
+const HospitalUser = mongoose.model('HospitalUser', hospitalUserSchema);
 
 module.exports = HospitalUser;

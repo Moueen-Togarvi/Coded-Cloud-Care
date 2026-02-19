@@ -6,7 +6,6 @@ const { verifyToken } = require('../utils/jwt');
  */
 const authenticate = async (req, res, next) => {
   try {
-    // Get token from header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -16,12 +15,8 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-
-    // Verify token
+    const token = authHeader.substring(7);
     const decoded = verifyToken(token);
-
-    // Find user
     const user = await User.findById(decoded.userId);
 
     if (!user) {
@@ -31,7 +26,6 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Check if user is active
     if (!user.isActive) {
       return res.status(403).json({
         success: false,
@@ -39,13 +33,11 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Attach user info to request
     req.user = {
       userId: user._id,
       email: user.email,
       companyName: user.companyName,
       tenantDbName: user.tenantDbName,
-      subscriptionStatus: user.subscriptionStatus,
     };
 
     next();
@@ -58,42 +50,6 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-/**
- * Middleware to check if user has valid access (trial not expired or active subscription)
- */
-const checkAccess = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
-
-    // Check if user has access
-    if (!user.hasAccess()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Your trial has expired or subscription is not active.',
-        subscriptionStatus: user.subscriptionStatus,
-        trialEndDate: user.trialEndDate,
-      });
-    }
-
-    next();
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Error checking access',
-      error: error.message,
-    });
-  }
-};
-
 module.exports = {
   authenticate,
-  checkAccess,
 };

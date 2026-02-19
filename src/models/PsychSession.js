@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 const psychSessionSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         psychologist_id: { type: String, required: true },
         date: { type: Date, required: true },
         time_slot: { type: String, default: '' },
@@ -21,4 +26,4 @@ const psychSessionSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-module.exports = getHospitalDB().model('PsychSession', psychSessionSchema);
+module.exports = mongoose.model('PsychSession', psychSessionSchema);

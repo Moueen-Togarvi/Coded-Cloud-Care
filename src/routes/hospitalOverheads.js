@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Overhead = require('../models/Overhead');
 const CanteenSale = require('../models/CanteenSale');
 const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hospitalAuth');
@@ -12,15 +13,21 @@ router.get('/:month/:year', requireHospitalRole(['Admin']), async (req, res) => 
     try {
         const month = parseInt(req.params.month);
         const year = parseInt(req.params.year);
+        const tenantId = req.hospitalUser.tenantId;
 
-        const entries = await Overhead.find({ month, year }).sort({ date: 1 });
+        const entries = await Overhead.find({ tenantId, month, year }).sort({ date: 1 });
 
         // Build daily canteen map from canteen_sales
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 1);
 
         const canteenAgg = await CanteenSale.aggregate([
-            { $match: { date: { $gte: startDate, $lt: endDate } } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    date: { $gte: startDate, $lt: endDate }
+                }
+            },
             {
                 $group: {
                     _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
@@ -48,12 +55,13 @@ router.get('/:month/:year', requireHospitalRole(['Admin']), async (req, res) => 
 router.get('/annual/:year', requireHospitalRole(['Admin']), async (req, res) => {
     try {
         const year = parseInt(req.params.year);
+        const tenantId = req.hospitalUser.tenantId;
         const startDate = new Date(year, 0, 1);
         const endDate = new Date(year + 1, 0, 1);
 
         // Monthly aggregation from overheads
         const overheadAgg = await Overhead.aggregate([
-            { $match: { year } },
+            { $match: { tenantId: new mongoose.Types.ObjectId(tenantId), year } },
             {
                 $group: {
                     _id: '$month',
@@ -70,7 +78,12 @@ router.get('/annual/:year', requireHospitalRole(['Admin']), async (req, res) => 
 
         // Monthly canteen from canteen_sales
         const canteenAgg = await CanteenSale.aggregate([
-            { $match: { date: { $gte: startDate, $lt: endDate } } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    date: { $gte: startDate, $lt: endDate }
+                }
+            },
             {
                 $group: {
                     _id: { $month: '$date' },
@@ -99,6 +112,7 @@ router.post('/entry', requireHospitalRole(['Admin']), async (req, res) => {
     try {
         const data = req.body;
         const { date, month, year } = data;
+        const tenantId = req.hospitalUser.tenantId;
 
         const kitchen = parseFloat(data.kitchen || 0);
         const others = parseFloat(data.others || 0);
@@ -109,6 +123,7 @@ router.post('/entry', requireHospitalRole(['Admin']), async (req, res) => {
         const total_expense = kitchen + canteen_auto + others + pay_advance;
 
         const entry = {
+            tenantId,
             date,
             month: parseInt(month),
             year: parseInt(year),
@@ -123,7 +138,7 @@ router.post('/entry', requireHospitalRole(['Admin']), async (req, res) => {
         };
 
         await Overhead.findOneAndUpdate(
-            { date, month: parseInt(month), year: parseInt(year) },
+            { tenantId, date, month: parseInt(month), year: parseInt(year) },
             { $set: entry },
             { upsert: true, new: true }
         );
@@ -143,12 +158,18 @@ router.get('/canteen-sync/:month/:year', requireHospitalRole(['Admin']), async (
     try {
         const month = parseInt(req.params.month);
         const year = parseInt(req.params.year);
+        const tenantId = req.hospitalUser.tenantId;
 
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 1);
 
         const canteenAgg = await CanteenSale.aggregate([
-            { $match: { date: { $gte: startDate, $lt: endDate } } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    date: { $gte: startDate, $lt: endDate }
+                }
+            },
             {
                 $group: {
                     _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },

@@ -9,7 +9,8 @@ const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hosp
  */
 router.get('/', requireHospitalAuth, async (req, res) => {
     try {
-        const entries = await CallMeetingTracker.find().sort({ date: -1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const entries = await CallMeetingTracker.find({ tenantId }).sort({ date: -1 });
         const data = entries.map((e) => ({
             _id: e._id.toString(),
             ...e.toObject(),
@@ -29,10 +30,12 @@ router.get('/', requireHospitalAuth, async (req, res) => {
 router.post('/', requireHospitalAuth, async (req, res) => {
     try {
         const data = req.body;
+        const tenantId = req.hospitalUser.tenantId;
         const entry = new CallMeetingTracker({
             ...data,
+            tenantId,
             date: data.date ? new Date(data.date) : new Date(),
-            recorded_by: req.session?.hospitalUsername || 'Staff',
+            recorded_by: req.hospitalUser.username || 'Staff',
         });
         await entry.save();
         return res.status(201).json({ success: true, message: 'Entry added', id: entry._id.toString() });
@@ -48,7 +51,9 @@ router.post('/', requireHospitalAuth, async (req, res) => {
  */
 router.delete('/:id', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        await CallMeetingTracker.findByIdAndDelete(req.params.id);
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await CallMeetingTracker.findOneAndDelete({ _id: req.params.id, tenantId });
+        if (!result) return res.status(404).json({ success: false, error: 'Entry not found' });
         return res.json({ success: true, message: 'Entry deleted' });
     } catch (error) {
         console.error('Delete call/meeting tracker error:', error);
@@ -64,10 +69,12 @@ router.get('/summary/:month/:year', requireHospitalAuth, async (req, res) => {
     try {
         const month = parseInt(req.params.month);
         const year = parseInt(req.params.year);
+        const tenantId = req.hospitalUser.tenantId;
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 1);
 
         const entries = await CallMeetingTracker.find({
+            tenantId,
             date: { $gte: startDate, $lt: endDate },
         }).sort({ date: 1 });
 

@@ -797,11 +797,23 @@
         </form>
 
         <div class="signup-link">
-          Don't have an account? <a href="./Signup.html">Create free account.</a>
+          Don't have an account? <a id="signup-link" href="./Signup.html">Create free account.</a>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    // Preserve product parameter in Signup link
+    window.addEventListener('DOMContentLoaded', () => {
+      const signupLink = document.getElementById('signup-link');
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get('product');
+      if (productId && signupLink) {
+        signupLink.href = `./Signup.html?product=${productId}`;
+      }
+    });
+  </script>
 
   <!-- Auth Scripts -->
   <script src="../js/auth.js"></script>

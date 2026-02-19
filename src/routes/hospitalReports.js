@@ -12,8 +12,9 @@ router.get('/', requireHospitalRole(['Admin', 'General Staff', 'Doctor']), async
     try {
         const { date } = req.query;
         if (!date) return res.status(400).json({ success: false, error: 'Date required' });
+        const tenantId = req.hospitalUser.tenantId;
 
-        const reports = await DailyReport.find({ date });
+        const reports = await DailyReport.find({ tenantId, date });
         const data = reports.map((r) => ({
             _id: r._id.toString(),
             date: r.date,
@@ -37,14 +38,15 @@ router.get('/', requireHospitalRole(['Admin', 'General Staff', 'Doctor']), async
 router.post('/update', requireHospitalRole(['Admin', 'General Staff', 'Doctor']), async (req, res) => {
     try {
         const { date, patient_id, time_slot, status } = req.body;
+        const tenantId = req.hospitalUser.tenantId;
 
         await DailyReport.findOneAndUpdate(
-            { date, patient_id },
+            { tenantId, date, patient_id },
             {
                 $set: {
                     [`schedule.${time_slot}`]: status,
                     updated_at: new Date(),
-                    updated_by: req.session?.hospitalUsername || 'System',
+                    updated_by: req.hospitalUser.username || 'System',
                 },
             },
             { upsert: true, new: true }
@@ -63,7 +65,8 @@ router.post('/update', requireHospitalRole(['Admin', 'General Staff', 'Doctor'])
  */
 router.get('/config', requireHospitalAuth, async (req, res) => {
     try {
-        const config = await ReportConfig.findById('main_config');
+        const tenantId = req.hospitalUser.tenantId;
+        const config = await ReportConfig.findOne({ tenantId });
         return res.json(config || {});
     } catch (error) {
         console.error('Get report config error:', error);
@@ -78,8 +81,9 @@ router.get('/config', requireHospitalAuth, async (req, res) => {
 router.post('/config', requireHospitalRole(['Admin']), async (req, res) => {
     try {
         const { day_columns, night_columns } = req.body;
-        await ReportConfig.findByIdAndUpdate(
-            'main_config',
+        const tenantId = req.hospitalUser.tenantId;
+        await ReportConfig.findOneAndUpdate(
+            { tenantId },
             { $set: { day_columns, night_columns } },
             { upsert: true, new: true }
         );

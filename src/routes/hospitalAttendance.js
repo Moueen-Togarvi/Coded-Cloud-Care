@@ -11,8 +11,9 @@ router.get('/', requireHospitalAuth, async (req, res) => {
     try {
         const year = parseInt(req.query.year);
         const month = parseInt(req.query.month);
+        const tenantId = req.hospitalUser.tenantId;
 
-        const records = await Attendance.find({ year, month });
+        const records = await Attendance.find({ tenantId, year, month });
 
         const result = {};
         records.forEach((rec) => {
@@ -33,8 +34,14 @@ router.get('/', requireHospitalAuth, async (req, res) => {
 router.post('/', requireHospitalAuth, async (req, res) => {
     try {
         const { empId, day, year, month, mark } = req.body;
+        const tenantId = req.hospitalUser.tenantId;
 
-        const query = { employee_id: empId, year: parseInt(year), month: parseInt(month) };
+        const query = {
+            tenantId,
+            employee_id: empId,
+            year: parseInt(year),
+            month: parseInt(month)
+        };
 
         if (mark === '') {
             await Attendance.findOneAndUpdate(query, { $unset: { [`days.${day}`]: '' } }, { upsert: true });

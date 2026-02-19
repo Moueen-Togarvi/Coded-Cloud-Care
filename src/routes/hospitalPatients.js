@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const ExcelJS = require('exceljs');
 const HospitalPatient = require('../models/HospitalPatient');
 const HospitalExpense = require('../models/HospitalExpense');
@@ -15,10 +16,12 @@ const { cleanInputData, calculateProratedFee, parseAmount } = require('../utils/
  */
 router.get('/', requireHospitalAuth, async (req, res) => {
     try {
-        const patients = await HospitalPatient.find().sort({ createdAt: -1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const patients = await HospitalPatient.find({ tenantId }).sort({ createdAt: -1 });
 
-        // Aggregate canteen totals for all patients
+        // Aggregate canteen totals for all patients of this tenant
         const canteenTotals = await CanteenSale.aggregate([
+            { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
             { $group: { _id: '$patient_id', total: { $sum: '$amount' } } },
         ]);
 
@@ -57,9 +60,11 @@ router.get('/', requireHospitalAuth, async (req, res) => {
 router.post('/', requireHospitalRole(['Admin', 'Doctor']), async (req, res) => {
     try {
         const data = cleanInputData(req.body);
+        const tenantId = req.hospitalUser.tenantId;
 
         // Set defaults
         const patientData = {
+            tenantId,
             ...data,
             notes: [],
             monthlyFee: data.monthlyFee || '0',
@@ -118,7 +123,19 @@ router.put('/:id', requireHospitalRole(['Admin', 'Doctor']), async (req, res) =>
             sensitiveFields.forEach((field) => delete data[field]);
         }
 
-        await HospitalPatient.findByIdAndUpdate(req.params.id, { $set: data });
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await HospitalPatient.findOneAndUpdate(
+            { _id: req.params.id, tenantId },
+            { $set: data },
+            { new: true }
+        );
+
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                error: 'Patient not found or unauthorized',
+            });
+        }
 
         return res.json({
             success: true,
@@ -141,7 +158,8 @@ router.put('/:id', requireHospitalRole(['Admin', 'Doctor']), async (req, res) =>
  */
 router.delete('/:id', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        const result = await HospitalPatient.findByIdAndDelete(req.params.id);
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await HospitalPatient.findOneAndDelete({ _id: req.params.id, tenantId });
 
         if (!result) {
             return res.status(404).json({
@@ -176,7 +194,9 @@ router.post('/:patient_id/session_note', requireHospitalRole(['Admin', 'Psycholo
     try {
         const data = cleanInputData(req.body);
 
+        const tenantId = req.hospitalUser.tenantId;
         const note = new PatientRecord({
+            tenantId,
             patient_id: req.params.patient_id,
             record_type: 'session_note',
             content: data.text,
@@ -209,7 +229,9 @@ router.post('/:patient_id/medical_record', requireHospitalRole(['Admin', 'Doctor
     try {
         const data = cleanInputData(req.body);
 
+        const tenantId = req.hospitalUser.tenantId;
         const record = new PatientRecord({
+            tenantId,
             patient_id: req.params.patient_id,
             record_type: 'medical_record',
             content: JSON.stringify({ title: data.title, details: data.details }),
@@ -240,7 +262,11 @@ router.post('/:patient_id/medical_record', requireHospitalRole(['Admin', 'Doctor
  */
 router.get('/:patient_id/records', requireHospitalAuth, async (req, res) => {
     try {
-        const records = await PatientRecord.find({ patient_id: req.params.patient_id }).sort({ createdAt: -1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const records = await PatientRecord.find({
+            patient_id: req.params.patient_id,
+            tenantId
+        }).sort({ createdAt: -1 });
 
         const recordsData = records.map((record) => ({
             _id: record._id.toString(),
@@ -276,18 +302,23 @@ router.post('/:id/payment', requireHospitalRole(['Admin']), async (req, res) => 
         const amountPaid = parseInt(data.amount || 0);
         const paymentMethod = data.payment_method || 'Cash';
         const screenshot = data.screenshot || '';
+        const tenantId = req.hospitalUser.tenantId;
 
-        const patient = await HospitalPatient.findById(req.params.id);
+        const patient = await HospitalPatient.findOne({ _id: req.params.id, tenantId });
         if (!patient) return res.status(404).json({ success: false, error: 'Patient not found' });
 
         const currentReceived = parseAmount(patient.receivedAmount);
         const newTotal = currentReceived + amountPaid;
 
-        await HospitalPatient.findByIdAndUpdate(req.params.id, { $set: { receivedAmount: String(newTotal) } });
+        await HospitalPatient.updateOne(
+            { _id: req.params.id, tenantId },
+            { $set: { receivedAmount: String(newTotal) } }
+        );
 
         // Auto-log as incoming expense
         const expenseNote = `Partial payment from ${patient.name} via ${paymentMethod}`;
         const expense = new HospitalExpense({
+            tenantId,
             type: 'incoming',
             amount: amountPaid,
             category: 'Patient Fee',
@@ -316,13 +347,20 @@ router.post('/:id/payment', requireHospitalRole(['Admin']), async (req, res) => 
  */
 router.get('/:id/payment_history', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        const patient = await HospitalPatient.findById(req.params.id);
+        const targetIdStr = req.params.id;
+        const tenantId = req.hospitalUser.tenantId;
+
+        // Ensure patient exists and belongs to tenant
+        const patient = await HospitalPatient.findOne({ _id: targetIdStr, tenantId });
         if (!patient) return res.json([]);
 
         const targetName = (patient.name || '').trim().toLowerCase();
-        const targetIdStr = req.params.id;
 
-        const cursor = await HospitalExpense.find({ type: 'incoming', category: 'Patient Fee' }).sort({ date: 1 });
+        const cursor = await HospitalExpense.find({
+            tenantId,
+            type: 'incoming',
+            category: 'Patient Fee'
+        }).sort({ date: 1 });
 
         const history = cursor.filter((doc) => {
             const docPatientId = String(doc.patient_id || '');
@@ -352,7 +390,8 @@ router.get('/:id/payment_history', requireHospitalRole(['Admin']), async (req, r
  */
 router.get('/:id/discharge-bill', requireHospitalRole(['Admin', 'Doctor']), async (req, res) => {
     try {
-        const patient = await HospitalPatient.findById(req.params.id).lean();
+        const tenantId = req.hospitalUser.tenantId;
+        const patient = await HospitalPatient.findOne({ _id: req.params.id, tenantId }).lean();
         if (!patient) return res.status(404).json({ success: false, error: 'Patient not found' });
 
         // Days elapsed
@@ -364,9 +403,14 @@ router.get('/:id/discharge-bill', requireHospitalRole(['Admin', 'Doctor']), asyn
             } catch (_) { }
         }
 
-        // Canteen total for this patient
+        // Canteen total for this patient (isolated by tenant)
         const canteenAgg = await CanteenSale.aggregate([
-            { $match: { patient_id: patient._id } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    patient_id: new mongoose.Types.ObjectId(patient._id)
+                }
+            },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]);
         const canteenTotal = canteenAgg[0]?.total || 0;

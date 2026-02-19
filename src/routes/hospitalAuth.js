@@ -43,7 +43,9 @@ router.post('/login', async (req, res) => {
 
         // Create session
         req.session.hospitalUserId = user._id.toString();
+        req.session.hospitalTenantId = user.tenantId.toString();
         req.session.hospitalUsername = user.username;
+        req.session.hospitalName = user.name;
         req.session.hospitalRole = user.role;
         req.session.isMasterUser = false; // This is a local staff user
 

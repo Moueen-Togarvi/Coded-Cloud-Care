@@ -9,7 +9,8 @@ const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hosp
  */
 router.get('/', requireHospitalAuth, async (req, res) => {
     try {
-        const employees = await Employee.find().sort({ createdAt: -1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const employees = await Employee.find({ tenantId }).sort({ createdAt: -1 });
         const data = employees.map((e) => ({ ...e.toObject(), _id: e._id.toString() }));
         return res.json({ success: true, employees: data });
     } catch (error) {
@@ -24,7 +25,11 @@ router.get('/', requireHospitalAuth, async (req, res) => {
  */
 router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        const employee = new Employee({ ...req.body });
+        const tenantId = req.hospitalUser.tenantId;
+        const employee = new Employee({
+            ...req.body,
+            tenantId
+        });
         await employee.save();
         return res.status(201).json({ success: true, message: 'Employee added', id: employee._id.toString() });
     } catch (error) {
@@ -39,9 +44,15 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
  */
 router.put('/:id', requireHospitalRole(['Admin']), async (req, res) => {
     try {
+        const tenantId = req.hospitalUser.tenantId;
         const data = { ...req.body };
         delete data._id;
-        await Employee.findByIdAndUpdate(req.params.id, { $set: data });
+        const result = await Employee.findOneAndUpdate(
+            { _id: req.params.id, tenantId },
+            { $set: data },
+            { new: true }
+        );
+        if (!result) return res.status(404).json({ success: false, error: 'Employee not found' });
         return res.json({ success: true, message: 'Employee updated' });
     } catch (error) {
         console.error('Update employee error:', error);
@@ -55,7 +66,9 @@ router.put('/:id', requireHospitalRole(['Admin']), async (req, res) => {
  */
 router.delete('/:id', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        await Employee.findByIdAndDelete(req.params.id);
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await Employee.findOneAndDelete({ _id: req.params.id, tenantId });
+        if (!result) return res.status(404).json({ success: false, error: 'Employee not found' });
         return res.json({ success: true, message: 'Employee deleted' });
     } catch (error) {
         console.error('Delete employee error:', error);

@@ -131,16 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Show success message
-      showSuccess('Account created successfully! Redirecting...');
+      showSuccess('Account created successfully! Redirecting to Dashboard...');
 
-      // Redirect immediately using central config
-      if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
-        // Save the new productId as well to ensure future logins go to the right place
-        saveAuthToken(data.data.token, productId);
-        window.location.href = window.PRODUCT_CONFIG[productId].landingPage;
-      } else {
-        window.location.href = '/Frontend/comp/dashboard.html';
-      }
+      // ALWAYS redirect to the central dashboard in the new Saas flow
+      window.location.href = '/Frontend/comp/dashboard.html';
     } catch (error) {
       console.error('Signup error:', error);
       showError(error.message || 'Registration failed. Please try again.');

@@ -15,7 +15,9 @@ router.post('/sales', requireHospitalAuth, async (req, res) => {
     try {
         const data = cleanInputData(req.body);
 
+        const tenantId = req.hospitalUser.tenantId;
         const sale = new CanteenSale({
+            tenantId,
             patient_id: data.patient_id,
             item: data.item,
             amount: parseInt(data.amount),
@@ -43,12 +45,14 @@ router.post('/sales', requireHospitalAuth, async (req, res) => {
  */
 router.get('/sales/breakdown', requireHospitalAuth, async (req, res) => {
     try {
+        const tenantId = req.hospitalUser.tenantId;
         const breakdown = await CanteenSale.aggregate([
+            { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
             { $group: { _id: '$patient_id', total: { $sum: '$amount' }, count: { $sum: 1 } } },
         ]);
 
         const patientIds = breakdown.map((item) => item._id);
-        const patients = await HospitalPatient.find({ _id: { $in: patientIds } }, { name: 1 });
+        const patients = await HospitalPatient.find({ _id: { $in: patientIds }, tenantId }, { name: 1 });
 
         const patientMap = {};
         patients.forEach((patient) => { patientMap[patient._id.toString()] = patient.name; });
@@ -75,7 +79,10 @@ router.get('/sales/breakdown', requireHospitalAuth, async (req, res) => {
 router.get('/sales/history', requireHospitalAuth, async (req, res) => {
     try {
         const { patient_id, limit = 50 } = req.query;
-        const query = patient_id ? { patient_id } : {};
+        const tenantId = req.hospitalUser.tenantId;
+        const query = { tenantId };
+        if (patient_id) query.patient_id = patient_id;
+
         const sales = await CanteenSale.find(query).sort({ date: -1 }).limit(parseInt(limit));
 
         const salesData = sales.map((sale) => ({
@@ -109,10 +116,19 @@ router.get('/daily-sheet', requireHospitalAuth, async (req, res) => {
         const endOfDay = new Date(targetDate);
         endOfDay.setHours(23, 59, 59, 999);
 
-        const patients = await HospitalPatient.find({ isDischarged: { $ne: true } }, { name: 1 }).sort({ name: 1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const patients = await HospitalPatient.find({
+            tenantId,
+            isDischarged: { $ne: true }
+        }, { name: 1 }).sort({ name: 1 });
 
         const dailySalesAgg = await CanteenSale.aggregate([
-            { $match: { date: { $gte: startOfDay, $lte: endOfDay } } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    date: { $gte: startOfDay, $lte: endOfDay }
+                }
+            },
             {
                 $group: {
                     _id: '$patient_id',
@@ -152,17 +168,22 @@ router.get('/monthly-table', requireHospitalRole(['Admin', 'Canteen']), async (r
         const month = parseInt(req.query.month || today.getMonth() + 1);
         const year = parseInt(req.query.year || today.getFullYear());
 
+        const tenantId = req.hospitalUser.tenantId;
         const startOfMonth = new Date(year, month - 1, 1);
         const endOfMonth = new Date(year, month, 1);
         const daysInMonth = Math.round((endOfMonth - startOfMonth) / (1000 * 60 * 60 * 24));
 
-        const patients = await HospitalPatient.find({}, { name: 1, isDischarged: 1, admissionDate: 1 }).sort({ name: 1 });
+        const patients = await HospitalPatient.find({ tenantId }, { name: 1, isDischarged: 1, admissionDate: 1 }).sort({ name: 1 });
 
-        // Get manual old balance overrides
+        // Get manual old balance overrides (now includes tenantId)
         const db = mongoose.connection.db;
         const balanceOverrides = {};
         if (db) {
-            const overrides = await db.collection('canteen_balance_overrides').find({ month, year }).toArray();
+            const overrides = await db.collection('canteen_balance_overrides').find({
+                tenantId: new mongoose.Types.ObjectId(tenantId),
+                month,
+                year
+            }).toArray();
             overrides.forEach((o) => { balanceOverrides[o.patient_id.toString()] = o.old_balance; });
         }
 
@@ -176,6 +197,7 @@ router.get('/monthly-table', requireHospitalRole(['Admin', 'Canteen']), async (r
         const prevSalesAgg = await CanteenSale.aggregate([
             {
                 $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
                     patient_id: { $in: patientIds },
                     date: { $lt: startOfMonth },
                     $or: [{ entry_type: { $exists: false } }, { entry_type: { $ne: 'other' } }],
@@ -188,7 +210,14 @@ router.get('/monthly-table', requireHospitalRole(['Admin', 'Canteen']), async (r
 
         // Previous months adjustments (other)
         const prevAdjAgg = await CanteenSale.aggregate([
-            { $match: { patient_id: { $in: patientIds }, date: { $lt: startOfMonth }, entry_type: 'other' } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    patient_id: { $in: patientIds },
+                    date: { $lt: startOfMonth },
+                    entry_type: 'other'
+                }
+            },
             { $group: { _id: '$patient_id', total: { $sum: '$amount' } } },
         ]);
         const prevAdjMap = {};
@@ -196,6 +225,7 @@ router.get('/monthly-table', requireHospitalRole(['Admin', 'Canteen']), async (r
 
         // Current month daily sales
         const currentSales = await CanteenSale.find({
+            tenantId,
             patient_id: { $in: patientIds },
             date: { $gte: startOfMonth, $lt: endOfMonth },
             $or: [{ entry_type: { $exists: false } }, { entry_type: { $ne: 'other' } }],
@@ -203,6 +233,7 @@ router.get('/monthly-table', requireHospitalRole(['Admin', 'Canteen']), async (r
 
         // Current month other entries
         const otherEntries = await CanteenSale.find({
+            tenantId,
             patient_id: { $in: patientIds },
             date: { $gte: startOfMonth, $lt: endOfMonth },
             entry_type: 'other',
@@ -259,16 +290,22 @@ router.get('/monthly-table', requireHospitalRole(['Admin', 'Canteen']), async (r
 router.post('/old-balance', requireHospitalRole(['Admin']), async (req, res) => {
     try {
         const { patient_id, month, year, old_balance } = req.body;
+        const tenantId = req.hospitalUser.tenantId;
         const db = mongoose.connection.db;
         if (!db) return res.status(500).json({ success: false, error: 'Database error' });
 
         await db.collection('canteen_balance_overrides').updateOne(
-            { patient_id: new mongoose.Types.ObjectId(patient_id), month: parseInt(month), year: parseInt(year) },
+            {
+                tenantId: new mongoose.Types.ObjectId(tenantId),
+                patient_id: new mongoose.Types.ObjectId(patient_id),
+                month: parseInt(month),
+                year: parseInt(year)
+            },
             {
                 $set: {
                     old_balance: parseInt(old_balance || 0),
                     updated_at: new Date(),
-                    updated_by: req.session?.hospitalUsername,
+                    updated_by: req.hospitalUser?.username,
                 },
             },
             { upsert: true }
@@ -305,7 +342,10 @@ router.post('/daily-entry', requireHospitalRole(['Admin', 'Canteen']), async (re
         const endOfDay = new Date(startOfDay);
         endOfDay.setDate(endOfDay.getDate() + 1);
 
+        const tenantId = req.hospitalUser.tenantId;
+
         const existingEntry = await CanteenSale.findOne({
+            tenantId,
             patient_id: patientId,
             date: { $gte: startOfDay, $lt: endOfDay },
             entry_type: entryType,
@@ -332,6 +372,7 @@ router.post('/daily-entry', requireHospitalRole(['Admin', 'Canteen']), async (re
                 return res.json({ success: true, message: 'No entry created for zero amount' });
             }
             const newEntry = new CanteenSale({
+                tenantId,
                 patient_id: patientId,
                 date: entryDate,
                 amount,
@@ -355,7 +396,9 @@ router.post('/daily-entry', requireHospitalRole(['Admin', 'Canteen']), async (re
 router.get('/debug/:patient_id', requireHospitalAuth, async (req, res) => {
     try {
         const { patient_id } = req.params;
+        const tenantId = req.hospitalUser.tenantId;
         const entries = await CanteenSale.find({
+            tenantId,
             patient_id: new mongoose.Types.ObjectId(patient_id),
         }).sort({ date: 1 });
 
@@ -380,7 +423,11 @@ router.get('/debug/:patient_id', requireHospitalAuth, async (req, res) => {
 router.delete('/debug/:patient_id', requireHospitalRole(['Admin']), async (req, res) => {
     try {
         const { patient_id } = req.params;
-        const result = await CanteenSale.deleteMany({ patient_id: new mongoose.Types.ObjectId(patient_id) });
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await CanteenSale.deleteMany({
+            tenantId,
+            patient_id: new mongoose.Types.ObjectId(patient_id)
+        });
         return res.json({ success: true, message: `Deleted ${result.deletedCount} entries`, deleted_count: result.deletedCount });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });

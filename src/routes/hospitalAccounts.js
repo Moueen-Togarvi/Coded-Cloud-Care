@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const HospitalPatient = require('../models/HospitalPatient');
 const HospitalExpense = require('../models/HospitalExpense');
 const CanteenSale = require('../models/CanteenSale');
@@ -15,31 +16,50 @@ router.get('/summary', requireHospitalAuth, async (req, res) => {
         const today = new Date();
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        const tenantId = req.hospitalUser.tenantId;
 
         // Total incoming this month (manual + patient fees)
         const incomingAgg = await HospitalExpense.aggregate([
-            { $match: { type: 'incoming', date: { $gte: startOfMonth, $lt: endOfMonth } } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    type: 'incoming',
+                    date: { $gte: startOfMonth, $lt: endOfMonth }
+                }
+            },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]);
         const totalIncoming = incomingAgg[0]?.total || 0;
 
         // Total outgoing this month
         const outgoingAgg = await HospitalExpense.aggregate([
-            { $match: { type: 'outgoing', date: { $gte: startOfMonth, $lt: endOfMonth } } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    type: 'outgoing',
+                    date: { $gte: startOfMonth, $lt: endOfMonth }
+                }
+            },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]);
         const totalOutgoing = outgoingAgg[0]?.total || 0;
 
         // Canteen sales this month
         const canteenAgg = await CanteenSale.aggregate([
-            { $match: { date: { $gte: startOfMonth, $lt: endOfMonth } } },
+            {
+                $match: {
+                    tenantId: new mongoose.Types.ObjectId(tenantId),
+                    date: { $gte: startOfMonth, $lt: endOfMonth }
+                }
+            },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]);
         const totalCanteen = canteenAgg[0]?.total || 0;
 
         // Total expected balance from active patients
-        const activePatients = await HospitalPatient.find({ isDischarged: { $ne: true } });
+        const activePatients = await HospitalPatient.find({ tenantId, isDischarged: { $ne: true } });
         const canteenTotals = await CanteenSale.aggregate([
+            { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
             { $group: { _id: '$patient_id', total: { $sum: '$amount' } } },
         ]);
         const canteenMap = {};

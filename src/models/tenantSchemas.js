@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 
 // Core Schemas
 const patientSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: String,
@@ -21,6 +22,7 @@ const patientSchema = new mongoose.Schema({
 });
 
 const appointmentSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
     appointmentDate: { type: Date, required: true },
     appointmentType: String,
@@ -36,6 +38,7 @@ const appointmentSchema = new mongoose.Schema({
 });
 
 const staffSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -51,12 +54,14 @@ const staffSchema = new mongoose.Schema({
 });
 
 const settingsSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true, unique: true },
     clinicName: { type: String, required: true },
     clinicAddress: String,
     clinicPhone: String,
     clinicEmail: String,
     taxId: String,
     clinicLogo: String, // Base64 or URL
+    clinicTagline: { type: String, default: 'Medical & Health Services' },
     businessHours: {
         monday: { open: String, close: String },
         tuesday: { open: String, close: String },
@@ -73,6 +78,7 @@ const settingsSchema = new mongoose.Schema({
 
 // Pharmacy Schemas
 const inventorySchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     name: { type: String, required: true },
     description: String,
     sku: { type: String, unique: true, sparse: true },
@@ -97,6 +103,7 @@ const inventorySchema = new mongoose.Schema({
 });
 
 const saleSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     medicineId: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory', required: true },
     medicineName: String,
     quantity: { type: Number, required: true },
@@ -118,6 +125,7 @@ const saleSchema = new mongoose.Schema({
 });
 
 const supplierSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     name: { type: String, required: true },
     contactPerson: String,
     email: String,
@@ -140,6 +148,7 @@ const supplierSchema = new mongoose.Schema({
 });
 
 const stockMovementSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     medicineId: { type: mongoose.Schema.Types.ObjectId, ref: 'Inventory', required: true },
     medicineName: String,
     type: {
@@ -160,6 +169,7 @@ const stockMovementSchema = new mongoose.Schema({
 });
 
 const purchaseOrderSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     poNumber: { type: String, unique: true, required: true },
     supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', required: true },
     supplierName: String,
@@ -194,6 +204,7 @@ const purchaseOrderSchema = new mongoose.Schema({
 
 // Accounting Schemas
 const invoiceSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     invoiceNumber: { type: String, unique: true, required: true },
     patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
     customerName: String,
@@ -228,6 +239,7 @@ const invoiceSchema = new mongoose.Schema({
 });
 
 const paymentSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     paymentNumber: { type: String, unique: true, required: true },
     invoiceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' },
     invoiceNumber: String,
@@ -243,6 +255,7 @@ const paymentSchema = new mongoose.Schema({
 });
 
 const revenueSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     source: {
         type: String,
         enum: ['patient-consultation', 'pharmacy-sales', 'lab-tests', 'procedures', 'other'],
@@ -260,6 +273,7 @@ const revenueSchema = new mongoose.Schema({
 });
 
 const expenseSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     expenseNumber: { type: String, unique: true, required: true },
     description: { type: String, required: true },
     amount: { type: Number, required: true },
@@ -284,6 +298,7 @@ const expenseSchema = new mongoose.Schema({
 });
 
 const accountLedgerSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     date: { type: Date, default: Date.now },
     type: { type: String, enum: ['debit', 'credit'], required: true },
     category: { type: String, required: true },
@@ -298,6 +313,7 @@ const accountLedgerSchema = new mongoose.Schema({
 });
 
 const taxRecordSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     period: { type: String, required: true },
     periodType: { type: String, enum: ['monthly', 'quarterly', 'yearly'], default: 'monthly' },
     totalRevenue: { type: Number, required: true },

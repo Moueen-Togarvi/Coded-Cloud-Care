@@ -121,11 +121,12 @@ const provisionTenant = async (companyName) => {
 
 /**
  * Get a connection to an existing tenant database
- * @param {string} tenantDbName - The name of the tenant database
+ * UPDATED: Returns the main connection to satisfy "one database" requirement
+ * @param {string} tenantDbName - The name of the tenant database (kept for signature compatibility)
  * @returns {mongoose.Connection} - Mongoose connection instance
  */
 const getTenantConnection = (tenantDbName) => {
-  return connectTenantDB(tenantDbName);
+  return mongoose.connection;
 };
 
 module.exports = {

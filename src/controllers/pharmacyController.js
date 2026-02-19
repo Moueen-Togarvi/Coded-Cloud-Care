@@ -108,7 +108,10 @@ const createItem = async (req, res) => {
             itemData.profitMargin = 0;
         }
 
-        const newItem = new Inventory(itemData);
+        const newItem = new Inventory({
+            tenantId: req.user.userId,
+            ...itemData
+        });
         await newItem.save();
 
         res.status(201).json({
@@ -302,6 +305,7 @@ const recordBulkSale = async (req, res) => {
 
             // Create individual sale record (keeping current schema)
             const newSale = new Sale({
+                tenantId: req.user.userId,
                 medicineId,
                 medicineName: medicine.name,
                 quantity,
@@ -331,6 +335,7 @@ const recordBulkSale = async (req, res) => {
 
             // Record stock movement
             const stockMovement = new StockMovement({
+                tenantId: req.user.userId,
                 medicineId,
                 medicineName: medicine.name,
                 type: 'sale',
@@ -355,6 +360,7 @@ const recordBulkSale = async (req, res) => {
             const { Revenue } = req.tenantModels;
             if (Revenue) {
                 const revenueRecord = new Revenue({
+                    tenantId: req.user.userId,
                     source: 'pharmacy-sales',
                     amount: finalTotal,
                     category: 'Sales',
@@ -601,6 +607,7 @@ const addStock = async (req, res) => {
 
         // Record stock movement
         const stockMovement = new StockMovement({
+            tenantId: req.user.userId,
             medicineId,
             medicineName: medicine.name,
             type: 'purchase',
@@ -670,6 +677,7 @@ const adjustStock = async (req, res) => {
 
         // Record stock movement
         const stockMovement = new StockMovement({
+            tenantId: req.user.userId,
             medicineId,
             medicineName: medicine.name,
             type: type || 'adjustment',
@@ -816,7 +824,10 @@ const createSupplier = async (req, res) => {
             });
         }
 
-        const newSupplier = new Supplier(supplierData);
+        const newSupplier = new Supplier({
+            tenantId: req.user.userId,
+            ...supplierData
+        });
         await newSupplier.save();
 
         res.status(201).json({
@@ -964,6 +975,7 @@ const createPurchaseOrder = async (req, res) => {
         const poNumber = `PO-${Date.now()}-${poCount + 1}`;
 
         const newPO = new PurchaseOrder({
+            tenantId: req.user.userId,
             poNumber,
             supplierId,
             items,
@@ -1025,6 +1037,7 @@ const receivePurchaseOrder = async (req, res) => {
 
                 // Record stock movement
                 const stockMovement = new StockMovement({
+                    tenantId: req.user.userId,
                     medicineId: item.medicineId,
                     medicineName: item.medicineName,
                     type: 'purchase',

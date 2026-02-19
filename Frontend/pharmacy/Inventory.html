@@ -137,6 +137,11 @@
 
             <div class="flex items-center gap-4">
 
+                <button onclick="handleLogout()"
+                    class="flex items-center gap-2 px-3 py-2 bg-accent-rose/10 text-accent-rose hover:bg-accent-rose hover:text-white transition-all text-xs font-bold rounded-lg border border-accent-rose/20">
+                    <span class="material-icons-round text-sm">logout</span>
+                    Logout
+                </button>
                 <button onclick="openModal()"
                     class="bg-primary-blue hover:bg-blue-600 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-all">
                     <span class="material-icons-round text-sm">add</span> New Entry
@@ -163,7 +168,7 @@
                         <span class="text-accent-green text-[10px] font-bold">+0.0%</span>
                     </div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">Accounts Receivable</p>
-                    <h3 id="accountsReceivable" class="text-lg font-black text-white">$0.00</h3>
+                    <h3 id="accountsReceivable" class="text-lg font-black text-white">RS 0.00</h3>
                 </div>
                 <div class="bg-navy-card p-5 rounded-xl border border-slate-800">
                     <div class="flex justify-between items-start mb-4">
@@ -172,7 +177,7 @@
                         <span class="text-accent-rose text-[10px] font-bold">-0.0%</span>
                     </div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">Accounts Payable</p>
-                    <h3 id="accountsPayable" class="text-lg font-black text-white">$0.00</h3>
+                    <h3 id="accountsPayable" class="text-lg font-black text-white">RS 0.00</h3>
                 </div>
                 <div class="bg-navy-card p-5 rounded-xl border border-slate-800">
                     <div class="flex justify-between items-start mb-4">
@@ -181,12 +186,12 @@
                         <span class="text-blue-400 text-[10px] font-bold uppercase">Stable</span>
                     </div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">Inventory Valuation</p>
-                    <h3 id="inventoryValuation" class="text-lg font-black text-white">$0.00</h3>
+                    <h3 id="inventoryValuation" class="text-lg font-black text-white">RS 0.00</h3>
                 </div>
                 <div class="bg-primary-blue p-5 rounded-xl shadow-lg shadow-primary-blue/20 relative overflow-hidden">
                     <div class="relative z-10">
                         <p class="text-[10px] font-bold text-blue-100 uppercase mb-1">Net Margin (Monthly)</p>
-                        <h3 id="netMargin" class="text-2xl font-black text-white">$0.00</h3>
+                        <h3 id="netMargin" class="text-2xl font-black text-white">RS 0.00</h3>
                         <div class="mt-4 h-1.5 w-full bg-blue-900/30 rounded-full">
                             <div class="h-full bg-white rounded-full" style="width: 0%"></div>
                         </div>
@@ -278,10 +283,14 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">SKU</label>
+                        <label
+                            class="block text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1">
+                            SKU / Barcode <span
+                                class="material-icons-round text-primary-blue text-[10px]">qr_code_scanner</span>
+                        </label>
                         <input type="text" id="itemSku"
                             class="w-full bg-slate-900/50 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-blue"
-                            placeholder="Auto-generated if empty">
+                            placeholder="Scan or enter barcode">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Category</label>
@@ -359,6 +368,14 @@
             const overlay = document.getElementById('sidebarOverlay');
             sidebar.classList.toggle('-translate-x-full');
             // overlay.classList.toggle('hidden'); // overlay missing in this file but functionality kept safe
+        }
+
+        function handleLogout() {
+            sessionStorage.clear();
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('productId');
+            window.location.href = '/Frontend/comp/Login.html';
         }
     </script>
 </body>

@@ -77,6 +77,7 @@ const createPatient = async (req, res) => {
         }
 
         const patient = new Patient({
+            tenantId: req.user.userId,
             firstName,
             lastName,
             email,

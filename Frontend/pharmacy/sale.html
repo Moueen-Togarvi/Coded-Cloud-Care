@@ -124,9 +124,10 @@
                     class="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg text-white">
                     <span class="material-icons-round text-sm">file_download</span> Export
                 </button>
-                <button
-                    class="flex items-center gap-2 px-4 py-2 bg-primary-blue hover:bg-blue-600 text-xs font-bold rounded-lg text-white shadow-lg shadow-primary-blue/20">
-                    <span class="material-icons-round text-sm">add</span> New Invoice
+                <button onclick="handleLogout()"
+                    class="flex items-center gap-2 px-3 py-2 bg-accent-rose/10 text-accent-rose hover:bg-accent-rose hover:text-white transition-all text-xs font-bold rounded-lg border border-accent-rose/20">
+                    <span class="material-icons-round text-sm">logout</span>
+                    Logout
                 </button>
             </div>
         </header>
@@ -151,7 +152,7 @@
                         <span class="text-accent-green text-[10px] font-bold">+18.4%</span>
                     </div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Gross Revenue</p>
-                    <h3 id="grossRevenue" class="text-xl font-black text-white">$0.00</h3>
+                    <h3 id="grossRevenue" class="text-xl font-black text-white">RS 0.00</h3>
                 </div>
 
                 <div class="bg-navy-card p-5 rounded-2xl border border-slate-800">
@@ -161,7 +162,7 @@
                         <span class="text-slate-500 text-[10px] font-bold">Stable</span>
                     </div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avg. Order Value</p>
-                    <h3 id="avgOrderValue" class="text-xl font-black text-white">$0.00</h3>
+                    <h3 id="avgOrderValue" class="text-xl font-black text-white">RS 0.00</h3>
                 </div>
 
                 <div class="bg-navy-card p-5 rounded-2xl border border-slate-800">
@@ -230,6 +231,16 @@
 
     <style>
         @media print {
+            @page {
+                margin: 0;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+                width: 58mm;
+            }
+
             body * {
                 visibility: hidden;
             }
@@ -243,30 +254,68 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 100%;
+                width: 58mm;
+                min-height: 100%;
                 background: white !important;
                 color: black !important;
                 box-shadow: none !important;
                 border: none !important;
+                margin: 0;
+                padding: 2mm;
+                overflow: visible !important;
             }
 
             #invoiceModal .no-print {
                 display: none !important;
             }
 
-            #invoiceModal .bg-navy-card,
-            #invoiceModal .bg-slate-900 {
-                background: white !important;
+            #invoicePrintContent {
+                padding: 0 !important;
+                width: 54mm;
+                margin: 0 auto;
             }
 
-            #invoiceModal .text-white,
-            #invoiceModal .text-slate-400,
-            #invoiceModal .text-slate-500 {
-                color: black !important;
+            /* Compact Typography */
+            #invoicePrintContent h2 {
+                font-size: 10pt !important;
+                margin-bottom: 1mm !important;
             }
 
-            #invoiceModal .border-slate-800 {
-                border-color: #eee !important;
+            #invoicePrintContent p,
+            #invoicePrintContent table,
+            #invoicePrintContent span {
+                font-size: 7pt !important;
+                line-height: 1.2 !important;
+            }
+
+            #invoicePrintContent th {
+                font-size: 7pt !important;
+                border-bottom: 1px dashed #000 !important;
+            }
+
+            #invoicePrintContent td {
+                padding: 1mm 0 !important;
+            }
+
+            .flex-row-print {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .print-border-dashed {
+                border-top: 1px dashed #000 !important;
+                margin: 2mm 0 !important;
+            }
+
+            #invoicePrintContent .mt-12 {
+                margin-top: 3mm !important;
+            }
+
+            /* Hide non-essential large elements */
+            #invoicePrintContent h1.text-3xl {
+                display: none !important;
             }
         }
     </style>
@@ -288,34 +337,32 @@
 
             <!-- Invoice Content (Print Target) -->
             <div id="invoicePrintContent" class="p-8 overflow-y-auto custom-scrollbar">
-                <div class="flex justify-between mb-8">
-                    <div>
-                        <div id="invoiceLogo" class="mb-4">
-                            <div class="w-12 h-12 bg-primary-blue rounded flex items-center justify-center text-white">
-                                <span class="material-icons-round text-2xl">medical_services</span>
-                            </div>
+                <div class="flex flex-col items-center text-center mb-4">
+                    <div id="invoiceLogo" class="mb-2 no-print">
+                        <div class="w-10 h-10 bg-primary-blue rounded flex items-center justify-center text-white">
+                            <span class="material-icons-round text-xl">medical_services</span>
                         </div>
-                        <h2 id="invoiceClinicName" class="text-xl font-black text-slate-900">PharmaTrack Pro</h2>
-                        <p id="invoiceClinicAddress" class="text-xs text-slate-500 max-w-[200px]">123 Pharmacy street,
-                            Medical District</p>
                     </div>
-                    <div class="text-right">
-                        <h1 class="text-3xl font-black text-slate-200 uppercase tracking-tighter mb-2">Invoice</h1>
-                        <p class="text-xs font-bold text-slate-500 uppercase">Invoice #: <span id="displayInvoiceNum"
-                                class="text-slate-900">...</span></p>
-                        <p class="text-xs font-bold text-slate-500 uppercase">Date: <span id="displayInvoiceDate"
+                    <h2 id="invoiceClinicName" class="text-lg font-black text-slate-900">PharmaTrack Pro</h2>
+                    <p id="invoiceClinicAddress" class="text-[10px] text-slate-500">123 Pharmacy street, Medical
+                        District</p>
+                    <div class="print-border-dashed w-full my-2"></div>
+                    <div class="w-full text-center">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase">Invoice #: <span
+                                id="displayInvoiceNum" class="text-slate-900">...</span></p>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase">Date: <span id="displayInvoiceDate"
                                 class="text-slate-900">...</span></p>
                     </div>
                 </div>
 
-                <div class="border-y border-slate-100 py-4 mb-6 grid grid-cols-2 gap-4">
+                <div class="border-y border-slate-100 py-2 mb-4 grid grid-cols-2 gap-2 text-left">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Billed By</p>
-                        <p class="text-xs font-bold text-slate-800" id="displaySoldBy">Pharmacy Admin</p>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase">Billed By</p>
+                        <p class="text-[10px] font-bold text-slate-800" id="displaySoldBy">Admin</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Payment Method</p>
-                        <p class="text-xs font-bold text-slate-800 uppercase" id="displayPaymentMethod">Cash</p>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase">Payment</p>
+                        <p class="text-[10px] font-bold text-slate-800 uppercase" id="displayPaymentMethod">Cash</p>
                     </div>
                 </div>
 
@@ -336,16 +383,16 @@
                     <div class="w-48 space-y-2">
                         <div class="flex justify-between text-xs text-slate-500">
                             <span>Subtotal</span>
-                            <span id="invoiceSubtotal">$0.00</span>
+                            <span id="invoiceSubtotal">RS 0.00</span>
                         </div>
                         <div class="flex justify-between text-xs text-slate-500">
                             <span>Tax (0%)</span>
-                            <span>$0.00</span>
+                            <span>RS 0.00</span>
                         </div>
                         <div
                             class="flex justify-between text-base font-black text-slate-900 border-t border-slate-900 pt-2">
                             <span>Total</span>
-                            <span id="invoiceGrandTotal">$0.00</span>
+                            <span id="invoiceGrandTotal">RS 0.00</span>
                         </div>
                     </div>
                 </div>
@@ -406,9 +453,20 @@
     <script src="../js/pharmacy/notifications.js"></script>
     <script src="../js/pharmacy/sales.js"></script>
     <script>
+        // Sidebar Toggle for Mobile
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('sidebarOverlay').classList.toggle('hidden');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function handleLogout() {
+            sessionStorage.clear();
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('productId');
+            window.location.href = '/Frontend/comp/Login.html';
         }
 
         // Sales Trend Chart (Line Chart) - Initialized Empty
@@ -418,7 +476,7 @@
             data: {
                 labels: [], // Empty
                 datasets: [{
-                    label: 'Sales ($)',
+                    label: 'Sales (RS)',
                     data: [],
                     borderColor: '#137fec',
                     borderWidth: 3,

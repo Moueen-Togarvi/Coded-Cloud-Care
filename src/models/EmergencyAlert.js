@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 const emergencyAlertSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         patient_name: { type: String, default: 'Unknown' },
         note: { type: String, default: '' },
         severity: { type: String, default: 'critical' },
@@ -11,4 +16,4 @@ const emergencyAlertSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-module.exports = getHospitalDB().model('EmergencyAlert', emergencyAlertSchema);
+module.exports = mongoose.model('EmergencyAlert', emergencyAlertSchema);

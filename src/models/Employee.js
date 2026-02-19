@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Employee Schema
@@ -7,6 +6,12 @@ const { getHospitalDB } = require('../config/hospitalDatabase');
  */
 const employeeSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         name: {
             type: String,
             required: true,
@@ -41,7 +46,7 @@ employeeSchema.index({ name: 1 });
 employeeSchema.index({ status: 1 });
 employeeSchema.index({ joinDate: -1 });
 
-const Employee = getHospitalDB().model('Employee', employeeSchema);
+const Employee = mongoose.model('Employee', employeeSchema);
 
 
 module.exports = Employee;

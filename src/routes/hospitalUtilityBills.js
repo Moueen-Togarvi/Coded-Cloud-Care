@@ -9,7 +9,8 @@ const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hosp
  */
 router.get('/', requireHospitalAuth, async (req, res) => {
     try {
-        const bills = await UtilityBill.find().sort({ date: -1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const bills = await UtilityBill.find({ tenantId }).sort({ date: -1 });
         const data = bills.map((b) => ({ ...b.toObject(), _id: b._id.toString() }));
         return res.json({ success: true, bills: data });
     } catch (error) {
@@ -25,8 +26,10 @@ router.get('/', requireHospitalAuth, async (req, res) => {
 router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
     try {
         const data = req.body;
+        const tenantId = req.hospitalUser.tenantId;
         const bill = new UtilityBill({
             ...data,
+            tenantId,
             date: data.date ? new Date(data.date) : new Date(),
         });
         await bill.save();
@@ -43,7 +46,9 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
  */
 router.delete('/:id', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        await UtilityBill.findByIdAndDelete(req.params.id);
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await UtilityBill.findOneAndDelete({ _id: req.params.id, tenantId });
+        if (!result) return res.status(404).json({ success: false, error: 'Bill not found' });
         return res.json({ success: true, message: 'Bill deleted' });
     } catch (error) {
         console.error('Delete utility bill error:', error);

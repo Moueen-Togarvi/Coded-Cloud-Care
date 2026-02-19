@@ -2,13 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const session = require('express-session');
+const compression = require('compression');
 require('dotenv').config();
 
 const { connectMasterDB } = require('./config/database');
-const { connectHospitalDB } = require('./config/hospitalDatabase');
 
 // Multi-tenant routes
 const authRoutes = require('./routes/auth');
+const subscriptionRoutes = require('./routes/subscriptions');
 const patientsRoutes = require('./routes/patients');
 const appointmentsRoutes = require('./routes/appointments');
 const staffRoutes = require('./routes/staff');
@@ -52,6 +53,7 @@ app.use(
 );
 
 // Middleware
+app.use(compression());
 app.use(
   cors({
     origin: [
@@ -70,8 +72,34 @@ app.use(
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// ─── Hospital PMS API Aliases ────────────────────────────────────────────────
+// The Hospital PMS index.html calls /api/auth/*, /api/patients/*, etc.
+// (without the /hospital/ prefix). These aliases forward them correctly.
+// app.use('/api/auth', hospitalAuthRoutes); // REMOVED: Conflicts with unified SaaS auth
+app.use('/api/patients', (req, res, next) => {
+  // Only forward if this looks like a Hospital PMS request (has hospital session)
+  if (req.session && req.session.hospitalUserId) {
+    return hospitalPatientsRoutes(req, res, next);
+  }
+  next();
+});
+app.use('/api/canteen', hospitalCanteenRoutes);
+app.use('/api/overheads', hospitalOverheadsRoutes);
+app.use('/api/accounts', hospitalAccountsRoutes);
+app.use('/api/call_meeting_tracker', hospitalCallMeetingRoutes);
+app.use('/api/utility_bills', hospitalUtilityBillsRoutes);
+app.use('/api/employees', hospitalEmployeesRoutes);
+app.use('/api/export', hospitalExportRoutes);
+app.use('/api/payment-records', hospitalExportRoutes);
+app.use('/api/reports', hospitalReportsRoutes);
+app.use('/api/psych-sessions', hospitalPsychSessionsRoutes);
+app.use('/api/attendance', hospitalAttendanceRoutes);
+app.use('/api/emergency', hospitalEmergencyRoutes);
+app.use('/api/users', hospitalUsersRoutes);
+
 // Multi-tenant SaaS routes
 app.use('/api/auth', authRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/patients', patientsRoutes);
 app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/staff', staffRoutes);
@@ -98,37 +126,12 @@ app.use('/api/hospital/psych-sessions', hospitalPsychSessionsRoutes);
 app.use('/api/hospital/attendance', hospitalAttendanceRoutes);
 app.use('/api/hospital/emergency', hospitalEmergencyRoutes);
 
-// ─── Hospital PMS API Aliases ────────────────────────────────────────────────
-// The Hospital PMS index.html calls /api/auth/*, /api/patients/*, etc.
-// (without the /hospital/ prefix). These aliases forward them correctly.
-app.use('/api/auth', hospitalAuthRoutes);
-app.use('/api/patients', (req, res, next) => {
-  // Only forward if this looks like a Hospital PMS request (has hospital session)
-  if (req.session && req.session.hospitalUserId) {
-    return hospitalPatientsRoutes(req, res, next);
-  }
-  next();
-});
-app.use('/api/canteen', hospitalCanteenRoutes);
-app.use('/api/overheads', hospitalOverheadsRoutes);
-app.use('/api/accounts', hospitalAccountsRoutes);
-app.use('/api/call_meeting_tracker', hospitalCallMeetingRoutes);
-app.use('/api/utility_bills', hospitalUtilityBillsRoutes);
-app.use('/api/employees', hospitalEmployeesRoutes);
-app.use('/api/export', hospitalExportRoutes);
-app.use('/api/payment-records', hospitalExportRoutes);
-app.use('/api/reports', hospitalReportsRoutes);
-app.use('/api/psych-sessions', hospitalPsychSessionsRoutes);
-app.use('/api/attendance', hospitalAttendanceRoutes);
-app.use('/api/emergency', hospitalEmergencyRoutes);
-app.use('/api/users', hospitalUsersRoutes);
+// Serve static files for Hospital PMS
+app.use('/hospital/static', express.static(path.join(__dirname, '../Frontend/hospital/static')));
 
-// Serve static files for Hospital PMS (must be before the HTML route)
-app.use('/static', express.static(path.join(__dirname, '../Rooh adding in the coed cloud/static')));
-
-// Serve Hospital PMS frontend - handle multiple variations
-app.get(['/hospital-pms', '/Hosptial', '/hospital', '/pms'], (req, res) => {
-  res.sendFile(path.join(__dirname, '../Rooh adding in the coed cloud/templates/index.html'));
+// Serve Hospital PMS frontend
+app.get(['/hospital-pms', '/hospital', '/pms'], (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/hospital/index.html'));
 });
 
 // Serve Frontend directory for Pharmacy and other apps
@@ -174,11 +177,8 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    // Connect to master database (multi-tenant SaaS)
+    // Connect to master database (SaaS and unified products)
     await connectMasterDB();
-
-    // Connect to Hospital PMS database
-    await connectHospitalDB();
 
     // Start server
     app.listen(PORT, () => {

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Patient Record Schema
@@ -7,6 +6,12 @@ const { getHospitalDB } = require('../config/hospitalDatabase');
  */
 const patientRecordSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         patient_id: {
             type: String, // Stored as string to match Python implementation
             required: true,
@@ -35,6 +40,6 @@ patientRecordSchema.index({ patient_id: 1 });
 patientRecordSchema.index({ record_type: 1 });
 patientRecordSchema.index({ createdAt: -1 });
 
-const PatientRecord = getHospitalDB().model('PatientRecord', patientRecordSchema);
+const PatientRecord = mongoose.model('PatientRecord', patientRecordSchema);
 
 module.exports = PatientRecord;

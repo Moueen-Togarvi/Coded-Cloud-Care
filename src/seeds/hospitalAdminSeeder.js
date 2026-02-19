@@ -1,8 +1,4 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-require('dotenv').config();
-
-const { connectHospitalDB } = require('../config/hospitalDatabase');
+const { connectMasterDB } = require('../config/database');
 const HospitalUser = require('../models/HospitalUser');
 
 /**
@@ -13,7 +9,7 @@ const HospitalUser = require('../models/HospitalUser');
 const seedAdminUsers = async () => {
     try {
         console.log('Connecting to Hospital PMS database...');
-        await connectHospitalDB();
+        await connectMasterDB();
 
         // Check if any users exist
         const userCount = await HospitalUser.countDocuments({});

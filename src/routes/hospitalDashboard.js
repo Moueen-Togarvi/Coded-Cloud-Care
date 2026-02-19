@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const HospitalPatient = require('../models/HospitalPatient');
 const CanteenSale = require('../models/CanteenSale');
 const { requireHospitalAuth } = require('../middleware/hospitalAuth');
@@ -15,20 +16,39 @@ router.get('/', requireHospitalAuth, async (req, res) => {
         const today = new Date();
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        const tenantId = req.hospitalUser.tenantId;
 
-        // 1. Basic counts
-        const totalPatients = await HospitalPatient.countDocuments({});
-        const admissionsThisMonth = await HospitalPatient.countDocuments({
-            admissionDate: { $gte: startOfMonth, $lt: endOfMonth },
-        });
-        const dischargesThisMonth = await HospitalPatient.countDocuments({
-            isDischarged: true,
-            dischargeDate: { $gte: startOfMonth, $lt: endOfMonth },
-        });
-
-        // 2. Aggregate canteen sales
-        const canteenTotals = await CanteenSale.aggregate([
-            { $group: { _id: '$patient_id', total: { $sum: '$amount' } } },
+        // 1 & 2. Run basic counts and initial aggregations in parallel
+        const [
+            totalPatients,
+            admissionsThisMonth,
+            dischargesThisMonth,
+            canteenTotals,
+            canteenMonthResult
+        ] = await Promise.all([
+            HospitalPatient.countDocuments({ tenantId }),
+            HospitalPatient.countDocuments({
+                tenantId,
+                admissionDate: { $gte: startOfMonth, $lt: endOfMonth },
+            }),
+            HospitalPatient.countDocuments({
+                tenantId,
+                isDischarged: true,
+                dischargeDate: { $gte: startOfMonth, $lt: endOfMonth },
+            }),
+            CanteenSale.aggregate([
+                { $match: { tenantId: new mongoose.Types.ObjectId(tenantId) } },
+                { $group: { _id: '$patient_id', total: { $sum: '$amount' } } },
+            ]),
+            CanteenSale.aggregate([
+                {
+                    $match: {
+                        tenantId: new mongoose.Types.ObjectId(tenantId),
+                        date: { $gte: startOfMonth, $lt: endOfMonth }
+                    }
+                },
+                { $group: { _id: null, total_sales: { $sum: '$amount' } } },
+            ])
         ]);
 
         const canteenMap = {};
@@ -37,7 +57,10 @@ router.get('/', requireHospitalAuth, async (req, res) => {
         });
 
         // 3. Calculate total expected balance from active patients
-        const activePatients = await HospitalPatient.find({ isDischarged: { $ne: true } });
+        const activePatients = await HospitalPatient.find({
+            tenantId,
+            isDischarged: { $ne: true }
+        });
         let totalExpectedBalance = 0;
 
         for (const patient of activePatients) {
@@ -72,11 +95,7 @@ router.get('/', requireHospitalAuth, async (req, res) => {
             }
         }
 
-        // 4. Canteen sales this month
-        const canteenMonthResult = await CanteenSale.aggregate([
-            { $match: { date: { $gte: startOfMonth, $lt: endOfMonth } } },
-            { $group: { _id: null, total_sales: { $sum: '$amount' } } },
-        ]);
+        // 4. Canteen sales this month (now from Promise.all above)
         const totalCanteenSalesThisMonth = canteenMonthResult[0]?.total_sales || 0;
 
         return res.json({
@@ -106,8 +125,10 @@ router.get('/admissions', requireHospitalAuth, async (req, res) => {
     try {
         const today = new Date();
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const tenantId = req.hospitalUser.tenantId;
 
         const admissions = await HospitalPatient.find({
+            tenantId,
             createdAt: { $gte: startOfMonth },
         }).sort({ createdAt: -1 });
 
@@ -139,8 +160,9 @@ router.get('/admissions', requireHospitalAuth, async (req, res) => {
  */
 router.get('/debug', requireHospitalAuth, async (req, res) => {
     try {
-        const patients = await HospitalPatient.find({}, { name: 1, isDischarged: 1 });
-        const canteen = await CanteenSale.find().limit(10);
+        const tenantId = req.hospitalUser.tenantId;
+        const patients = await HospitalPatient.find({ tenantId }, { name: 1, isDischarged: 1 });
+        const canteen = await CanteenSale.find({ tenantId }).limit(10);
 
         return res.json({
             success: true,

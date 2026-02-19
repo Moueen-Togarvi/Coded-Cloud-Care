@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Utility Bill Schema
@@ -7,6 +6,12 @@ const { getHospitalDB } = require('../config/hospitalDatabase');
  */
 const utilityBillSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         billType: {
             type: String,
             enum: ['electricity', 'gas', 'water', 'internet', 'other'],
@@ -47,7 +52,7 @@ utilityBillSchema.index({ billType: 1 });
 utilityBillSchema.index({ year: -1, month: -1 });
 utilityBillSchema.index({ isPaid: 1 });
 
-const UtilityBill = getHospitalDB().model('UtilityBill', utilityBillSchema);
+const UtilityBill = mongoose.model('UtilityBill', utilityBillSchema);
 
 
 module.exports = UtilityBill;

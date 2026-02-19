@@ -14,10 +14,11 @@ const { calculateProratedFee, parseAmount } = require('../utils/hospitalHelpers'
 router.post('/', requireHospitalRole(['Admin', 'Doctor', 'Psychologist']), async (req, res) => {
     try {
         const { fields } = req.body || {};
-        const role = req.session?.hospitalRole;
+        const role = req.hospitalUser.role;
+        const tenantId = req.hospitalUser.tenantId;
         const isAdmin = role === 'Admin';
 
-        const patients = await HospitalPatient.find().lean();
+        const patients = await HospitalPatient.find({ tenantId }).lean();
         if (!patients.length) return res.status(404).json({ success: false, error: 'No patients found' });
 
         const allFields = [
@@ -83,7 +84,9 @@ router.post('/', requireHospitalRole(['Admin', 'Doctor', 'Psychologist']), async
  */
 router.get('/payment-records', requireHospitalRole(['Admin']), async (req, res) => {
     try {
+        const tenantId = req.hospitalUser.tenantId;
         const records = await HospitalExpense.find({
+            tenantId,
             type: 'incoming',
             category: 'Patient Fee',
         }).sort({ date: 1 });
@@ -121,7 +124,9 @@ router.get('/payment-records/export', requireHospitalRole(['Admin']), async (req
         }
         const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
+        const tenantId = req.hospitalUser.tenantId;
         const payments = await HospitalExpense.find({
+            tenantId,
             type: 'incoming',
             category: 'Patient Fee',
             date: { $gte: startDate, $lt: endDate },

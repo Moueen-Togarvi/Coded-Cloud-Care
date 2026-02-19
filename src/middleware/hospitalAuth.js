@@ -1,5 +1,6 @@
 const HospitalUser = require('../models/HospitalUser');
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
 const { verifyToken } = require('../utils/jwt');
 
 /**
@@ -11,7 +12,7 @@ const { verifyToken } = require('../utils/jwt');
  * Middleware to check if user is logged in
  */
 const requireHospitalAuth = async (req, res, next) => {
-    await bridgeHospitalAuth(req, res, () => {
+    await bridgeHospitalAuth(req, res, async () => {
         if (!req.session || !req.session.hospitalUserId) {
             return res.status(401).json({
                 success: false,
@@ -19,6 +20,53 @@ const requireHospitalAuth = async (req, res, next) => {
                 message: 'Please login to access this resource',
             });
         }
+
+        // Fast path: use session data if available
+        if (!req.hospitalUser) {
+            if (req.session.hospitalTenantId && req.session.hospitalUsername) {
+                req.hospitalUser = {
+                    userId: req.session.hospitalUserId,
+                    tenantId: req.session.hospitalTenantId,
+                    username: req.session.hospitalUsername,
+                    role: req.session.hospitalRole,
+                    name: req.session.hospitalName || req.session.hospitalUsername,
+                    isMasterUser: req.session.isMasterUser || false,
+                };
+            } else {
+                // Slow path: fetch from DB
+                if (req.session.isMasterUser) {
+                    const user = await User.findById(req.session.hospitalUserId);
+                    if (user) {
+                        req.hospitalUser = {
+                            userId: user._id,
+                            tenantId: user._id,
+                            username: user.email,
+                            role: 'Admin',
+                            name: user.companyName,
+                            isMasterUser: true,
+                        };
+                    }
+                } else {
+                    const user = await HospitalUser.findById(req.session.hospitalUserId);
+                    if (user) {
+                        req.hospitalUser = {
+                            userId: user._id,
+                            tenantId: user.tenantId,
+                            username: user.username,
+                            role: user.role,
+                            name: user.name,
+                            email: user.email,
+                            isMasterUser: false,
+                        };
+                    }
+                }
+            }
+        }
+
+        if (!req.hospitalUser) {
+            return res.status(401).json({ success: false, error: 'User context lost' });
+        }
+
         next();
     });
 };
@@ -40,24 +88,38 @@ const bridgeHospitalAuth = async (req, res, next) => {
             const decoded = verifyToken(token);
             const user = await User.findById(decoded.userId);
 
-            if (user && user.isActive && user.productId === 'hospital-pms') {
-                // Bridge to Hospital Session for Admin bypass
-                req.session.hospitalUserId = user._id.toString();
-                req.session.hospitalUsername = user.email;
-                req.session.hospitalRole = 'Admin';
-                req.session.isMasterUser = true;
-
-                req.hospitalUser = {
+            if (user && user.isActive) {
+                // IMPORTANT: Check if user has an active subscription for Hospital PMS
+                const subscription = await Subscription.findOne({
                     userId: user._id,
-                    username: user.email,
-                    role: 'Admin',
-                    name: user.companyName,
-                    isMasterUser: true,
-                };
+                    productSlug: 'hospital-pms',
+                    status: 'active',
+                    endDate: { $gt: new Date() }
+                });
+
+                if (subscription) {
+                    // Bridge to Hospital Session for Admin bypass
+                    req.session.hospitalUserId = user._id.toString();
+                    req.session.hospitalTenantId = user._id.toString(); // For Admin, tenantId is their own ID
+                    req.session.hospitalUsername = user.email;
+                    req.session.hospitalName = user.companyName;
+                    req.session.hospitalRole = 'Admin';
+                    req.session.isMasterUser = true;
+
+                    req.hospitalUser = {
+                        userId: user._id,
+                        tenantId: user._id,
+                        username: user.email,
+                        role: 'Admin',
+                        name: user.companyName,
+                        isMasterUser: true,
+                    };
+                }
             }
         }
     } catch (error) {
         // Fall through quietly
+        console.error('Bridge Auth Error:', error.message);
     }
     next();
 };
@@ -83,6 +145,13 @@ const requireHospitalRole = (roles) => {
                 // 2. Check if it's a bridged Master User
                 if (req.session.isMasterUser) {
                     if (roles.includes('Admin')) {
+                        req.hospitalUser = {
+                            userId: req.session.hospitalUserId,
+                            tenantId: req.session.hospitalTenantId,
+                            username: req.session.hospitalUsername,
+                            role: 'Admin',
+                            isMasterUser: true
+                        };
                         return next();
                     } else {
                         return res.status(403).json({
@@ -93,34 +162,41 @@ const requireHospitalRole = (roles) => {
                     }
                 }
 
-                // 3. Get user from database (Hospital staff)
-                const user = await HospitalUser.findById(req.session.hospitalUserId);
-
-                if (!user) {
-                    return res.status(401).json({
-                        success: false,
-                        error: 'Unauthorized',
-                        message: 'User not found',
-                    });
+                // 3. Fast path: check session for Hospital staff
+                if (req.session.hospitalTenantId && req.session.hospitalUsername) {
+                    req.hospitalUser = {
+                        userId: req.session.hospitalUserId,
+                        tenantId: req.session.hospitalTenantId,
+                        username: req.session.hospitalUsername,
+                        role: req.session.hospitalRole,
+                        name: req.session.hospitalName || req.session.hospitalUsername,
+                        isMasterUser: false
+                    };
+                } else {
+                    // 3. Slow path: fetch from DB
+                    const user = await HospitalUser.findById(req.session.hospitalUserId);
+                    if (!user) {
+                        return res.status(401).json({ success: false, error: 'Unauthorized', message: 'User not found' });
+                    }
+                    req.hospitalUser = {
+                        userId: user._id,
+                        tenantId: user.tenantId,
+                        username: user.username,
+                        role: user.role,
+                        name: user.name,
+                        email: user.email,
+                        isMasterUser: false
+                    };
                 }
 
                 // 4. Check if user has required role
-                if (!roles.includes(user.role)) {
+                if (!roles.includes(req.hospitalUser.role)) {
                     return res.status(403).json({
                         success: false,
                         error: 'Access Denied',
                         message: `This action requires one of the following roles: ${roles.join(', ')}`,
                     });
                 }
-
-                // Attach user info to request
-                req.hospitalUser = {
-                    userId: user._id,
-                    username: user.username,
-                    role: user.role,
-                    name: user.name,
-                    email: user.email,
-                };
 
                 next();
             });

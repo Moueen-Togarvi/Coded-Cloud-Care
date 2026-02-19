@@ -18,6 +18,18 @@ function setupEventListeners() {
     window.openReturnModal = openReturnModal;
     window.closeReturnModal = closeReturnModal;
     window.submitReturn = submitReturn;
+    setupScanner();
+}
+
+function setupScanner() {
+    const scanInput = document.getElementById('scanInput');
+    if (scanInput) {
+        scanInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                addRow();
+            }
+        });
+    }
 }
 
 async function voidSale(invoiceNumber) {
@@ -255,7 +267,7 @@ function renderCart() {
                         <button onclick="updateQuantity(${index}, 1)" class="w-6 h-6 bg-slate-800 rounded hover:bg-slate-700">+</button>
                     </div>
                 </td>
-                <td class="py-4 font-bold text-primary-blue">$${subtotal.toFixed(2)}</td>
+                <td class="py-4 font-bold text-primary-blue">RS ${subtotal.toFixed(2)}</td>
                 <td class="py-4 text-right">
                     <span class="material-icons-round text-slate-600 cursor-pointer hover:text-accent-rose transition-colors" onclick="removeFromCart(${index})">delete</span>
                 </td>
@@ -264,7 +276,7 @@ function renderCart() {
         table.insertAdjacentHTML('beforeend', row);
     });
 
-    if (totalDisplay) totalDisplay.innerText = `$${total.toFixed(2)}`;
+    if (totalDisplay) totalDisplay.innerText = `RS ${total.toFixed(2)}`;
 }
 
 function updateQuantity(index, delta) {
@@ -351,7 +363,7 @@ async function fetchDashboardStats() {
         if (stockData.success && stockData.summary) {
             const el = document.getElementById('totalStockValue');
             const skuEl = document.getElementById('totalSKUs');
-            if (el) el.innerText = `$${stockData.summary.totalSellingValue || '0.00'}`;
+            if (el) el.innerText = `RS ${stockData.summary.totalSellingValue || '0.00'}`;
             if (skuEl) skuEl.innerText = stockData.summary.totalItems || '0';
             totalItems = stockData.summary.totalItems || 0;
         }
@@ -376,7 +388,7 @@ async function fetchDashboardStats() {
             const el = document.getElementById('todaySales');
             const profitEl = document.getElementById('profitMargin');
 
-            if (el) el.innerText = `$${salesData.totalSales?.toFixed(2) || '0.00'}`;
+            if (el) el.innerText = `RS ${salesData.totalSales?.toFixed(2) || '0.00'}`;
 
             if (profitEl) {
                 if (salesData.totalSales > 0) {
@@ -425,7 +437,7 @@ function updateLiveActivity(sales) {
             <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800/50">
                 <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
                     <span>${timeAgo} • SALE</span>
-                    <span class="text-accent-green">+$${sale.totalAmount.toFixed(2)}</span>
+                    <span class="text-accent-green">+RS ${sale.totalAmount.toFixed(2)}</span>
                 </div>
                 <div class="mb-3">
                     <h4 class="text-xs font-bold text-white">Invoice: #${sale.invoiceNumber}</h4>
@@ -550,15 +562,15 @@ function showInvoiceModal(sale) {
             <tr>
                 <td class="py-3 font-bold text-slate-800">${item.medicineName}</td>
                 <td class="py-3 text-center text-slate-600">${item.quantity}</td>
-                <td class="py-3 text-right text-slate-600">$${item.unitPrice.toFixed(2)}</td>
-                <td class="py-3 text-right font-bold text-slate-900">$${itemTotal.toFixed(2)}</td>
+                <td class="py-3 text-right text-slate-600">RS ${item.unitPrice.toFixed(2)}</td>
+                <td class="py-3 text-right font-bold text-slate-900">RS ${itemTotal.toFixed(2)}</td>
             </tr>
         `;
         itemsContainer.insertAdjacentHTML('beforeend', row);
     });
 
-    document.getElementById('invoiceSubtotal').innerText = `$${subtotal.toFixed(2)}`;
-    document.getElementById('invoiceGrandTotal').innerText = `$${subtotal.toFixed(2)}`;
+    document.getElementById('invoiceSubtotal').innerText = `RS ${subtotal.toFixed(2)}`;
+    document.getElementById('invoiceGrandTotal').innerText = `RS ${subtotal.toFixed(2)}`;
 
     modal.classList.remove('hidden');
 }

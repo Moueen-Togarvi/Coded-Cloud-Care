@@ -9,7 +9,8 @@ const { requireHospitalAuth } = require('../middleware/hospitalAuth');
  */
 router.get('/', requireHospitalAuth, async (req, res) => {
     try {
-        const alerts = await EmergencyAlert.find().sort({ createdAt: -1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const alerts = await EmergencyAlert.find({ tenantId }).sort({ createdAt: -1 });
         const data = alerts.map((a) => ({
             _id: a._id.toString(),
             patient_name: a.patient_name,
@@ -34,11 +35,13 @@ router.get('/', requireHospitalAuth, async (req, res) => {
 router.post('/', requireHospitalAuth, async (req, res) => {
     try {
         const { patient_name, note, severity } = req.body;
+        const tenantId = req.hospitalUser.tenantId;
         const alert = new EmergencyAlert({
+            tenantId,
             patient_name: patient_name || 'Unknown',
             note: note || '',
             severity: severity || 'critical',
-            added_by: req.session?.hospitalUsername || 'Staff',
+            added_by: req.hospitalUser.username || 'Staff',
         });
         await alert.save();
         return res.status(201).json({ success: true, message: 'Alert added' });
@@ -54,7 +57,9 @@ router.post('/', requireHospitalAuth, async (req, res) => {
  */
 router.delete('/:id', requireHospitalAuth, async (req, res) => {
     try {
-        await EmergencyAlert.findByIdAndDelete(req.params.id);
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await EmergencyAlert.findOneAndDelete({ _id: req.params.id, tenantId });
+        if (!result) return res.status(404).json({ success: false, error: 'Alert not found' });
         return res.json({ success: true, message: 'Alert resolved' });
     } catch (error) {
         console.error('Delete emergency alert error:', error);

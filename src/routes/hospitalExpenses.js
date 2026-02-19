@@ -12,8 +12,9 @@ const { cleanInputData } = require('../utils/hospitalHelpers');
 router.get('/', requireHospitalAuth, async (req, res) => {
     try {
         const { type, category, startDate, endDate } = req.query;
+        const tenantId = req.hospitalUser.tenantId;
 
-        const query = {};
+        const query = { tenantId };
         if (type) query.type = type;
         if (category) query.category = category;
         if (startDate || endDate) {
@@ -57,8 +58,10 @@ router.get('/', requireHospitalAuth, async (req, res) => {
 router.post('/', requireHospitalAuth, async (req, res) => {
     try {
         const data = cleanInputData(req.body);
+        const tenantId = req.hospitalUser.tenantId;
 
         const expense = new HospitalExpense({
+            tenantId,
             type: data.type,
             category: data.category,
             description: data.description,
@@ -92,7 +95,8 @@ router.post('/', requireHospitalAuth, async (req, res) => {
  */
 router.delete('/:id', requireHospitalAuth, async (req, res) => {
     try {
-        const result = await HospitalExpense.findByIdAndDelete(req.params.id);
+        const tenantId = req.hospitalUser.tenantId;
+        const result = await HospitalExpense.findOneAndDelete({ _id: req.params.id, tenantId });
 
         if (!result) {
             return res.status(404).json({
@@ -123,8 +127,10 @@ router.delete('/:id', requireHospitalAuth, async (req, res) => {
 router.get('/summary', requireHospitalAuth, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
+        const tenantId = req.hospitalUser.tenantId;
+        const mongoose = require('mongoose');
 
-        const query = {};
+        const query = { tenantId: new mongoose.Types.ObjectId(tenantId) };
         if (startDate || endDate) {
             query.date = {};
             if (startDate) query.date.$gte = new Date(startDate);

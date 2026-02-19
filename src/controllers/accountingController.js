@@ -140,6 +140,7 @@ const createInvoice = async (req, res) => {
         const invoiceNumber = await generateInvoiceNumber(Invoice);
 
         const newInvoice = new Invoice({
+            tenantId: req.user.userId,
             invoiceNumber,
             patientId,
             customerName,
@@ -291,6 +292,7 @@ const addPaymentToInvoice = async (req, res) => {
         // Create payment record
         const paymentNumber = await generatePaymentNumber(Payment);
         const payment = new Payment({
+            tenantId: req.user.userId,
             paymentNumber,
             invoiceId: invoice._id,
             invoiceNumber: invoice.invoiceNumber,
@@ -413,7 +415,10 @@ const recordPayment = async (req, res) => {
 
         paymentData.paymentNumber = await generatePaymentNumber(Payment);
 
-        const newPayment = new Payment(paymentData);
+        const newPayment = new Payment({
+            tenantId: req.user.userId,
+            ...paymentData
+        });
         await newPayment.save();
 
         res.status(201).json({
@@ -532,7 +537,10 @@ const recordRevenue = async (req, res) => {
             });
         }
 
-        const newRevenue = new Revenue(revenueData);
+        const newRevenue = new Revenue({
+            tenantId: req.user.userId,
+            ...revenueData
+        });
         await newRevenue.save();
 
         res.status(201).json({
@@ -694,7 +702,10 @@ const createExpense = async (req, res) => {
 
         expenseData.expenseNumber = await generateExpenseNumber(Expense);
 
-        const newExpense = new Expense(expenseData);
+        const newExpense = new Expense({
+            tenantId: req.user.userId,
+            ...expenseData
+        });
         await newExpense.save();
 
         res.status(201).json({

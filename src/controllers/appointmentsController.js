@@ -79,6 +79,7 @@ const createAppointment = async (req, res) => {
         }
 
         const appointment = new Appointment({
+            tenantId: req.user.userId,
             patientId,
             appointmentDate,
             appointmentType,

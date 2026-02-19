@@ -1,23 +1,25 @@
 const User = require('../models/User');
 const Plan = require('../models/Plan');
+const Subscription = require('../models/Subscription');
 const { provisionTenant } = require('../services/tenantService');
 const { generateToken } = require('../utils/jwt');
 
+const TRIAL_DAYS = 3;
+
 /**
- * Register a new user (clinic)
+ * Register a new user
  * - Creates user account
  * - Provisions tenant database
- * - Starts 3-day free trial
+ * - Agar productId diya ho to us product ka 3-day trial start karta hai
  */
 const register = async (req, res) => {
   try {
     const { email, password, companyName, phone, address, planType, productId } = req.body;
 
-    // Validate required fields
-    if (!email || !password || !companyName || !planType || !productId) {
+    if (!email || !password || !companyName) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email, password, company name, plan type, and product ID',
+        message: 'Please provide email, password, and company name',
       });
     }
 
@@ -30,22 +32,17 @@ const register = async (req, res) => {
       });
     }
 
-    // Find the selected plan
-    const plan = await Plan.findOne({ planType, isActive: true });
+    // Find plan (optional — default to basic if not found)
+    let plan = null;
+    if (planType) {
+      plan = await Plan.findOne({ planType, isActive: true });
+    }
     if (!plan) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid plan type or plan not available',
-      });
+      plan = await Plan.findOne({ isActive: true });
     }
 
     // Provision tenant database
     const { tenantDbName, tenantDbUrl } = await provisionTenant(companyName);
-
-    // Calculate trial end date
-    const trialStartDate = new Date();
-    const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + (plan.trialDays || 3));
 
     // Create new user
     const user = new User({
@@ -56,36 +53,55 @@ const register = async (req, res) => {
         phone: phone || '',
         address: address || '',
       },
-      planId: plan._id,
+      planId: plan ? plan._id : undefined,
       tenantDbName,
       tenantDbUrl,
-      subscriptionStatus: 'trial',
-      trialStartDate,
-      trialEndDate,
-      productId,
       isActive: true,
     });
 
     await user.save();
+
+    // Agar productId diya hai to us product ka trial subscription create karo
+    let initialSubscription = null;
+    if (productId) {
+      const validSlugs = ['hospital-pms', 'pharmacy-pos', 'lab-reporting', 'quick-invoice', 'private-clinic-lite'];
+      if (validSlugs.includes(productId)) {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + TRIAL_DAYS);
+
+        initialSubscription = await Subscription.create({
+          userId: user._id,
+          productSlug: productId,
+          planType: 'trial',
+          startDate,
+          endDate,
+          status: 'active',
+        });
+      }
+    }
 
     // Generate JWT token
     const token = generateToken(user._id);
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful. Your 3-day free trial has started!',
+      message: 'Registration successful! Your 3-day free trial has started.',
       data: {
         token,
         user: {
           id: user._id,
           email: user.email,
           companyName: user.companyName,
-          planType: plan.planType,
-          subscriptionStatus: user.subscriptionStatus,
-          trialEndDate: user.trialEndDate,
-          tenantDbName: user.tenantDbName,
-          productId: user.productId,
         },
+        activeSubscription: initialSubscription
+          ? {
+            productSlug: initialSubscription.productSlug,
+            planType: initialSubscription.planType,
+            endDate: initialSubscription.endDate,
+            status: initialSubscription.status,
+          }
+          : null,
       },
     });
   } catch (error) {
@@ -100,14 +116,13 @@ const register = async (req, res) => {
 
 /**
  * Login user
- * - Validates credentials
- * - Returns JWT token
+ * - Kisi bhi product se login ho sakta hai (PRODUCT_MISMATCH check removed)
+ * - User ki saari subscriptions return karta hai
  */
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate required fields
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -116,7 +131,7 @@ const login = async (req, res) => {
     }
 
     // Find user by email
-    const user = await User.findOne({ email }).populate('planId');
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -141,23 +156,32 @@ const login = async (req, res) => {
       });
     }
 
-    // Check if user has access (trial not expired or active subscription)
-    if (!user.hasAccess()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Your trial has expired. Please subscribe to continue using the service.',
-        subscriptionStatus: user.subscriptionStatus,
-        trialEndDate: user.trialEndDate,
-      });
-    }
+    // User ki saari subscriptions fetch karo (expired wali bhi dikhao, frontend decide kare)
+    const subscriptions = await Subscription.find({ userId: user._id }).sort({ createdAt: -1 });
+
+    // Auto-expire jo subscriptions endDate guzar chuki hain
+    const now = new Date();
+    const updatedSubs = await Promise.all(
+      subscriptions.map(async (sub) => {
+        if (sub.status === 'active' && now > sub.endDate) {
+          sub.status = 'expired';
+          await sub.save();
+        }
+        return sub;
+      })
+    );
 
     // Generate JWT token
     const token = generateToken(user._id);
 
-    // Bridge session for Hospital PMS users
-    if (user.productId === 'hospital-pms') {
+    // Hospital PMS session bridge (if user has hospital-pms subscription)
+    const hospitalSub = updatedSubs.find(s => s.productSlug === 'hospital-pms' && s.status === 'active' && now < s.endDate);
+
+    if (hospitalSub && req.session) {
       req.session.hospitalUserId = user._id.toString();
+      req.session.hospitalTenantId = user._id.toString();
       req.session.hospitalUsername = user.email;
+      req.session.hospitalName = user.companyName;
       req.session.hospitalRole = 'Admin';
       req.session.isMasterUser = true;
     }
@@ -171,12 +195,15 @@ const login = async (req, res) => {
           id: user._id,
           email: user.email,
           companyName: user.companyName,
-          planType: user.planId.planType,
-          subscriptionStatus: user.subscriptionStatus,
-          trialEndDate: user.trialEndDate,
-          tenantDbName: user.tenantDbName,
-          productId: user.productId,
         },
+        // Saari active subscriptions
+        subscriptions: updatedSubs.map((s) => ({
+          productSlug: s.productSlug,
+          planType: s.planType,
+          status: s.status,
+          endDate: s.endDate,
+          isAccessible: s.status === 'active' && now < s.endDate,
+        })),
       },
     });
   } catch (error) {
@@ -190,11 +217,11 @@ const login = async (req, res) => {
 };
 
 /**
- * Get current user profile
+ * Get current user profile + subscriptions
  */
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).populate('planId').select('-passwordHash');
+    const user = await User.findById(req.user.userId).select('-passwordHash');
 
     if (!user) {
       return res.status(404).json({
@@ -202,6 +229,9 @@ const getProfile = async (req, res) => {
         message: 'User not found',
       });
     }
+
+    const now = new Date();
+    const subscriptions = await Subscription.find({ userId: user._id }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -211,20 +241,16 @@ const getProfile = async (req, res) => {
           email: user.email,
           companyName: user.companyName,
           contactInfo: user.contactInfo,
-          plan: {
-            type: user.planId.planType,
-            name: user.planId.planName,
-            price: user.planId.price,
-            billingCycle: user.planId.billingCycle,
-          },
-          subscriptionStatus: user.subscriptionStatus,
-          trialStartDate: user.trialStartDate,
-          trialEndDate: user.trialEndDate,
-          tenantDbName: user.tenantDbName,
-          productId: user.productId,
           isActive: user.isActive,
           createdAt: user.createdAt,
         },
+        subscriptions: subscriptions.map((s) => ({
+          productSlug: s.productSlug,
+          planType: s.planType,
+          status: s.status,
+          endDate: s.endDate,
+          isAccessible: s.status === 'active' && now < s.endDate,
+        })),
       },
     });
   } catch (error) {
@@ -237,8 +263,33 @@ const getProfile = async (req, res) => {
   }
 };
 
+/**
+ * Get session status (Legacy bridge for Hospital PMS)
+ */
+const getSession = async (req, res) => {
+  try {
+    if (req.session && req.session.hospitalUserId) {
+      return res.json({
+        success: true,
+        is_logged_in: true,
+        username: req.session.hospitalUsername,
+        role: req.session.hospitalRole,
+        user_id: req.session.hospitalUserId,
+        is_master_user: req.session.isMasterUser || false,
+      });
+    }
+    return res.json({
+      success: true,
+      is_logged_in: false,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
   getProfile,
+  getSession,
 };

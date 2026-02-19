@@ -11,7 +11,8 @@ const { cleanInputData, normalizeEmail } = require('../utils/hospitalHelpers');
  */
 router.get('/', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        const users = await HospitalUser.find({}, { password: 0 }).sort({ createdAt: -1 });
+        const tenantId = req.hospitalUser.tenantId;
+        const users = await HospitalUser.find({ tenantId }, { password: 0 }).sort({ createdAt: -1 });
 
         const usersData = users.map((user) => ({
             _id: user._id.toString(),
@@ -45,6 +46,7 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
     try {
         const data = cleanInputData(req.body);
         const { username, password, role, name, email } = data;
+        const tenantId = req.hospitalUser.tenantId;
 
         // Validate required fields
         if (!username || !password || !role || !name || !email) {
@@ -65,8 +67,11 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
             });
         }
 
-        // Check if username already exists
-        const existingUser = await HospitalUser.findOne({ username: username.toLowerCase() });
+        // Check if username already exists for THIS tenant
+        const existingUser = await HospitalUser.findOne({
+            tenantId,
+            username: username.toLowerCase()
+        });
         if (existingUser) {
             return res.status(409).json({
                 success: false,
@@ -74,8 +79,11 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
             });
         }
 
-        // Check if email already exists
-        const existingEmail = await HospitalUser.findOne({ email: normalizedEmail });
+        // Check if email already exists for THIS tenant
+        const existingEmail = await HospitalUser.findOne({
+            tenantId,
+            email: normalizedEmail
+        });
         if (existingEmail) {
             return res.status(409).json({
                 success: false,
@@ -85,6 +93,7 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
 
         // Create new user
         const newUser = new HospitalUser({
+            tenantId,
             username: username.toLowerCase(),
             password,
             role,

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Call/Meeting Tracker Schema
@@ -7,6 +6,12 @@ const { getHospitalDB } = require('../config/hospitalDatabase');
  */
 const callMeetingTrackerSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         patient_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'HospitalPatient',
@@ -40,7 +45,7 @@ callMeetingTrackerSchema.index({ patient_id: 1 });
 callMeetingTrackerSchema.index({ date: -1 });
 callMeetingTrackerSchema.index({ type: 1 });
 
-const CallMeetingTracker = getHospitalDB().model('CallMeetingTracker', callMeetingTrackerSchema);
+const CallMeetingTracker = mongoose.model('CallMeetingTracker', callMeetingTrackerSchema);
 
 
 module.exports = CallMeetingTracker;

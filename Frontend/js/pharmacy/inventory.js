@@ -12,6 +12,19 @@ function initInventory() {
     fetchPendingRequisitions();
     setupInventoryListeners();
     initializeQuarterlyChart();
+    setupScanner();
+}
+
+function setupScanner() {
+    const skuInput = document.getElementById('itemSku');
+    if (skuInput) {
+        skuInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('itemCategory').focus();
+            }
+        });
+    }
 }
 
 function setupInventoryListeners() {
@@ -66,6 +79,11 @@ window.openModal = function (item = null) {
     }
 
     modal.classList.remove('hidden');
+    // Focus SKU field for scanner
+    setTimeout(() => {
+        const skuInput = document.getElementById('itemSku');
+        if (skuInput) skuInput.focus();
+    }, 100);
 }
 
 window.closeModal = () => {
@@ -145,11 +163,11 @@ async function fetchInventory() {
 
         if (valResult.success && valResult.summary) {
             const el = document.getElementById('inventoryValuation');
-            if (el) el.innerText = `$${valResult.summary.totalSellingValue || '0.00'}`;
+            if (el) el.innerText = `RS ${valResult.summary.totalSellingValue || '0.00'}`;
 
             // Also update net margin if possible (placeholder logic using potential profit)
             const marginEl = document.getElementById('netMargin');
-            if (marginEl) marginEl.innerText = `$${valResult.summary.potentialProfit || '0.00'}`;
+            if (marginEl) marginEl.innerText = `RS ${valResult.summary.potentialProfit || '0.00'}`;
         }
 
     } catch (error) {
@@ -168,7 +186,7 @@ async function fetchInventoryDashboardData() {
         const arData = await arRes.json();
         if (arData.success) {
             const el = document.getElementById('accountsReceivable');
-            if (el) el.innerText = `$${arData.totalReceivable?.toFixed(2) || '0.00'}`;
+            if (el) el.innerText = `RS ${arData.totalReceivable?.toFixed(2) || '0.00'}`;
         }
 
         // 2. Accounts Payable
@@ -176,7 +194,7 @@ async function fetchInventoryDashboardData() {
         const apData = await apRes.json();
         if (apData.success) {
             const el = document.getElementById('accountsPayable');
-            if (el) el.innerText = `$${apData.totalPayable?.toFixed(2) || '0.00'}`;
+            if (el) el.innerText = `RS ${apData.totalPayable?.toFixed(2) || '0.00'}`;
         }
 
         // 3. Quarterly Performance (Chart)
@@ -231,7 +249,7 @@ function renderRequisitions(orders) {
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs font-bold text-white">$${po.totalAmount.toFixed(2)}</p>
+                    <p class="text-xs font-bold text-white">RS ${po.totalAmount.toFixed(2)}</p>
                     <p class="text-[9px] text-accent-orange uppercase font-bold">Pending</p>
                 </div>
             </div>

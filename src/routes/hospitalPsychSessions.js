@@ -12,10 +12,11 @@ const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hosp
 router.get('/', requireHospitalAuth, async (req, res) => {
     try {
         const { start, end, psychologistId } = req.query;
-        const role = req.session?.hospitalRole;
-        const userId = req.session?.hospitalUserId;
+        const role = req.hospitalUser.role;
+        const userId = req.hospitalUser.userId;
+        const tenantId = req.hospitalUser.tenantId;
 
-        const query = {};
+        const query = { tenantId };
 
         if (start || end) {
             query.date = {};
@@ -46,6 +47,7 @@ router.get('/', requireHospitalAuth, async (req, res) => {
         const patientMap = {};
         if (patientIds.size > 0) {
             const patients = await HospitalPatient.find({
+                tenantId,
                 _id: { $in: [...patientIds].filter((id) => id.match(/^[a-f\d]{24}$/i)) },
             });
             patients.forEach((p) => {
@@ -56,6 +58,7 @@ router.get('/', requireHospitalAuth, async (req, res) => {
         const psychMap = {};
         if (psychIds.size > 0) {
             const users = await HospitalUser.find({
+                tenantId,
                 _id: { $in: [...psychIds].filter((id) => id.match(/^[a-f\d]{24}$/i)) },
             });
             users.forEach((u) => {
@@ -91,7 +94,9 @@ router.get('/', requireHospitalAuth, async (req, res) => {
  */
 router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        const { date, time_slot, psychologist_id, patient_ids, title } = req.body;
+        const psychologist_id = req.hospitalUser.role === 'Psychologist' ? req.hospitalUser.userId : (req.body.psychologist_id || req.hospitalUser.userId);
+        const { date, time_slot, patient_ids, title } = req.body;
+        const tenantId = req.hospitalUser.tenantId;
 
         if (!date || !psychologist_id || !patient_ids?.length) {
             return res.status(400).json({ success: false, error: 'Missing fields' });
@@ -101,12 +106,13 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
         dateVal.setHours(0, 0, 0, 0);
 
         const session = new PsychSession({
+            tenantId,
             psychologist_id,
             date: dateVal,
             time_slot: time_slot || '',
             patient_ids,
             title: title || '',
-            created_by: req.session?.hospitalUsername,
+            created_by: req.hospitalUser.username,
         });
 
         await session.save();
@@ -135,15 +141,16 @@ router.post('/:session_id/note', requireHospitalRole(['Admin', 'Psychologist']),
             return res.status(400).json({ success: false, error: 'Issue, intervention, and response are required' });
         }
 
-        const sessionDoc = await PsychSession.findById(req.params.session_id);
+        const tenantId = req.hospitalUser.tenantId;
+        const sessionDoc = await PsychSession.findOne({ _id: req.params.session_id, tenantId });
         if (!sessionDoc) return res.status(404).json({ success: false, error: 'Session not found' });
         if (sessionDoc.note) return res.status(409).json({ success: false, error: 'Note already saved' });
 
-        await PsychSession.findByIdAndUpdate(req.params.session_id, {
+        await PsychSession.updateOne({ _id: req.params.session_id, tenantId }, {
             $set: {
                 note: noteText,
                 note_detail: noteDetail,
-                note_author: req.session?.hospitalUsername,
+                note_author: req.hospitalUser.username,
                 note_at: new Date(),
             },
         });

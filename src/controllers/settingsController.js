@@ -1,16 +1,30 @@
+const mongoose = require('mongoose');
+
 const getSettings = async (req, res) => {
     try {
         const { Settings } = req.tenantModels;
-        let settings = await Settings.findOne();
+        const tenantId = new mongoose.Types.ObjectId(req.user.userId);
+
+        // Try to find settings specific to this tenant
+        let settings = await Settings.findOne({ tenantId });
 
         if (!settings) {
-            // Create default settings if none exist
-            settings = await Settings.create({
-                clinicName: 'My Pharmacy',
-                clinicAddress: '',
-                clinicPhone: '',
-                clinicEmail: '',
-            });
+            // Check if any settings document exists (legacy/migration)
+            settings = await Settings.findOne();
+
+            if (settings) {
+                settings.tenantId = tenantId;
+                await settings.save();
+            } else {
+                // Create default settings if none exist
+                settings = await Settings.create({
+                    tenantId: tenantId,
+                    clinicName: req.user.companyName || 'My Clinic',
+                    clinicAddress: '',
+                    clinicPhone: '',
+                    clinicEmail: req.user.email || '',
+                });
+            }
         }
 
         res.status(200).json({
@@ -30,15 +44,13 @@ const getSettings = async (req, res) => {
 const updateSettings = async (req, res) => {
     try {
         const { Settings } = req.tenantModels;
-        const updateData = req.body;
-        console.log(`[Settings] Updating settings for tenant. Payload keys: ${Object.keys(updateData)}`);
-        updateData.updatedAt = new Date();
+        const tenantId = new mongoose.Types.ObjectId(req.user.userId);
 
-        let settings = await Settings.findOneAndUpdate({}, updateData, {
-            new: true,
-            upsert: true,
-            runValidators: true
-        });
+        const settings = await Settings.findOneAndUpdate(
+            { tenantId: tenantId },
+            { $set: { ...req.body, tenantId: tenantId, updatedAt: new Date() } },
+            { new: true, upsert: true, runValidators: true }
+        );
 
         res.status(200).json({
             success: true,

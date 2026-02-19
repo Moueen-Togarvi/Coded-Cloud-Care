@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { getHospitalDB } = require('../config/hospitalDatabase');
 
 /**
  * Canteen Sale Schema
@@ -7,6 +6,12 @@ const { getHospitalDB } = require('../config/hospitalDatabase');
  */
 const canteenSaleSchema = new mongoose.Schema(
     {
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
         patient_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'HospitalPatient',
@@ -41,6 +46,6 @@ canteenSaleSchema.index({ patient_id: 1 });
 canteenSaleSchema.index({ date: -1 });
 canteenSaleSchema.index({ type: 1 });
 
-const CanteenSale = getHospitalDB().model('CanteenSale', canteenSaleSchema);
+const CanteenSale = mongoose.model('CanteenSale', canteenSaleSchema);
 
 module.exports = CanteenSale;

@@ -86,6 +86,7 @@ const createStaff = async (req, res) => {
         }
 
         const staff = new Staff({
+            tenantId: req.user.userId,
             firstName,
             lastName,
             email,

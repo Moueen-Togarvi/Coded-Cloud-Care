@@ -62,7 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          productId: productId // Send the productId we're trying to log into
+        }),
       });
 
       const data = await response.json();
@@ -82,12 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
       saveAuthToken(data.data.token, finalProductId);
 
       // Show success message
-      showSuccess('Login successful! Redirecting...');
+      showSuccess('Login successful! Redirecting to Dashboard...');
 
-      // Redirect immediately using central config
-      if (finalProductId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[finalProductId]) {
-        window.location.href = window.PRODUCT_CONFIG[finalProductId].landingPage;
+      // DIRECT DASH: If we have a productId from the URL, redirect directly to that software
+      if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
+        const landingPage = window.PRODUCT_CONFIG[productId].landingPage;
+        sessionStorage.setItem('productId', productId);
+        window.location.href = landingPage;
       } else {
+        // Fallback to central dashboard
         window.location.href = '/Frontend/comp/dashboard.html';
       }
     } catch (error) {

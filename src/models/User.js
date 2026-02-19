@@ -38,7 +38,6 @@ const userSchema = new mongoose.Schema(
     planId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Plan',
-      required: true,
     },
     tenantDbName: {
       type: String,
@@ -49,23 +48,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    subscriptionStatus: {
-      type: String,
-      enum: ['trial', 'active', 'expired', 'cancelled'],
-      default: 'trial',
-    },
-    trialStartDate: {
-      type: Date,
-      default: Date.now,
-    },
-    trialEndDate: {
-      type: Date,
-      required: true,
-    },
-    productId: {
-      type: String,
-      required: true,
-    },
+    // NOTE: productId, subscriptionStatus, trialStartDate, trialEndDate
+    // Yeh sab ab `Subscription` model mein hain (per-product tracking ke liye)
     isActive: {
       type: Boolean,
       default: true,
@@ -76,17 +60,14 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for faster queries (critical for performance)
-// Note: email and tenantDbName already have indexes via "unique: true" in schema
-// Only add additional indexes here
-userSchema.index({ subscriptionStatus: 1, isActive: 1 }); // Subscription filtering
+// Indexes
+userSchema.index({ isActive: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('passwordHash')) {
     return next();
   }
-
   try {
     const salt = await bcrypt.genSalt(10);
     this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
@@ -96,30 +77,9 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-// Method to compare passwords
+// Compare passwords
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.passwordHash);
-};
-
-// Method to check if trial has expired
-userSchema.methods.isTrialExpired = function () {
-  if (this.subscriptionStatus !== 'trial') {
-    return false;
-  }
-  return new Date() > this.trialEndDate;
-};
-
-// Method to check if user has access (trial not expired or active subscription)
-userSchema.methods.hasAccess = function () {
-  if (!this.isActive) {
-    return false;
-  }
-
-  if (this.subscriptionStatus === 'trial') {
-    return !this.isTrialExpired();
-  }
-
-  return this.subscriptionStatus === 'active';
 };
 
 const User = mongoose.model('User', userSchema);

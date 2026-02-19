@@ -126,7 +126,7 @@ function renderSalesTable(sales) {
                 </td>
                 <td class="px-6 py-4"><span class="px-2 py-1 bg-${statusColor}/10 text-${statusColor} rounded text-[9px] font-bold uppercase">${status}</span></td>
                 <td class="px-6 py-4 text-slate-400">${paymentMethod}</td>
-                <td class="px-6 py-4 font-bold text-white">$${sale.totalAmount.toFixed(2)}</td>
+                <td class="px-6 py-4 font-bold text-white">RS ${sale.totalAmount.toFixed(2)}</td>
                 <td class="px-6 py-4 text-right flex justify-end items-center gap-3">
                     <button onclick="printInvoiceByNumber('${sale.invoiceNumber || '#INV-' + sale._id.slice(-6).toUpperCase()}')" class="flex items-center justify-center w-8 h-8 bg-primary-blue/20 hover:bg-primary-blue text-primary-blue hover:text-white rounded-lg transition-all" title="Print Invoice">
                         <span class="material-icons-round text-base">print</span>
@@ -195,15 +195,15 @@ function showInvoiceModal(salesBatch) {
             <tr>
                 <td class="py-3 font-bold text-slate-800">${item.medicineName}</td>
                 <td class="py-3 text-center text-slate-600">${item.quantity}</td>
-                <td class="py-3 text-right text-slate-600">$${item.unitPrice.toFixed(2)}</td>
-                <td class="py-3 text-right font-bold text-slate-900">$${itemTotal.toFixed(2)}</td>
+                <td class="py-3 text-right text-slate-600">RS ${item.unitPrice.toFixed(2)}</td>
+                <td class="py-3 text-right font-bold text-slate-900">RS ${itemTotal.toFixed(2)}</td>
             </tr>
         `;
         itemsContainer.insertAdjacentHTML('beforeend', row);
     });
 
-    document.getElementById('invoiceSubtotal').innerText = `$${subtotal.toFixed(2)}`;
-    document.getElementById('invoiceGrandTotal').innerText = `$${subtotal.toFixed(2)}`;
+    document.getElementById('invoiceSubtotal').innerText = `RS ${subtotal.toFixed(2)}`;
+    document.getElementById('invoiceGrandTotal').innerText = `RS ${subtotal.toFixed(2)}`;
 
     modal.classList.remove('hidden');
 }
@@ -329,10 +329,10 @@ function updateSalesStats(sales) {
     if (totalOrdersEl) totalOrdersEl.innerText = totalOrders.toLocaleString();
 
     const grossRevenueEl = document.getElementById('grossRevenue');
-    if (grossRevenueEl) grossRevenueEl.innerText = `$${grossRevenue.toFixed(2)}`;
+    if (grossRevenueEl) grossRevenueEl.innerText = `RS ${grossRevenue.toFixed(2)}`;
 
     const avgOrderValueEl = document.getElementById('avgOrderValue');
-    if (avgOrderValueEl) avgOrderValueEl.innerText = `$${avgOrderValue.toFixed(2)}`;
+    if (avgOrderValueEl) avgOrderValueEl.innerText = `RS ${avgOrderValue.toFixed(2)}`;
 
     // Return Rate (Mocking based on data if no Returns model yet, but setting to a plausible 0.0% for now)
     const returnRateEl = document.getElementById('returnRate');
