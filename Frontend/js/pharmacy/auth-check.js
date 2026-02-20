@@ -99,8 +99,7 @@
 
         // Use pharmacy specific fields if available, fallback to clinic fields
         const name = settings.pharmacyName || settings.clinicName || 'PharmaTrack';
-        const email = settings.pharmacyEmail || settings.clinicEmail || 'support@pharmxpro.com';
-        const phone = settings.pharmacyPhone || settings.clinicPhone || '+1 (555) 000-1234';
+        const phone = settings.pharmacyPhone || settings.clinicPhone || '';
         const logo = settings.pharmacyLogo || settings.clinicLogo;
         const address = settings.pharmacyAddress || settings.clinicAddress || '';
 
@@ -108,17 +107,6 @@
         const sidebarTitle = document.getElementById('sidebar-pharmacy-name');
         if (sidebarTitle) {
             sidebarTitle.textContent = name;
-        }
-
-        // update header support info
-        const supportEmail = document.getElementById('header-support-email');
-        if (supportEmail) {
-            supportEmail.textContent = email;
-        }
-
-        const supportPhone = document.getElementById('header-support-phone');
-        if (supportPhone) {
-            supportPhone.textContent = phone;
         }
 
         // update invoice branding (if present)
