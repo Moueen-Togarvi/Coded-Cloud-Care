@@ -13,7 +13,7 @@ const getAllItems = async (req, res) => {
         const Inventory = req.tenantModels.Inventory;
         const { status, category, lowStock } = req.query;
 
-        let query = { isActive: { $ne: false } };
+        let query = { tenantId: req.user.userId, isActive: { $ne: false } };
         if (status) query.status = status;
         if (category) query.category = category;
         if (lowStock === 'true') {
@@ -48,7 +48,7 @@ const getItemById = async (req, res) => {
         const Inventory = req.tenantModels.Inventory;
         const { id } = req.params;
 
-        const item = await Inventory.findById(id).populate('supplierId', 'name phone email');
+        const item = await Inventory.findOne({ _id: id, tenantId: req.user.userId }).populate('supplierId', 'name phone email');
 
         if (!item) {
             return res.status(404).json({
@@ -140,7 +140,7 @@ const updateItem = async (req, res) => {
 
         // Recalculate profit margin if prices changed
         if (updateData.costPrice !== undefined || updateData.sellingPrice !== undefined) {
-            const item = await Inventory.findById(id);
+            const item = await Inventory.findOne({ _id: id, tenantId: req.user.userId });
             if (item) {
                 const costPrice = updateData.costPrice !== undefined ? updateData.costPrice : item.costPrice;
                 const sellingPrice = updateData.sellingPrice !== undefined ? updateData.sellingPrice : item.sellingPrice;
@@ -155,8 +155,8 @@ const updateItem = async (req, res) => {
 
         updateData.updatedAt = new Date();
 
-        const item = await Inventory.findByIdAndUpdate(
-            id,
+        const item = await Inventory.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             updateData,
             { new: true, runValidators: true }
         );
@@ -192,8 +192,8 @@ const deleteItem = async (req, res) => {
         const { id } = req.params;
 
         // Soft delete - set isActive to false
-        const item = await Inventory.findByIdAndUpdate(
-            id,
+        const item = await Inventory.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             { isActive: false, status: 'discontinued' },
             { new: true }
         );
@@ -407,7 +407,7 @@ const getAllSales = async (req, res) => {
         const Sale = req.tenantModels.Sale;
         const { startDate, endDate, medicineId, paymentMethod, invoiceNumber } = req.query;
 
-        let query = {};
+        let query = { tenantId: req.user.userId };
 
         if (invoiceNumber) {
             query.invoiceNumber = invoiceNumber;
@@ -455,7 +455,7 @@ const getSaleById = async (req, res) => {
         const Sale = req.tenantModels.Sale;
         const { id } = req.params;
 
-        const sale = await Sale.findById(id)
+        const sale = await Sale.findOne({ _id: id, tenantId: req.user.userId })
             .populate('medicineId', 'name sku category')
             .populate('customerId', 'firstName lastName phone email');
 
@@ -500,6 +500,7 @@ const getDailySales = async (req, res) => {
         console.log(`[Pharmacy] Fetching sales for ${date}: Range ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
 
         const sales = await Sale.find({
+            tenantId: req.user.userId,
             saleDate: { $gte: startOfDay, $lte: endOfDay }
         }).populate('medicineId', 'name category');
 
@@ -545,6 +546,7 @@ const getSalesByDateRange = async (req, res) => {
         endOfDay.setHours(23, 59, 59, 999);
 
         const sales = await Sale.find({
+            tenantId: req.user.userId,
             saleDate: {
                 $gte: new Date(startDate),
                 $lte: endOfDay
@@ -592,7 +594,7 @@ const addStock = async (req, res) => {
             });
         }
 
-        const medicine = await Inventory.findById(medicineId);
+        const medicine = await Inventory.findOne({ _id: medicineId, tenantId: req.user.userId });
         if (!medicine) {
             return res.status(404).json({
                 success: false,
@@ -656,7 +658,7 @@ const adjustStock = async (req, res) => {
             });
         }
 
-        const medicine = await Inventory.findById(medicineId);
+        const medicine = await Inventory.findOne({ _id: medicineId, tenantId: req.user.userId });
         if (!medicine) {
             return res.status(404).json({
                 success: false,
@@ -719,7 +721,7 @@ const getStockMovements = async (req, res) => {
         const StockMovement = req.tenantModels.StockMovement;
         const { medicineId, type, startDate, endDate } = req.query;
 
-        let query = {};
+        let query = { tenantId: req.user.userId };
         if (medicineId) query.medicineId = medicineId;
         if (type) query.type = type;
 
@@ -756,6 +758,7 @@ const getLowStockItems = async (req, res) => {
         const Inventory = req.tenantModels.Inventory;
 
         const lowStockItems = await Inventory.find({
+            tenantId: req.user.userId,
             $expr: { $lte: ['$quantity', '$lowStockThreshold'] },
             isActive: true
         }).sort({ quantity: 1 });
@@ -787,6 +790,7 @@ const getExpiringItems = async (req, res) => {
         futureDate.setDate(futureDate.getDate() + parseInt(days));
 
         const expiringItems = await Inventory.find({
+            tenantId: req.user.userId,
             expiryDate: { $lte: futureDate, $gte: new Date() },
             isActive: true
         }).sort({ expiryDate: 1 });
@@ -853,7 +857,7 @@ const getAllSuppliers = async (req, res) => {
         const Supplier = req.tenantModels.Supplier;
         const { isActive } = req.query;
 
-        let query = {};
+        let query = { tenantId: req.user.userId };
         if (isActive !== undefined) {
             query.isActive = isActive === 'true';
         }
@@ -886,8 +890,8 @@ const updateSupplier = async (req, res) => {
 
         updateData.updatedAt = new Date();
 
-        const supplier = await Supplier.findByIdAndUpdate(
-            id,
+        const supplier = await Supplier.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             updateData,
             { new: true, runValidators: true }
         );
@@ -922,8 +926,8 @@ const deleteSupplier = async (req, res) => {
         const Supplier = req.tenantModels.Supplier;
         const { id } = req.params;
 
-        const supplier = await Supplier.findByIdAndUpdate(
-            id,
+        const supplier = await Supplier.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             { isActive: false },
             { new: true }
         );
@@ -971,7 +975,7 @@ const createPurchaseOrder = async (req, res) => {
         const grandTotal = totalAmount + taxAmount;
 
         // Generate PO number
-        const poCount = await PurchaseOrder.countDocuments();
+        const poCount = await PurchaseOrder.countDocuments({ tenantId: req.user.userId });
         const poNumber = `PO-${Date.now()}-${poCount + 1}`;
 
         const newPO = new PurchaseOrder({
@@ -1013,7 +1017,7 @@ const receivePurchaseOrder = async (req, res) => {
         const { id } = req.params;
         const { receivedBy } = req.body;
 
-        const po = await PurchaseOrder.findById(id);
+        const po = await PurchaseOrder.findOne({ _id: id, tenantId: req.user.userId });
         if (!po) {
             return res.status(404).json({
                 success: false,
@@ -1023,7 +1027,7 @@ const receivePurchaseOrder = async (req, res) => {
 
         // Update stock for each item
         for (const item of po.items) {
-            const medicine = await Inventory.findById(item.medicineId);
+            const medicine = await Inventory.findOne({ _id: item.medicineId, tenantId: req.user.userId });
             if (medicine) {
                 const previousStock = medicine.quantity;
                 medicine.quantity += item.quantity;
@@ -1082,7 +1086,7 @@ const getAllPurchaseOrders = async (req, res) => {
         const PurchaseOrder = req.tenantModels.PurchaseOrder;
         const { status, supplierId } = req.query;
 
-        let query = {};
+        let query = { tenantId: req.user.userId };
         if (status) query.status = status;
         if (supplierId) query.supplierId = supplierId;
 
@@ -1122,6 +1126,7 @@ const getDailyReport = async (req, res) => {
         endOfDay.setHours(23, 59, 59, 999);
 
         const sales = await Sale.find({
+            tenantId: req.user.userId,
             saleDate: { $gte: startOfDay, $lte: endOfDay }
         });
 
@@ -1178,6 +1183,7 @@ const getWeeklyReport = async (req, res) => {
         end.setDate(end.getDate() + 7);
 
         const sales = await Sale.find({
+            tenantId: req.user.userId,
             saleDate: { $gte: start, $lte: end }
         });
 
@@ -1217,6 +1223,7 @@ const getMonthlyReport = async (req, res) => {
         const endOfMonth = new Date(year, month, 0, 23, 59, 59);
 
         const sales = await Sale.find({
+            tenantId: req.user.userId,
             saleDate: { $gte: startOfMonth, $lte: endOfMonth }
         });
 
@@ -1254,7 +1261,7 @@ const getProfitAnalysis = async (req, res) => {
         const Sale = req.tenantModels.Sale;
         const { startDate, endDate } = req.query;
 
-        let query = {};
+        let query = { tenantId: req.user.userId };
         if (startDate && endDate) {
             query.saleDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
         }
@@ -1303,7 +1310,7 @@ const getTopSellingMedicines = async (req, res) => {
         const Sale = req.tenantModels.Sale;
         const { limit = 10, startDate, endDate } = req.query;
 
-        let query = {};
+        let query = { tenantId: req.user.userId };
         if (startDate && endDate) {
             query.saleDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
         }
@@ -1356,7 +1363,7 @@ const getInventoryValue = async (req, res) => {
     try {
         const Inventory = req.tenantModels.Inventory;
 
-        const items = await Inventory.find({ isActive: true });
+        const items = await Inventory.find({ tenantId: req.user.userId, isActive: true });
 
         const totalCostValue = items.reduce((sum, item) => sum + (item.costPrice * item.quantity), 0);
         const totalSellingValue = items.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
@@ -1392,7 +1399,7 @@ const voidSaleBatch = async (req, res) => {
         const voidedBy = req.user.name || 'Admin';
 
         // 1. Find all sales in this batch
-        const sales = await Sale.find({ invoiceNumber, status: { $ne: 'voided' } });
+        const sales = await Sale.find({ tenantId: req.user.userId, invoiceNumber, status: { $ne: 'voided' } });
         if (sales.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -1405,7 +1412,7 @@ const voidSaleBatch = async (req, res) => {
         // 2. Process each sale: Restock and Record Movement
         for (const sale of sales) {
             // Update Inventory
-            const medicine = await Inventory.findById(sale.medicineId);
+            const medicine = await Inventory.findOne({ _id: sale.medicineId, tenantId: req.user.userId });
             if (medicine) {
                 const previousStock = medicine.quantity;
                 medicine.quantity += sale.quantity;
@@ -1480,7 +1487,7 @@ const updateSaleItem = async (req, res) => {
         const { newQuantity, notes } = req.body;
         const updatedBy = req.user.name || 'Admin';
 
-        const sale = await Sale.findById(id);
+        const sale = await Sale.findOne({ _id: id, tenantId: req.user.userId });
         if (!sale) {
             return res.status(404).json({ success: false, message: 'Sale item not found' });
         }
@@ -1495,7 +1502,7 @@ const updateSaleItem = async (req, res) => {
         }
 
         // 1. Update Inventory
-        const medicine = await Inventory.findById(sale.medicineId);
+        const medicine = await Inventory.findOne({ _id: sale.medicineId, tenantId: req.user.userId });
         if (medicine) {
             const previousStock = medicine.quantity;
             medicine.quantity += quantityDiff;

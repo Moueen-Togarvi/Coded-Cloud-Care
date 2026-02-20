@@ -34,6 +34,8 @@ const hospitalReportsRoutes = require('./routes/hospitalReports');
 const hospitalPsychSessionsRoutes = require('./routes/hospitalPsychSessions');
 const hospitalAttendanceRoutes = require('./routes/hospitalAttendance');
 const hospitalEmergencyRoutes = require('./routes/hospitalEmergency');
+const hospitalSettingsRoutes = require('./routes/hospitalSettings');
+const hospitalOldBalancesRoutes = require('./routes/hospitalOldBalances');
 
 // Initialize Express app
 const app = express();
@@ -76,6 +78,29 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // The Hospital PMS index.html calls /api/auth/*, /api/patients/*, etc.
 // (without the /hospital/ prefix). These aliases forward them correctly.
 // app.use('/api/auth', hospitalAuthRoutes); // REMOVED: Conflicts with unified SaaS auth
+
+// Conditional Auth Alias (Session/Logout)
+app.use('/api/auth', (req, res, next) => {
+  // Only intercept specific endpoints if hospital session exists
+  if (req.session && req.session.hospitalUserId) {
+    // Allow hospitalAuthRoutes to handle session/logout checks
+    // Note: Login is handled via explicit /api/hospital/auth/login or redirects
+    if (req.path === '/session' || req.path === '/logout') {
+      return hospitalAuthRoutes(req, res, next);
+    }
+  }
+  next();
+});
+
+// Alias for Change Password (frontend calls /api/users/change_password)
+app.use('/api/users/change_password', (req, res, next) => {
+  if (req.session && req.session.hospitalUserId) {
+    req.url = '/change_password';
+    return hospitalAuthRoutes(req, res, next);
+  }
+  next();
+});
+
 app.use('/api/patients', (req, res, next) => {
   // Only forward if this looks like a Hospital PMS request (has hospital session)
   if (req.session && req.session.hospitalUserId) {
@@ -83,7 +108,15 @@ app.use('/api/patients', (req, res, next) => {
   }
   next();
 });
+app.use('/api/dashboard', (req, res, next) => {
+  if (req.session && req.session.hospitalUserId) {
+    return hospitalDashboardRoutes(req, res, next);
+  }
+  next();
+});
 app.use('/api/canteen', hospitalCanteenRoutes);
+app.use('/api/expenses', hospitalExpensesRoutes); // Fix for missing expenses visibility
+app.use('/api/old-balances', hospitalOldBalancesRoutes); // Fix for missing recovery records
 app.use('/api/overheads', hospitalOverheadsRoutes);
 app.use('/api/accounts', hospitalAccountsRoutes);
 app.use('/api/call_meeting_tracker', hospitalCallMeetingRoutes);
@@ -96,6 +129,16 @@ app.use('/api/psych-sessions', hospitalPsychSessionsRoutes);
 app.use('/api/attendance', hospitalAttendanceRoutes);
 app.use('/api/emergency', hospitalEmergencyRoutes);
 app.use('/api/users', hospitalUsersRoutes);
+
+// Alias for Settings (frontend calls /api/settings)
+app.use('/api/settings', (req, res, next) => {
+  if (req.session && req.session.hospitalUserId) {
+    // return hospitalSettingsRoutes(req, res, next); -> Need to import it first!
+    // I will add the import next.
+    return hospitalSettingsRoutes(req, res, next);
+  }
+  next();
+});
 
 // Multi-tenant SaaS routes
 app.use('/api/auth', authRoutes);

@@ -68,7 +68,7 @@ router.post('/', requireHospitalAuth, async (req, res) => {
             amount: parseInt(data.amount),
             date: data.date ? new Date(data.date) : new Date(),
             auto: data.auto || false,
-            paymentMethod: data.paymentMethod || 'cash',
+            paymentMethod: (data.paymentMethod || 'cash').toLowerCase(),
         });
 
         await expense.save();

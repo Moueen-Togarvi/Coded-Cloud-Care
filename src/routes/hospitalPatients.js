@@ -300,7 +300,7 @@ router.post('/:id/payment', requireHospitalRole(['Admin']), async (req, res) => 
     try {
         const data = cleanInputData(req.body);
         const amountPaid = parseInt(data.amount || 0);
-        const paymentMethod = data.payment_method || 'Cash';
+        const paymentMethod = (data.payment_method || 'cash').toLowerCase();
         const screenshot = data.screenshot || '';
         const tenantId = req.hospitalUser.tenantId;
 

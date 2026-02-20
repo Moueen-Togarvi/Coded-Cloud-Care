@@ -9,22 +9,16 @@ const getSettings = async (req, res) => {
         let settings = await Settings.findOne({ tenantId });
 
         if (!settings) {
-            // Check if any settings document exists (legacy/migration)
-            settings = await Settings.findOne();
-
-            if (settings) {
-                settings.tenantId = tenantId;
-                await settings.save();
-            } else {
-                // Create default settings if none exist
-                settings = await Settings.create({
-                    tenantId: tenantId,
-                    clinicName: req.user.companyName || 'My Clinic',
-                    clinicAddress: '',
-                    clinicPhone: '',
-                    clinicEmail: req.user.email || '',
-                });
-            }
+            // Create default settings if none exist because we use a single DB now.
+            settings = await Settings.create({
+                tenantId: tenantId,
+                clinicName: req.user.companyName || 'My Clinic',
+                clinicAddress: '',
+                clinicPhone: '',
+                clinicEmail: req.user.email || '',
+                pharmacyName: req.user.companyName ? `${req.user.companyName} Pharmacy` : 'My Pharmacy',
+                pharmacyEmail: req.user.email || ''
+            });
         }
 
         res.status(200).json({

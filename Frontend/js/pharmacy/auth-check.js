@@ -33,7 +33,7 @@
             return;
         }
 
-        const isSetupPage = window.location.pathname.includes('login.html');
+        const isSetupPage = window.location.pathname.includes('setup.html') || window.location.pathname.includes('setting.html');
 
         try {
             // Check if onboarding is complete
@@ -43,31 +43,118 @@
             const result = await response.json();
 
             if (result.success) {
-                const isComplete = result.data.isOnboardingComplete;
+                const settings = result.data;
+                const isComplete = settings.isOnboardingComplete;
+                console.log("[AuthCheck] Settings fetched. isOnboardingComplete =", isComplete, "Current Path =", window.location.pathname);
 
-                if (!isComplete && !isSetupPage) {
-                    window.location.href = '/Frontend/pharmacy/login.html';
-                } else if (isComplete && isSetupPage) {
+                if (!isComplete && !window.location.pathname.includes('setup.html')) {
+                    console.log("[AuthCheck] Onboarding incomplete, redirecting to setup.html...");
+                    window.location.href = '/Frontend/pharmacy/setup.html';
+                    return;
+                } else if (isComplete && window.location.pathname.includes('setup.html')) {
+                    console.log("[AuthCheck] Onboarding complete, redirecting to index.html...");
                     window.location.href = '/Frontend/pharmacy/index.html';
-                } else {
-                    // All good, show the page
-                    document.body.style.opacity = '1';
+                    return;
                 }
+
+                // Store settings and apply branding
+                if (settings) {
+                    sessionStorage.setItem('pharmacy_settings', JSON.stringify(settings));
+                    applyPharmacyBranding(settings);
+                }
+
+                // All good, show the page
+                console.log("[AuthCheck] Showing page...");
+                document.body.style.opacity = '1';
+            } else {
+                console.log("[AuthCheck] Settings API returned success: false. Assuming onboarding is incomplete...");
+                // Settings fetch returned success: false (e.g., 404 Not Found), meaning no settings exist.
+                // Ergo, onboarding is NOT complete.
+                if (!window.location.pathname.includes('setup.html')) {
+                    window.location.href = '/Frontend/pharmacy/setup.html';
+                    return;
+                }
+                document.body.style.opacity = '1';
             }
         } catch (err) {
             console.error('Pharmacy auth check error:', err);
+            // If api fails entirely, assume onboarding is incomplete to be safe,
+            // or we might be offline. If not on setup, let's just go to setup.
+            if (!window.location.pathname.includes('setup.html')) {
+                window.location.href = '/Frontend/pharmacy/setup.html';
+                return;
+            }
+
+            // Try to load from session storage if API fails
+            const cached = sessionStorage.getItem('pharmacy_settings');
+            if (cached) {
+                applyPharmacyBranding(JSON.parse(cached));
+            }
             document.body.style.opacity = '1'; // Show anyway if API fails
         }
     };
 
-    // Hide body initially to prevent flash
-    document.body.style.opacity = '0';
-    document.body.style.transition = 'opacity 0.2s ease-in-out';
+    const applyPharmacyBranding = (settings) => {
+        if (!settings) return;
 
-    // Run immediately
+        // Use pharmacy specific fields if available, fallback to clinic fields
+        const name = settings.pharmacyName || settings.clinicName || 'PharmaTrack';
+        const email = settings.pharmacyEmail || settings.clinicEmail || 'support@pharmxpro.com';
+        const phone = settings.pharmacyPhone || settings.clinicPhone || '+1 (555) 000-1234';
+        const logo = settings.pharmacyLogo || settings.clinicLogo;
+        const address = settings.pharmacyAddress || settings.clinicAddress || '';
+
+        // update sidebar title
+        const sidebarTitle = document.getElementById('sidebar-pharmacy-name');
+        if (sidebarTitle) {
+            sidebarTitle.textContent = name;
+        }
+
+        // update header support info
+        const supportEmail = document.getElementById('header-support-email');
+        if (supportEmail) {
+            supportEmail.textContent = email;
+        }
+
+        const supportPhone = document.getElementById('header-support-phone');
+        if (supportPhone) {
+            supportPhone.textContent = phone;
+        }
+
+        // update invoice branding (if present)
+        const invoiceName = document.getElementById('invoiceClinicName');
+        if (invoiceName) {
+            invoiceName.textContent = name;
+        }
+
+        const invoiceAddress = document.getElementById('invoiceClinicAddress');
+        if (invoiceAddress) {
+            invoiceAddress.textContent = address;
+        }
+
+        const invoicePhone = document.getElementById('invoiceClinicPhone');
+        if (invoicePhone) {
+            invoicePhone.textContent = phone;
+        }
+
+        // update sidebar logo
+        const logoContainer = document.getElementById('sidebar-logo-container');
+        if (logoContainer && logo) {
+            logoContainer.innerHTML = `<img src="${logo}" alt="Logo" class="w-full h-full object-contain rounded">`;
+            logoContainer.classList.remove('bg-primary-blue', 'flex', 'items-center', 'justify-center');
+        }
+    };
+
+    // Hide body initially to prevent flash (Wait for DOM)
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', checkPharmacyAuth);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.2s ease-in-out';
+            checkPharmacyAuth();
+        });
     } else {
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.2s ease-in-out';
         checkPharmacyAuth();
     }
 })();

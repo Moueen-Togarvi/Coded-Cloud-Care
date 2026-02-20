@@ -55,6 +55,7 @@ const staffSchema = new mongoose.Schema({
 
 const settingsSchema = new mongoose.Schema({
     tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true, unique: true },
+    // General/Hospital Settings
     clinicName: { type: String, required: true },
     clinicAddress: String,
     clinicPhone: String,
@@ -62,6 +63,16 @@ const settingsSchema = new mongoose.Schema({
     taxId: String,
     clinicLogo: String, // Base64 or URL
     clinicTagline: { type: String, default: 'Medical & Health Services' },
+
+    // Pharmacy Specific Settings
+    pharmacyName: String,
+    pharmacyAddress: String,
+    pharmacyPhone: String,
+    pharmacyEmail: String,
+    pharmacyTaxId: String,
+    pharmacyLogo: String, // Base64 or URL
+    pharmacyTagline: { type: String, default: 'Your Trusted Pharmacy' },
+
     businessHours: {
         monday: { open: String, close: String },
         tuesday: { open: String, close: String },

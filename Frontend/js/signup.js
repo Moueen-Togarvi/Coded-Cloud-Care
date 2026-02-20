@@ -133,8 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // Show success message
       showSuccess('Account created successfully! Redirecting to Dashboard...');
 
-      // ALWAYS redirect to the central dashboard in the new Saas flow
-      window.location.href = '/Frontend/comp/dashboard.html';
+      // DIRECT DASH: If we have a productId from the URL, redirect directly to that software
+      if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
+        const landingPage = window.PRODUCT_CONFIG[productId].landingPage;
+        // The landing page logic (auth-check.js) will handle the redirect to settings.html
+        window.location.href = landingPage;
+      } else {
+        // Fallback to central dashboard
+        window.location.href = '/Frontend/comp/dashboard.html';
+      }
     } catch (error) {
       console.error('Signup error:', error);
       showError(error.message || 'Registration failed. Please try again.');

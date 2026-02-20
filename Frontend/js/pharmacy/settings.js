@@ -48,16 +48,17 @@ async function fetchSettings() {
         const settingsData = await settingsRes.json();
         if (settingsData.success && settingsData.data) {
             const s = settingsData.data;
-            document.getElementById('pharmacyName').value = s.clinicName || '';
-            document.getElementById('pharmacyTaxId').value = s.taxId || '';
-            document.getElementById('pharmacyAddress').value = s.clinicAddress || '';
+            document.getElementById('pharmacyName').value = s.pharmacyName || s.clinicName || '';
+            document.getElementById('pharmacyTaxId').value = s.pharmacyTaxId || s.taxId || '';
+            document.getElementById('pharmacyAddress').value = s.pharmacyAddress || s.clinicAddress || '';
 
-            if (s.clinicLogo) {
-                logoBase64 = s.clinicLogo;
+            const logo = s.pharmacyLogo || s.clinicLogo;
+            if (logo) {
+                logoBase64 = logo;
                 const preview = document.getElementById('logoPreview');
                 const placeholder = document.getElementById('logoPlaceholder');
                 if (preview && placeholder) {
-                    preview.src = s.clinicLogo;
+                    preview.src = logo;
                     preview.classList.remove('hidden');
                     placeholder.classList.add('hidden');
                 }
@@ -74,11 +75,15 @@ async function saveSettings() {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) return;
 
+        // Fetch existing settings first to preserve hospital settings if needed (though API does merge on update usually, controller is using simple update)
+        // But here we just send what we want to update. The controller uses $set so it merges.
+
         const payload = {
-            clinicName: document.getElementById('pharmacyName').value,
-            clinicAddress: document.getElementById('pharmacyAddress').value,
-            taxId: document.getElementById('pharmacyTaxId').value,
-            clinicLogo: logoBase64
+            pharmacyName: document.getElementById('pharmacyName').value,
+            pharmacyAddress: document.getElementById('pharmacyAddress').value,
+            pharmacyTaxId: document.getElementById('pharmacyTaxId').value,
+            pharmacyLogo: logoBase64,
+            isOnboardingComplete: true
         };
 
         const response = await fetch('/api/settings', {
@@ -94,6 +99,8 @@ async function saveSettings() {
 
         if (result.success) {
             showAlert('Settings saved successfully!', 'success');
+            // update session storage for auth-check immediately
+            sessionStorage.setItem('pharmacy_settings', JSON.stringify(result.data));
         } else {
             showAlert('Failed: ' + result.message, 'error');
         }

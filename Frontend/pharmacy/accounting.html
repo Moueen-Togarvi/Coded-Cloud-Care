@@ -53,10 +53,11 @@
     <aside id="sidebar"
         class="fixed lg:static inset-y-0 left-0 w-64 bg-[#0d141d] border-r border-slate-800 flex flex-col z-50 transition-transform -translate-x-full lg:translate-x-0">
         <div class="p-6 flex items-center gap-2">
-            <div class="w-8 h-8 bg-primary-blue rounded flex items-center justify-center">
+            <div id="sidebar-logo-container" class="w-8 h-8 bg-primary-blue rounded flex items-center justify-center">
                 <span class="material-icons-round text-white text-xl">account_balance_wallet</span>
             </div>
-            <span class="text-xl font-bold text-white">Pharma<span class="text-primary-blue">Core</span></span>
+            <span id="sidebar-pharmacy-name" class="text-xl font-bold text-white">Pharma<span
+                    class="text-primary-blue">Core</span></span>
         </div>
 
         <nav class="flex-1 px-4 space-y-1">
@@ -108,13 +109,14 @@
                 class="hidden xl:flex items-center gap-6 px-4 py-2 bg-slate-800/30 rounded-xl border border-slate-700/30 mx-4">
                 <div class="flex items-center gap-2">
                     <span class="material-icons-round text-primary-blue text-sm">email</span>
-                    <span
+                    <span id="header-support-email"
                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">support@pharmxpro.com</span>
                 </div>
                 <div class="w-px h-3 bg-slate-700"></div>
                 <div class="flex items-center gap-2">
                     <span class="material-icons-round text-accent-green text-sm">phone</span>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">+1 (555)
+                    <span id="header-support-phone"
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">+1 (555)
                         000-1234</span>
                 </div>
             </div>

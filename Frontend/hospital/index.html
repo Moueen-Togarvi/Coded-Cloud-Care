@@ -2265,8 +2265,9 @@
 
         const res = await fetch(`/api/call_meeting_tracker?month=${month}&year=${year}`);
         if (!res.ok) return;
-        const records = await res.json();
-        currentCallMeetingRecords = records || [];
+        const data = await res.json();
+        const records = data.entries || [];
+        currentCallMeetingRecords = records;
 
         renderCallMeetingTable(records, month, year);
       } catch (e) {
@@ -2742,7 +2743,8 @@
         }
 
         if (listRes.ok) {
-          const expenses = await listRes.json();
+          const data = await listRes.json();
+          const expenses = data.expenses || [];
           renderExpensesTable(expenses);
         }
       } catch (err) {
@@ -2797,7 +2799,8 @@
       try {
         const res = await fetch('/api/patients');
         if (res.ok) {
-          patientsData = await res.json();
+          const data = await res.json();
+          patientsData = data.patients || [];
 
           // Sync discharged set from server state
           dischargedPatientIds.clear();
@@ -4221,7 +4224,8 @@
       try {
         const res = await fetch('/api/employees');
         if (res.ok) {
-          monthlyEmployeesCache = await res.json();
+          const data = await res.json();
+          monthlyEmployeesCache = data.employees || [];
         }
       } catch (e) {
         console.error('Failed to fetch employees:', e);
@@ -4706,7 +4710,8 @@
     async function renderUserManagement() {
       if (currentUser.role !== 'Admin') return;
       const res = await fetch('/api/users');
-      const users = await res.json();
+      const data = await res.json();
+      const users = data.users || [];
       const tbody = document.getElementById('user-table-body');
       tbody.innerHTML = '';
       users.forEach((u) => {
@@ -4807,7 +4812,8 @@
 
       try {
         const res = await fetch('/api/utility_bills');
-        const bills = await res.json();
+        const data = await res.json();
+        const bills = data.bills || [];
 
         const grid = document.getElementById('bills-grid');
         const emptyState = document.getElementById('bills-empty-state');
@@ -4931,7 +4937,8 @@
 
       try {
         const res = await fetch('/api/employees');
-        const employees = await res.json();
+        const data = await res.json();
+        const employees = data.employees || [];
         teamData = employees;
 
         const tbody = document.getElementById('team-table-body');
@@ -5602,7 +5609,8 @@
       try {
         const res = await fetch('/api/users');
         if (!res.ok) throw new Error('user fetch failed');
-        const users = await res.json();
+        const data = await res.json();
+        const users = data.users || [];
         const psychs = users.filter((u) => u.role === 'Psychologist');
         select.innerHTML = psychs
           .map((u) => `<option value="${u._id}">${u.name || u.username}</option>`)

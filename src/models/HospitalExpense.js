@@ -43,6 +43,20 @@ const hospitalExpenseSchema = new mongoose.Schema(
             type: String,
             enum: ['cash', 'bank', 'cheque', 'online', 'other'],
             default: 'cash',
+            lowercase: true, // Auto-lowercase input
+        },
+        patient_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'HospitalPatient',
+        },
+        screenshot: {
+            type: String, // Base64 or URL
+        },
+        recorded_by: {
+            type: String,
+        },
+        note: {
+            type: String,
         },
     },
     {
