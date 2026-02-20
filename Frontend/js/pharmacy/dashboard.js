@@ -37,13 +37,7 @@ async function voidSale(invoiceNumber) {
     showConfirm('Are you sure you want to void this transaction? This will restock items and reverse revenue.', async () => {
         try {
             const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-            // The original code had `if (!token) return;` here, but it's now inside the async callback.
-            // If token is missing, the fetch will fail, and the catch block will handle it.
-            // For consistency with the original, I'll keep the check inside the callback.
-            if (!token) {
-                showAlert('Authentication required to void sale.', 'error');
-                return;
-            }
+            if (!token) return window.handleTokenExpiry();
 
             const res = await fetch(`/api/pharmacy/sales/invoice/${invoiceNumber}`, {
                 method: 'DELETE',
@@ -117,7 +111,7 @@ async function printInvoiceByNumber(invoiceNumber) {
 
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
 
         // Fetch all items for this invoice
         const res = await fetch(`/api/pharmacy/sales?invoiceNumber=${invoiceNumber}`, {
@@ -201,7 +195,7 @@ async function addRow() {
 
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
 
         const response = await fetch(`/api/pharmacy/inventory?search=${encodeURIComponent(query)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -302,10 +296,7 @@ async function checkout() {
 
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) {
-            showAlert('Authentication required', 'error');
-            return;
-        }
+        if (!token) return window.handleTokenExpiry();
 
         const payload = {
             items: cart.map(item => ({
@@ -336,6 +327,13 @@ async function checkout() {
             renderCart(); // Re-render to show empty cart
         } else {
             showAlert('Checkout failed: ' + result.message, 'error');
+            // If the failure was due to insufficient stock or similar backend validations,
+            // we should technically refresh our local understanding of inventory if we had any.
+            // Since dashboard.js fetches via search, we don't have a master inventory array to refresh,
+            // but we can at least log the exact error and give a clearer message.
+            if (result.message && result.message.includes('Insufficient stock')) {
+                showAlert('Stock error! Please verify item quantities before trying again.', 'warning');
+            }
         }
     } catch (e) {
         console.error('Checkout error:', e);
@@ -348,10 +346,7 @@ async function checkout() {
 async function fetchDashboardStats() {
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) {
-            console.log('No auth token found');
-            return;
-        }
+        if (!token) return window.handleTokenExpiry();
 
         const headers = { 'Authorization': `Bearer ${token}` };
 

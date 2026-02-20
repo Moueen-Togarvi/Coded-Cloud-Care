@@ -8,6 +8,14 @@
 
     const SESSION_TIMEOUT = 1 * 60 * 1000; // 1 minute
 
+    // Global helper to gracefully exit if token is missing or expired
+    window.handleTokenExpiry = () => {
+        console.warn('Authentication token missing or invalid. Redirecting to login.');
+        sessionStorage.clear();
+        localStorage.removeItem('token');
+        window.location.href = '/Frontend/comp/Login.html';
+    };
+
     const checkPharmacyAuth = async () => {
         const token = sessionStorage.getItem('authToken');
         const productId = sessionStorage.getItem('productId');

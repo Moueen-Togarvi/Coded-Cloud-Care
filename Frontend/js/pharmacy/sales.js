@@ -9,22 +9,37 @@ function setupSearch() {
     const searchInput = document.getElementById('invoiceSearch');
     if (!searchInput) return;
 
+    let debounceTimer;
+
     searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const filtered = allSales.filter(sale => {
-            const invMatch = sale.invoiceNumber?.toLowerCase().includes(query);
-            const custMatch = sale.customerName?.toLowerCase().includes(query);
-            const idMatch = sale._id.slice(-6).toLowerCase().includes(query);
-            return invMatch || custMatch || idMatch;
-        });
-        renderSalesTable(filtered);
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+
+        debounceTimer = setTimeout(async () => {
+            try {
+                const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
+                if (!token) return window.handleTokenExpiry();
+
+                const url = query ? `/api/pharmacy/sales?search=${encodeURIComponent(query)}` : '/api/pharmacy/sales';
+                const headers = { 'Authorization': `Bearer ${token}` };
+
+                const salesRes = await fetch(url, { headers });
+                const salesData = await salesRes.json();
+
+                if (salesData.success) {
+                    renderSalesTable(salesData.data);
+                }
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+            }
+        }, 300); // 300ms debounce
     });
 }
 
 async function fetchSalesData() {
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
         const headers = { 'Authorization': `Bearer ${token}` };
 
         // 1. Fetch Sales History
@@ -155,7 +170,7 @@ async function printInvoiceByNumber(invoiceNumber) {
 
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
 
         const res = await fetch(`/api/pharmacy/sales?invoiceNumber=${encodeURIComponent(searchNumber)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -211,7 +226,7 @@ function showInvoiceModal(salesBatch) {
 async function fetchSettingsForInvoice() {
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
 
         const res = await fetch('/api/settings', {
             headers: { 'Authorization': `Bearer ${token}` }

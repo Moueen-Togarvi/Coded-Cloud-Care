@@ -14,6 +14,16 @@ const pricingData = [
             "Advanced Analytics"
         ],
         pricing: {
+            free: {
+                price: "0",
+                period: "forever",
+                label: "Free Tier"
+            },
+            free: {
+                price: "0",
+                period: "forever",
+                label: "Free Tier"
+            },
             monthly: {
                 price: "10,000",
                 period: "month",
@@ -46,6 +56,11 @@ const pricingData = [
             "Barcode Scanning"
         ],
         pricing: {
+            free: {
+                price: "0",
+                period: "forever",
+                label: "Free Tier"
+            },
             monthly: {
                 price: "4,000",
                 period: "month",
@@ -78,6 +93,11 @@ const pricingData = [
             "Result SMS/Email"
         ],
         pricing: {
+            free: {
+                price: "0",
+                period: "forever",
+                label: "Free Tier"
+            },
             monthly: {
                 price: "5,000",
                 period: "month",
@@ -110,6 +130,11 @@ const pricingData = [
             "Multi-Currency Support"
         ],
         pricing: {
+            free: {
+                price: "0",
+                period: "forever",
+                label: "Free Tier"
+            },
             monthly: {
                 price: "1,500",
                 period: "month",
@@ -142,6 +167,11 @@ const pricingData = [
             "Mobile Access"
         ],
         pricing: {
+            free: {
+                price: "0",
+                period: "forever",
+                label: "Free Tier"
+            },
             monthly: {
                 price: "2,500",
                 period: "month",

@@ -44,6 +44,7 @@ const { attachTenantModels } = require('../middleware/tenantMiddleware');
 const {
   validateInventoryInput,
   validateObjectIdParam,
+  validateBulkSaleInput,
 } = require('../middleware/validationMiddleware');
 
 // All routes require authentication and tenant context
@@ -59,7 +60,7 @@ router.delete('/inventory/:id', validateObjectIdParam, deleteItem);
 
 // ==================== SALES ROUTES ====================
 router.post('/sales', recordSale);
-router.post('/sales/bulk', recordBulkSale);
+router.post('/sales/bulk', validateBulkSaleInput, recordBulkSale);
 router.get('/sales', getAllSales);
 router.get('/sales/daily/:date', getDailySales);
 router.get('/sales/range', getSalesByDateRange);

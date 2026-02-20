@@ -29,11 +29,16 @@ const userSchema = new mongoose.Schema(
       phone: {
         type: String,
         trim: true,
+        required: [true, 'Phone number is required'],
       },
       address: {
         type: String,
         trim: true,
       },
+    },
+    termsAccepted: {
+      type: Boolean,
+      required: [true, 'Accepting Terms and Privacy Policy is required'],
     },
     planId: {
       type: mongoose.Schema.Types.ObjectId,

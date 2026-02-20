@@ -2,6 +2,7 @@
  * Comprehensive Pharmacy Controller
  * Handles all pharmacy operations including inventory, sales, suppliers, stock management, and reports
  */
+const mongoose = require('mongoose');
 
 // ==================== MEDICINE/INVENTORY MANAGEMENT ====================
 
@@ -20,14 +21,30 @@ const getAllItems = async (req, res) => {
             query.$expr = { $lte: ['$quantity', '$lowStockThreshold'] };
         }
 
-        const items = await Inventory.find(query)
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 0; // 0 means no limit (all records)
+        const skip = (page - 1) * limit;
+
+        const totalItems = await Inventory.countDocuments(query);
+
+        let itemsQuery = Inventory.find(query)
             .populate('supplierId', 'name phone')
             .sort({ name: 1 })
             .select('-__v');
 
+        if (limit > 0) {
+            itemsQuery = itemsQuery.skip(skip).limit(limit);
+        }
+
+        const items = await itemsQuery;
+
         res.status(200).json({
             success: true,
             count: items.length,
+            totalItems,
+            totalPages: limit > 0 ? Math.ceil(totalItems / limit) : 1,
+            currentPage: page,
             data: items,
         });
     } catch (error) {
@@ -250,8 +267,11 @@ const recordSale = async (req, res) => {
  * Record a bulk medicine sale (multi-item)
  */
 const recordBulkSale = async (req, res) => {
+    // Start a mongoose session for the transaction
+    const session = await mongoose.startSession();
+
     try {
-        const { Sale, Inventory, StockMovement } = req.tenantModels;
+        const { Sale, Inventory, StockMovement, Revenue } = req.tenantModels;
         const { items, paymentMethod, customerId, customerName, soldBy, notes, discount = 0 } = req.body;
 
         if (!items || !Array.isArray(items) || items.length === 0) {
@@ -265,99 +285,95 @@ const recordBulkSale = async (req, res) => {
         const saleCount = await Sale.countDocuments();
         const invoiceNumber = `INV-B-${Date.now()}-${saleCount + 1}`;
 
-        const saleResults = [];
-        let grandTotal = 0;
-        let totalProfit = 0;
+        let finalResponseData = {};
 
-        // Process each item
-        for (const item of items) {
-            const { medicineId, quantity } = item;
+        // Run the transaction
+        await session.withTransaction(async () => {
+            const saleResults = [];
+            let grandTotal = 0;
+            let totalProfit = 0;
 
-            if (!medicineId || !quantity) continue;
+            // Process each item
+            for (const item of items) {
+                const { medicineId, quantity } = item;
 
-            // Get medicine details
-            const medicine = await Inventory.findById(medicineId);
-            if (!medicine) {
-                return res.status(404).json({
-                    success: false,
-                    message: `Medicine not found for ID: ${medicineId}`,
+                if (!medicineId || !quantity) continue;
+
+                // Get medicine details within transaction
+                const medicine = await Inventory.findById(medicineId).session(session);
+                if (!medicine) {
+                    throw new Error(`Medicine not found for ID: ${medicineId}`);
+                }
+
+                // Check stock availability
+                if (medicine.quantity < quantity) {
+                    throw new Error(`Insufficient stock for ${medicine.name}. Available: ${medicine.quantity}`);
+                }
+
+                // Calculate amounts
+                const unitPrice = medicine.sellingPrice;
+                const costPrice = medicine.costPrice;
+                const subtotal = unitPrice * quantity;
+                const taxAmount = (subtotal * (medicine.taxRate || 0)) / 100;
+                const totalAmount = subtotal + taxAmount;
+                const profit = (unitPrice - costPrice) * quantity;
+
+                grandTotal += totalAmount;
+                totalProfit += profit;
+
+                // Create individual sale record
+                const newSale = new Sale({
+                    tenantId: req.user.userId,
+                    medicineId,
+                    medicineName: medicine.name,
+                    quantity,
+                    unitPrice,
+                    costPrice,
+                    totalAmount,
+                    discount: 0, // Individual discounts not handled yet
+                    taxAmount,
+                    profit,
+                    paymentMethod,
+                    customerId,
+                    customerName,
+                    soldBy,
+                    invoiceNumber,
+                    notes
                 });
-            }
 
-            // Check stock availability
-            if (medicine.quantity < quantity) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Insufficient stock for ${medicine.name}. Available: ${medicine.quantity}`,
+                await newSale.save({ session });
+
+                // Update medicine stock
+                const previousStock = medicine.quantity;
+                medicine.quantity -= quantity;
+                if (medicine.quantity === 0) {
+                    medicine.status = 'out-of-stock';
+                }
+                await medicine.save({ session });
+
+                // Record stock movement
+                const stockMovement = new StockMovement({
+                    tenantId: req.user.userId,
+                    medicineId,
+                    medicineName: medicine.name,
+                    type: 'sale',
+                    quantity: -quantity,
+                    previousStock,
+                    newStock: medicine.quantity,
+                    referenceId: newSale._id,
+                    referenceType: 'Sale',
+                    performedBy: soldBy,
+                    notes: `Bulk Sale: ${invoiceNumber}`
                 });
+
+                await stockMovement.save({ session });
+                saleResults.push(newSale);
             }
 
-            // Calculate amounts
-            const unitPrice = medicine.sellingPrice;
-            const costPrice = medicine.costPrice;
-            const subtotal = unitPrice * quantity;
-            const taxAmount = (subtotal * (medicine.taxRate || 0)) / 100;
-            const totalAmount = subtotal + taxAmount;
-            const profit = (unitPrice - costPrice) * quantity;
+            // Apply global discount to the summary (for response)
+            const finalTotal = grandTotal - discount;
 
-            grandTotal += totalAmount;
-            totalProfit += profit;
-
-            // Create individual sale record (keeping current schema)
-            const newSale = new Sale({
-                tenantId: req.user.userId,
-                medicineId,
-                medicineName: medicine.name,
-                quantity,
-                unitPrice,
-                costPrice,
-                totalAmount,
-                discount: 0, // Individual discounts not handled yet
-                taxAmount,
-                profit,
-                paymentMethod,
-                customerId,
-                customerName,
-                soldBy,
-                invoiceNumber,
-                notes
-            });
-
-            await newSale.save();
-
-            // Update medicine stock
-            const previousStock = medicine.quantity;
-            medicine.quantity -= quantity;
-            if (medicine.quantity === 0) {
-                medicine.status = 'out-of-stock';
-            }
-            await medicine.save();
-
-            // Record stock movement
-            const stockMovement = new StockMovement({
-                tenantId: req.user.userId,
-                medicineId,
-                medicineName: medicine.name,
-                type: 'sale',
-                quantity: -quantity,
-                previousStock,
-                newStock: medicine.quantity,
-                referenceId: newSale._id,
-                referenceType: 'Sale',
-                performedBy: soldBy,
-                notes: `Bulk Sale: ${invoiceNumber}`
-            });
-
-            await stockMovement.save();
-            saleResults.push(newSale);
-        }
-
-        // Apply global discount to the summary (for response)
-        const finalTotal = grandTotal - discount;
-
-        // NEW: Record Revenue for Accounting Module
-        try {
-            const { Revenue } = req.tenantModels;
+            // NEW: Record Revenue for Accounting Module
             if (Revenue) {
                 const revenueRecord = new Revenue({
                     tenantId: req.user.userId,
@@ -371,29 +387,39 @@ const recordBulkSale = async (req, res) => {
                     createdBy: soldBy,
                     date: new Date()
                 });
-                await revenueRecord.save();
+                await revenueRecord.save({ session });
             }
-        } catch (revError) {
-            console.error('Failed to record revenue for sale:', revError);
-            // We don't fail the sale if revenue recording fails, but we log it
-        }
 
-        res.status(201).json({
-            success: true,
-            message: 'Bulk sale recorded successfully',
-            data: {
+            // Expose summary to outer scope for final response
+            finalResponseData = {
                 invoiceNumber,
                 itemsCount: saleResults.length,
                 totalAmount: finalTotal,
                 profit: totalProfit - discount,
                 sales: saleResults
-            }
+            };
         });
+
+        // If withTransaction finishes without throwing, it means success!
+        session.endSession();
+
+        res.status(201).json({
+            success: true,
+            message: 'Bulk sale recorded successfully',
+            data: finalResponseData
+        });
+
     } catch (error) {
-        console.error('Record bulk sale error:', error);
-        res.status(500).json({
+        // If anything threw an error inside the transaction, it rolls back everything and ends up here
+        session.endSession();
+        console.error('Record bulk sale error/rolled back:', error);
+
+        // Send a 400 if it was an explicit throw new Error from our logic,
+        // otherwise a 500 server error
+        const isClientError = error.message.includes('Insufficient stock') || error.message.includes('not found');
+        res.status(isClientError ? 400 : 500).json({
             success: false,
-            message: 'Failed to record bulk sale',
+            message: isClientError ? error.message : 'Failed to record bulk sale (Transaction Rolled Back)',
             error: error.message,
         });
     }
@@ -409,6 +435,16 @@ const getAllSales = async (req, res) => {
 
         let query = { tenantId: req.user.userId };
 
+        const { search } = req.query;
+
+        // Add search logic if parameter exists
+        if (search) {
+            query.$or = [
+                { invoiceNumber: { $regex: search, $options: 'i' } },
+                { customerName: { $regex: search, $options: 'i' } }
+            ];
+        }
+
         if (invoiceNumber) {
             query.invoiceNumber = invoiceNumber;
         }
@@ -422,19 +458,46 @@ const getAllSales = async (req, res) => {
         if (medicineId) query.medicineId = medicineId;
         if (paymentMethod) query.paymentMethod = paymentMethod;
 
-        const sales = await Sale.find(query)
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 0; // 0 means no limit
+        const skip = (page - 1) * limit;
+
+        const totalRecords = await Sale.countDocuments(query);
+
+        let salesQuery = Sale.find(query)
             .populate('medicineId', 'name sku category')
             .populate('customerId', 'firstName lastName phone')
             .sort({ saleDate: -1 });
 
-        const totalSales = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-        const totalProfit = sales.reduce((sum, sale) => sum + sale.profit, 0);
+        if (limit > 0) {
+            salesQuery = salesQuery.skip(skip).limit(limit);
+        }
+
+        const [sales, aggregates] = await Promise.all([
+            salesQuery,
+            Sale.aggregate([
+                { $match: query },
+                {
+                    $group: {
+                        _id: null,
+                        totalSales: { $sum: "$totalAmount" },
+                        totalProfit: { $sum: "$profit" }
+                    }
+                }
+            ])
+        ]);
+
+        const totals = aggregates.length > 0 ? aggregates[0] : { totalSales: 0, totalProfit: 0 };
 
         res.status(200).json({
             success: true,
             count: sales.length,
-            totalSales,
-            totalProfit,
+            totalRecords,
+            totalPages: limit > 0 ? Math.ceil(totalRecords / limit) : 1,
+            currentPage: page,
+            totalSales: totals.totalSales,
+            totalProfit: totals.totalProfit,
             data: sales,
         });
     } catch (error) {

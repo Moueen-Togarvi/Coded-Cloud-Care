@@ -62,12 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get form inputs by ID
     const companyName = document.getElementById('companyName').value.trim();
     const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
     const password = document.getElementById('password').value;
     const termsChecked = document.getElementById('terms').checked;
 
     // Validation
-    if (!companyName || !email || !password) {
-      showError('Please fill in all fields');
+    if (!companyName || !email || !password || !phone) {
+      showError('Please fill in all fields (including phone number)');
       return;
     }
 
@@ -103,6 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
           email,
           password,
           companyName,
+          phone,
+          termsAccepted: termsChecked,
           planType: selectedPlan,
           productId: productId, // Use the extracted productId variable
         }),

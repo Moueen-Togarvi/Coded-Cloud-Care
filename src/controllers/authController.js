@@ -14,12 +14,19 @@ const TRIAL_DAYS = 3;
  */
 const register = async (req, res) => {
   try {
-    const { email, password, companyName, phone, address, planType, productId } = req.body;
+    const { email, password, companyName, phone, address, planType, productId, termsAccepted } = req.body;
 
-    if (!email || !password || !companyName) {
+    if (!email || !password || !companyName || !phone) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email, password, and company name',
+        message: 'Please provide email, password, company name, and phone number',
+      });
+    }
+
+    if (!termsAccepted) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must accept the Terms and Privacy Policy to register.',
       });
     }
 
@@ -57,6 +64,7 @@ const register = async (req, res) => {
       tenantDbName,
       tenantDbUrl,
       isActive: true,
+      termsAccepted: true,
     });
 
     await user.save();
@@ -195,6 +203,7 @@ const login = async (req, res) => {
           id: user._id,
           email: user.email,
           companyName: user.companyName,
+          role: user.role,
         },
         // Saari active subscriptions
         subscriptions: updatedSubs.map((s) => ({

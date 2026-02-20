@@ -210,8 +210,8 @@
             .price-card {
                 flex: 1;
                 width: auto;
-                max-width: 32%;
-                /* Ensure 3 fit perfectly */
+                max-width: 24%;
+                /* Ensure 4 fit perfectly */
             }
         }
 
@@ -624,6 +624,10 @@
             <p id="product-desc">Flexible plans tailored for your growth.</p>
         </div>
 
+        <div class="pricing-container" id="free-tier-container" style="margin-bottom: 3rem;">
+            <!-- Free tier card will be injected here -->
+        </div>
+
         <div class="pricing-container" id="tiered-cards-container">
             <!-- Tiered cards will be injected here -->
         </div>
@@ -651,34 +655,40 @@
             document.getElementById('product-name').textContent = product.name;
             document.getElementById('product-desc').textContent = product.description;
 
+            const freeContainer = document.getElementById('free-tier-container');
             const container = document.getElementById('tiered-cards-container');
 
-            const tiers = [
+            const freeTier = { key: 'free', data: product.pricing.free, label: 'Free Setup' };
+            const paidTiers = [
                 { key: 'monthly', data: product.pricing.monthly, label: 'Monthly' },
                 { key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true },
                 { key: 'outright', data: product.pricing.outright, label: 'Lifetime' }
             ];
 
-            container.innerHTML = tiers.map(tier => `
-        <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}">
+            const renderCard = (tier, isFree = false) => `
+        <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}" ${isFree ? 'style="max-width: 500px; margin: 0 auto; text-align: center; border: 2px dashed var(--primary-color);"' : ''}>
           ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
+          ${isFree ? '<div class="featured-tag" style="background: var(--success); color: white;">Try for Free</div>' : ''}
           <div class="plan-tier">${tier.label} Access</div>
-          <div class="price-value">
+          <div class="price-value" ${isFree ? 'style="justify-content: center;"' : ''}>
             <span class="currency">PKR</span> ${tier.data.price}
             <span class="price-period">/${tier.data.period}</span>
           </div>
           
-          <ul class="features-list">
+          <ul class="features-list" ${isFree ? 'style="text-align: left; display: inline-block; margin-left: auto; margin-right: auto;"' : ''}>
             ${product.features.map(f => `
                 <li><i class="fa-solid fa-circle-check"></i> ${f}</li>
             `).join('')}
           </ul>
 
-          <button id="btn-select-${tier.key}-${productId}" class="btn-select" onclick="selectPlan('${product.id}', '${tier.key}')">
-            Select Plan
+          <button id="btn-select-${tier.key}-${productId}" class="btn-select" style="${isFree ? 'background: var(--primary-color); color: white;' : ''}" onclick="selectPlan('${product.id}', '${tier.key}')">
+            ${isFree ? 'Get Started' : 'Select Plan'}
           </button>
         </div>
-      `).join('');
+      `;
+
+            if (freeContainer) freeContainer.innerHTML = renderCard(freeTier, true);
+            if (container) container.innerHTML = paidTiers.map(tier => renderCard(tier, false)).join('');
         }
 
         function selectPlan(planId, tierKey) {

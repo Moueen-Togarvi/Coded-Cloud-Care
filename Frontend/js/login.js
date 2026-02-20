@@ -75,6 +75,24 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.message || 'Login failed');
       }
 
+      // STRICT ADMIN SEPARATION
+      if (data.data.user && data.data.user.role === 'admin') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Administrator Access',
+          text: 'Platform Administrators must use the secure Super Admin Portal. Redirecting...',
+          timer: 3000,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.href = '/portal-secure-admin';
+        });
+
+        // Ensure buttons are reset but don't proceed with tenant login
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+        return;
+      }
+
       // Extract productId from response user data
       const userProductId = data.data.user ? data.data.user.productId : null;
 

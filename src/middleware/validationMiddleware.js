@@ -251,6 +251,53 @@ const validateInventoryInput = (req, res, next) => {
 };
 
 /**
+ * Validate bulk pharmacy sale input
+ */
+const validateBulkSaleInput = (req, res, next) => {
+  const { items, paymentMethod, discount } = req.body;
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Items array is required and cannot be empty',
+    });
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (!item.medicineId || !isValidObjectId(item.medicineId)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid medicineId at index ${i}`,
+      });
+    }
+    if (!isValidNumber(item.quantity, 1)) {
+      return res.status(400).json({
+        success: false,
+        message: `Quantity must be a positive number at index ${i}`,
+      });
+    }
+  }
+
+  if (discount !== undefined && !isValidNumber(discount, 0)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Discount must be a positive number',
+    });
+  }
+
+  if (paymentMethod) {
+    req.body.paymentMethod = sanitizeString(paymentMethod);
+  }
+
+  if (req.body.notes) {
+    req.body.notes = sanitizeString(req.body.notes);
+  }
+
+  next();
+};
+
+/**
  * Validate invoice input
  */
 const validateInvoiceInput = (req, res, next) => {
@@ -352,6 +399,7 @@ module.exports = {
   validateStaffInput,
   validateAppointmentInput,
   validateInventoryInput,
+  validateBulkSaleInput,
   validateInvoiceInput,
   validateExpenseInput,
   validateObjectIdParam,

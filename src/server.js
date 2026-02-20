@@ -16,6 +16,7 @@ const staffRoutes = require('./routes/staff');
 const pharmacyRoutes = require('./routes/pharmacy');
 const accountingRoutes = require('./routes/accounting');
 const settingsRoutes = require('./routes/settings');
+const adminRoutes = require('./routes/admin');
 
 // Hospital PMS routes
 const hospitalAuthRoutes = require('./routes/hospitalAuth');
@@ -149,6 +150,7 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/accounting', accountingRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Hospital PMS routes (prefixed)
 app.use('/api/hospital/auth', hospitalAuthRoutes);
@@ -175,6 +177,16 @@ app.use('/hospital/static', express.static(path.join(__dirname, '../Frontend/hos
 // Serve Hospital PMS frontend
 app.get(['/hospital-pms', '/hospital', '/pms'], (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/hospital/index.html'));
+});
+
+// --- Secure Admin Portal URL Obfuscation ---
+app.get('/portal-secure-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/admin/login.html'));
+});
+
+// Block direct access to the plain HTML file for security
+app.use('/Frontend/admin/login.html', (req, res) => {
+  res.status(404).send('Not Found');
 });
 
 // Serve Frontend directory for Pharmacy and other apps

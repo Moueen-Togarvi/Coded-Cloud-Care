@@ -95,7 +95,7 @@ async function handleFormSubmit(e) {
     e.preventDefault();
 
     const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-    if (!token) return;
+    if (!token) return window.handleTokenExpiry();
 
     const id = document.getElementById('itemId').value;
     const isEdit = !!id;
@@ -144,7 +144,7 @@ async function handleFormSubmit(e) {
 async function fetchInventory() {
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
 
         const headers = { 'Authorization': `Bearer ${token}` };
 
@@ -178,7 +178,7 @@ async function fetchInventory() {
 async function fetchInventoryDashboardData() {
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
         const headers = { 'Authorization': `Bearer ${token}` };
 
         // 1. Accounts Receivable
@@ -212,7 +212,7 @@ async function fetchInventoryDashboardData() {
 async function fetchPendingRequisitions() {
     try {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
-        if (!token) return;
+        if (!token) return window.handleTokenExpiry();
         const headers = { 'Authorization': `Bearer ${token}` };
 
         const response = await fetch('/api/pharmacy/purchase-orders?status=pending', { headers });
