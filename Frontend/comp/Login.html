@@ -8,8 +8,11 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="../css/notifications.css" />
+  <link rel="stylesheet" href="../css/common.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root {
@@ -27,137 +30,6 @@
       padding: 0;
       box-sizing: border-box;
       font-family: 'Inter', sans-serif;
-    }
-
-    /* Navbar Styles */
-    .navbar {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 1200px;
-      background: rgba(255, 255, 255, 0.95) !important;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 100px;
-      padding: 0.8rem 1.5rem !important;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 2000;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
-    }
-
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-
-    .brand-logo {
-      width: 28px;
-      height: 28px;
-    }
-
-    .brand-text {
-      font-size: 16px;
-      font-weight: 800;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-    }
-
-    .nav-links a {
-      color: var(--text-gray);
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    .nav-links a:hover,
-    .nav-links a.active {
-      color: var(--primary-color);
-    }
-
-    .btn-nav-primary {
-      background: var(--primary-color);
-      color: white !important;
-      padding: 0.7rem 1.8rem;
-      border-radius: 50px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      border: none;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-nav-primary:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
-    }
-
-    .navbar-toggler {
-      border: none;
-      background: none;
-      color: var(--text-dark);
-      padding: 0;
-      cursor: pointer;
-    }
-
-    .mobile-menu {
-      display: none;
-      flex-direction: column;
-      width: 100%;
-      gap: 15px;
-      padding-top: 20px;
-      text-align: center;
-    }
-
-    .mobile-menu.active {
-      display: flex !important;
-    }
-
-    @media (max-width: 991px) {
-      .navbar {
-        width: 95%;
-        border-radius: 30px;
-        padding: 0.6rem 1.2rem !important;
-        flex-wrap: wrap;
-      }
-
-      .nav-links {
-        display: none !important;
-      }
-
-      .btn-nav-primary {
-        padding: 0.5rem 1.2rem !important;
-        font-size: 0.8rem !important;
-      }
-    }
-
-    @media (min-width: 992px) {
-      .brand-logo {
-        width: 32px;
-        height: 32px;
-      }
-
-      .brand-text {
-        font-size: 20px;
-      }
     }
 
     body {
@@ -224,7 +96,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       padding: 2rem;
       background-color: var(--white);
@@ -233,7 +105,8 @@
     .form-wrapper {
       width: 100%;
       max-width: 450px;
-      margin-top: 70px;
+      margin-top: 120px;
+      /* Increased top margin */
     }
 
     .mobile-logo {
@@ -416,6 +289,20 @@
 
       .form-header {
         text-align: center;
+      }
+    }
+
+    /* Fixed navbar overlap/broken layout */
+    .mobile-menu {
+      display: none;
+    }
+
+    @media (max-width: 991px) {
+      .navbar {
+        flex-wrap: wrap;
+      }
+      .mobile-menu.active {
+        display: flex !important;
       }
     }
 
@@ -662,31 +549,25 @@
 </script>
 
 <body>
-  <!-- Navbar -->
   <nav class="navbar">
-    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-      <a class="navbar-brand" href="../../index.html">
-        <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
-        <span class="brand-text">Cloud Care Systems.</span>
-      </a>
+    <a class="navbar-brand" href="../../index.html">
+      <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
+      <span class="brand-text">Cloud Care Systems.</span>
+    </a>
 
-      <!-- Mobile Toggle Button -->
-      <button class="navbar-toggler" type="button" onclick="toggleMenu()" style="display: none;">
-        <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
-      </button>
+    <button class="navbar-toggler" type="button" onclick="toggleMenu()" style="display: none;">
+      <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
+    </button>
 
-      <!-- Desktop Nav Links -->
-      <div class="nav-links" style="display: flex;">
-        <a href="../../index.html">Home</a>
-        <a href="f.html">Features</a>
-        <a href="pricing.html">Pricing</a>
-        <a href="Contact.html">Contact</a>
-      </div>
-
-      <a href="Signup.html" class="btn-nav-primary" style="display: inline-block;">Sign Up</a>
+    <div class="nav-links">
+      <a href="../../index.html">Home</a>
+      <a href="f.html">Features</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="Contact.html">Contact</a>
     </div>
 
-    <!-- Mobile Menu (Collapsible) -->
+    <a href="Signup.html" class="btn-nav-primary">Sign Up</a>
+
     <div class="nav-links mobile-menu" id="mobileMenu">
       <a href="../../index.html">Home</a>
       <a href="f.html">Features</a>
@@ -703,42 +584,8 @@
         menu.classList.toggle('active');
       }
     }
-
-    // Show mobile toggle on small screens
-    window.addEventListener('resize', function () {
-      const toggler = document.querySelector('.navbar-toggler');
-      const navLinks = document.querySelector('.nav-links:not(.mobile-menu)');
-      const signupBtn = document.querySelector('.btn-nav-primary:not(.mobile-menu .btn-nav-primary)');
-
-      if (window.innerWidth <= 991) {
-        if (toggler) toggler.style.display = 'block';
-        if (navLinks) navLinks.style.display = 'none';
-        if (signupBtn) signupBtn.style.display = 'none';
-      } else {
-        if (toggler) toggler.style.display = 'none';
-        if (navLinks) navLinks.style.display = 'flex';
-        if (signupBtn) signupBtn.style.display = 'inline-block';
-      }
-    });
-
-    // Initial check
-    window.dispatchEvent(new Event('resize'));
   </script>
 
-  <style>
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-    }
-
-    .brand-logo {
-      width: 40px;
-      height: 40px;
-      object-fit: contain;
-    }
-  </style>
   <div class="login-container">
     <div class="login-image-side">
       <div class="brand-overlay"></div>
@@ -802,10 +649,10 @@
 
         <div
           style="text-align: center; margin-top: 3rem; font-size: 0.85rem; color: #9ca3af; display: flex; justify-content: center; gap: 15px;">
-          <a href="/Frontend/policies/terms.html" target="_blank" style="color: #9ca3af; text-decoration: none;">Terms &
-            Conditions</a>
-          <a href="/Frontend/policies/privacy.html" target="_blank"
-            style="color: #9ca3af; text-decoration: none;">Privacy Policy</a>
+          <a href="../policies/terms.html" target="_blank" style="color: #9ca3af; text-decoration: none;">Terms &
+            Conditions</a> |
+          <a href="../policies/privacy.html" target="_blank" style="color: #9ca3af; text-decoration: none;">Privacy
+            Policy</a>
           <a href="./Contact.html" style="color: #9ca3af; text-decoration: none;">Contact Us</a>
         </div>
       </div>
@@ -823,8 +670,72 @@
       }
     });
   </script>
+  <footer class="footer">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+      <div class="row" style="display: flex; flex-wrap: wrap;">
 
-  <!-- Auth Scripts -->
+        <div class="col-lg-4 mb-4 mb-lg-0" style="flex: 0 0 auto; width: 33.33333333%;">
+          <a href="#" class="footer-brand">Cloud Care Systems</a>
+          <p>
+            A product by <strong>Coded Clouds</strong>. <br>
+            Making healthcare management simple, efficient, and secure for everyone.
+          </p>
+          <div class="mt-4">
+            <a href="https://www.facebook.com/profile.php?id=61584082650845" class="social-icon"><i
+                class="bi bi-facebook"></i></a>
+
+            <a href="https://www.linkedin.com/company/coded-clouds/" class="social-icon"><i
+                class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-2" style="flex: 0 0 auto; width: 16.66666667%;">
+          <h5>Company</h5>
+          <a href="f.html" class="footer-link">Feature</a>
+          <a href="pricing.html" class="footer-link">pricing</a>
+          <a href="Contact.html" class="footer-link">Contact</a>
+        </div>
+
+        <div class="col-lg-3 mt-4 mt-lg-0" style="flex: 0 0 auto; width: 25%;">
+          <h5>Contact Us</h5>
+          <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i> Lahore, Punjab, Pakistan</p>
+          <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i> hashim@codedclouds.org</p>
+          <p><i class="bi bi-telephone-fill me-2"></i> +966-557385262</p>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <div class="row align-items-center" style="display: flex; align-items: center; justify-content: space-between;">
+
+          <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+            © 2026 Cloud Care Systems All rights reserved.
+          </div>
+
+          <div class="col-md-4 text-center mb-3 mb-md-0">
+            <span style="opacity: 0.7;">Powered by</span>
+            <a href="https://codedclouds.org" target="_blank" class="shiny-link">
+              Coded Clouds ⚡
+            </a>
+          </div>
+
+          <div class="col-md-4 text-center text-md-end">
+            <a href="../policies/privacy.html" class="text-white text-decoration-none small me-3 opacity-50">Privacy</a>
+            <a href="../policies/terms.html" class="text-white text-decoration-none small opacity-50">Terms</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+  <script src="../comp/pricing_config.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/login.js"></script>
 </body>

@@ -9,50 +9,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/notifications.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --bg-light: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            min-height: 100vh;
-        }
-
-        /* Top Navigation */
-        .top-nav {
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .brand {
-            font-weight: 800;
-            font-size: 1.4rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand img {
-            width: 35px;
-            height: 35px;
-        }
-
         /* User Profile */
         .user-pill {
             background: #f1f5f9;
@@ -73,7 +34,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: var(--primary);
+            background: var(--primary-color);
             color: white;
             display: flex;
             align-items: center;
@@ -118,31 +79,35 @@
             opacity: 0.8;
             color: #dc2626;
         }
-
-        .footer {
-            text-align: center;
-            padding: 4rem 0;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
     </style>
 </head>
 
 <body>
-    <!-- Top Nav -->
-    <nav class="top-nav">
-        <div class="container-fluid d-flex justify-content-between align-items-center">
-            <a href="/" class="brand">
-                <img src="../images/logo.png" alt="Cloud Care">
-                <span>Cloud Care</span>
+    <nav class="navbar">
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <a class="navbar-brand" href="../../index.html">
+                <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
+                <span class="brand-text">Cloud Care Systems.</span>
             </a>
 
-            <div class="d-flex align-items-center gap-4">
+            <button class="navbar-toggler" type="button" onclick="toggleMenu()">
+                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+            </button>
+
+            <div class="nav-links d-none d-lg-flex">
+                <a href="../../index.html">Home</a>
+                <a href="f.html">Features</a>
+                <a href="pricing.html">Pricing</a>
+                <a href="Contact.html">Contact</a>
+            </div>
+
+            <div class="d-flex align-items-center gap-4 d-none d-lg-flex">
+                <a href="Contact.html" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
                 <div class="user-pill">
                     <div class="user-avatar" id="userInitial">?</div>
                     <div>
                         <div style="font-weight: 600; font-size: 0.85rem;" id="userName">Loading...</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);" id="userEmail">...</div>
+                        <div style="font-size: 0.75rem; color: var(--text-gray);" id="userEmail">...</div>
                     </div>
                 </div>
                 <a href="#" id="logoutBtn" class="btn-logout">
@@ -151,7 +116,32 @@
                 </a>
             </div>
         </div>
+
+        <div class="nav-links mobile-menu d-lg-none" id="mobileMenu">
+            <a href="../../index.html">Home</a>
+            <a href="f.html">Features</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="Contact.html">Contact</a>
+            <div class="d-flex flex-column gap-2 mt-2">
+                <div class="user-pill justify-content-center">
+                    <div class="user-avatar" id="userInitialMobile">?</div>
+                    <div class="text-start">
+                        <div style="font-weight: 600; font-size: 0.85rem;" id="userNameMobile">User</div>
+                    </div>
+                </div>
+                <a href="#" id="logoutBtnMobile" class="btn btn-outline-danger w-100">Logout</a>
+            </div>
+        </div>
     </nav>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            if (menu) {
+                menu.classList.toggle('active');
+            }
+        }
+    </script>
 
     <!-- Main Dashboard -->
     <div class="dashboard-container">
@@ -185,8 +175,70 @@
     </div>
 
     <footer class="footer">
-        <p>© 2026 Cloud Care Systems. All rights reserved.</p>
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+            <div class="row" style="display: flex; flex-wrap: wrap;">
+
+                <div class="col-lg-4 mb-4 mb-lg-0" style="flex: 0 0 auto; width: 33.33333333%;">
+                    <a href="#" class="footer-brand">Cloud Care Systems</a>
+                    <p>
+                        A product by <strong>Coded Clouds</strong>. <br>
+                        Making healthcare management simple, efficient, and secure for everyone.
+                    </p>
+                    <div class="mt-4">
+                        <a href="https://www.facebook.com/profile.php?id=61584082650845" class="social-icon"><i
+                                class="bi bi-facebook"></i></a>
+
+                        <a href="https://www.linkedin.com/company/coded-clouds/" class="social-icon"><i
+                                class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-2" style="flex: 0 0 auto; width: 16.66666667%;">
+                    <h5>Company</h5>
+                    <a href="f.html" class="footer-link">Feature</a>
+                    <a href="pricing.html" class="footer-link">pricing</a>
+                    <a href="Contact.html" class="footer-link">Contact</a>
+                </div>
+
+                <div class="col-lg-3 mt-4 mt-lg-0" style="flex: 0 0 auto; width: 25%;">
+                    <h5>Contact Us</h5>
+                    <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i> Lahore, Punjab, Pakistan</p>
+                    <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i> hashim@codedclouds.org</p>
+                    <p><i class="bi bi-telephone-fill me-2"></i> +966-557385262</p>
+                </div>
+
+            </div>
+
+            <div class="footer-bottom">
+                <div class="row align-items-center"
+                    style="display: flex; align-items: center; justify-content: space-between;">
+
+                    <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+                        © 2026 Cloud Care Systems All rights reserved.
+                    </div>
+
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <span style="opacity: 0.7;">Powered by</span>
+                        <a href="https://codedclouds.org" target="_blank" class="shiny-link">
+                            Coded Clouds ⚡
+                        </a>
+                    </div>
+
+                    <div class="col-md-4 text-center text-md-end">
+                        <a href="../policies/privacy.html"
+                            class="text-white text-decoration-none small me-3 opacity-50">Privacy</a>
+                        <a href="../policies/terms.html"
+                            class="text-white text-decoration-none small opacity-50">Terms</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </footer>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
 
     <!-- Notification Container -->
     <div id="notification-container" class="notification-container"></div>

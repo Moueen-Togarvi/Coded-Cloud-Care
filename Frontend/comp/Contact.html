@@ -5,12 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Cloud Care Systems</title>
-<link rel="icon" type="image/png" href="../images/logo.png">
+    <link rel="icon" type="image/png" href="../images/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -76,158 +78,6 @@
             color: inherit;
         }
 
-        .navbar {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 1200px;
-            /* background: rgba(255, 255, 255, 0.8) !important; */
-            background: rgba(255, 255, 255, 0.95) !important;
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 100px;
-            padding: 0.8rem 1.5rem !important;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 2000;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        @media (max-width: 991px) {
-            .navbar {
-                width: 95%;
-                border-radius: 30px;
-                padding: 0.6rem 1.2rem !important;
-                flex-wrap: wrap;
-                flex-wrap: wrap;
-            }
-
-            .nav-links {
-                display: none !important;
-            }
-
-            .mobile-menu {
-                display: none;
-                flex-direction: column;
-                width: 100%;
-                gap: 15px;
-                padding-top: 20px;
-                text-align: center;
-            }
-
-            .mobile-menu.active {
-                display: flex !important;
-            }
-
-            .mobile-menu .btn {
-                color: #ffffff !important;
-                width: 100%;
-            }
-
-            .navbar-toggler {
-                border: none;
-                background: none;
-                color: var(--text-dark);
-                padding: 0;
-            }
-
-            .btn-nav-primary {
-                padding: 0.5rem 1.2rem !important;
-                font-size: 0.8rem !important;
-            }
-        }
-
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .brand-logo {
-            width: 28px;
-            height: 28px;
-        }
-
-        @media (min-width: 992px) {
-            .brand-logo {
-                width: 32px;
-                height: 32px;
-            }
-        }
-
-        .brand-text {
-            font-size: 16px;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        @media (min-width: 992px) {
-            .brand-text {
-                font-size: 20px;
-            }
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: var(--text-gray);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: var(--primary-color);
-        }
-
-        .btn-nav-primary {
-            background: var(--primary-color);
-            color: white !important;
-            padding: 0.7rem 1.8rem;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            border: none;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        @media (min-width: 1200px) {
-            .btn-nav-primary {
-                padding: 0.7rem 2.2rem;
-                font-size: 0.95rem;
-            }
-        }
-
-        .btn-nav-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
-        }
-
-        /* Mobile Menu Button (Hidden on Desktop) */
-        .menu-toggle {
-            display: none;
-            font-size: 1.5rem;
-            color: var(--text-dark);
-            cursor: pointer;
-        }
 
         .contact-hero {
             padding: 120px 5% 40px;
@@ -511,6 +361,21 @@
                 font-size: 2rem;
             }
         }
+
+        /* Fixed navbar overlap/broken layout */
+        .mobile-menu {
+            display: none;
+        }
+
+        @media (max-width: 991px) {
+            .navbar {
+                flex-wrap: wrap;
+            }
+
+            .mobile-menu.active {
+                display: flex !important;
+            }
+        }
     </style>
 </head>
 <div class="mouse-cursor cursor-outer"></div>
@@ -522,10 +387,12 @@
         position: fixed;
         top: 0;
         left: 0;
-        pointer-events: none; /* Click through */
+        pointer-events: none;
+        /* Click through */
         border-radius: 50%;
         transform: translate(-50%, -50%);
-        z-index: 9999; /* Sab se upar */
+        z-index: 9999;
+        /* Sab se upar */
         transition: width 0.3s, height 0.3s, background-color 0.3s;
     }
 
@@ -533,7 +400,8 @@
     .cursor-inner {
         width: 8px;
         height: 8px;
-        background-color: #4f46e5; /* Theme Purple */
+        background-color: #4f46e5;
+        /* Theme Purple */
     }
 
     /* Outer Ring with Medical Plus */
@@ -568,17 +436,21 @@
     }
 
     body.mouse-hover .cursor-inner {
-        opacity: 0; /* Dot gayab */
+        opacity: 0;
+        /* Dot gayab */
     }
 
     body.mouse-hover .cursor-outer::after {
         opacity: 1;
-        transform: scale(1.2) rotate(90deg); /* Rotate animation */
+        transform: scale(1.2) rotate(90deg);
+        /* Rotate animation */
     }
 
     /* Hide on Mobile */
     @media (max-width: 991px) {
-        .mouse-cursor { display: none; }
+        .mouse-cursor {
+            display: none;
+        }
     }
 
     /* --- BUBBLE STYLES --- */
@@ -589,8 +461,9 @@
         background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(79, 70, 229, 0.6));
         box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         pointer-events: none;
-        z-index: 9998; /* Cursor k neeche */
-        
+        z-index: 9998;
+        /* Cursor k neeche */
+
         /* Initial State for Animation */
         top: var(--start-y);
         left: var(--start-x);
@@ -607,32 +480,36 @@
             opacity: 0;
             top: var(--start-y);
         }
+
         10% {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
         }
+
         85% {
             /* Chatt (Ceiling) par pohanch gaya */
-            top: 0px; 
+            top: 0px;
             transform: translate(-50%, 0) scale(1);
             opacity: 0.8;
         }
+
         100% {
             /* Pop & Vanish */
             top: -10px;
-            transform: translate(-50%, -20px) scale(1.5); /* Thora phool kr phat gaya */
+            transform: translate(-50%, -20px) scale(1.5);
+            /* Thora phool kr phat gaya */
             opacity: 0;
         }
     }
 </style>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        
+    document.addEventListener("DOMContentLoaded", function () {
+
         // --- PART A: MOUSE TRACKER LOGIC ---
         const cursorInner = document.querySelector('.cursor-inner');
         const cursorOuter = document.querySelector('.cursor-outer');
-        
+
         let mouseX = 0;
         let mouseY = 0;
         let outerX = 0;
@@ -643,7 +520,7 @@
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
-            
+
             // Inner Dot moves instantly
             cursorInner.style.left = mouseX + 'px';
             cursorInner.style.top = mouseY + 'px';
@@ -653,10 +530,10 @@
         function animateCursor() {
             outerX += (mouseX - outerX) * speed;
             outerY += (mouseY - outerY) * speed;
-            
+
             cursorOuter.style.left = outerX + 'px';
             cursorOuter.style.top = outerY + 'px';
-            
+
             requestAnimationFrame(animateCursor);
         }
         animateCursor();
@@ -670,8 +547,8 @@
 
 
         // --- PART B: BUBBLE CLICK LOGIC ---
-        document.addEventListener('click', function(e) {
-            
+        document.addEventListener('click', function (e) {
+
             // Create Bubble
             const bubble = document.createElement('div');
             bubble.classList.add('magic-bubble');
@@ -687,7 +564,7 @@
 
             // 3. Dynamic Duration (Distance to Top)
             // Jitna neeche click, utna time lagega upar jane mein (Realistic Physics)
-            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8; 
+            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8;
             bubble.style.setProperty('--duration', `${duration}s`);
 
             // 4. Random Wobble (Thora left-right hilna)
@@ -699,49 +576,47 @@
             // Cleanup after animation
             setTimeout(() => {
                 bubble.remove();
-            }, duration * 1000 + 100); 
+            }, duration * 1000 + 100);
         });
 
     });
 </script>
+
 <body>
     <nav class="navbar">
-        <div class="d-flex align-items-center justify-content-between w-100">
-            <a class="navbar-brand" href="../../index.html">
-                <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
-                <span class="brand-text">Cloud Care Systems.</span>
-            </a>
+        <a class="navbar-brand" href="../../index.html">
+            <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
+            <span class="brand-text">Cloud Care Systems.</span>
+        </a>
 
-            <!-- Mobile Toggle Button -->
-            <button class="navbar-toggler d-lg-none" type="button" onclick="toggleMenu()">
-                <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
-            </button>
+        <button class="navbar-toggler" type="button" onclick="toggleMenu()" style="display: none;">
+            <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
+        </button>
 
-            <!-- Desktop Nav Links -->
-            <div class="nav-links d-none d-lg-flex">
-                <a href="../../index.html">Home</a>
-                <a href="f.html">Features</a>
-                <a href="pricing.html">Pricing</a>
-                <a href="Contact.html" class="active" style="color: var(--primary-color); font-weight: 600;">Contact</a>
-            </div>
-
-            <a href="#" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
-        </div>
-
-        <!-- Mobile Menu (Collapsible) -->
-        <div class="nav-links mobile-menu d-lg-none" id="mobileMenu">
+        <div class="nav-links d-none d-lg-flex">
             <a href="../../index.html">Home</a>
             <a href="f.html">Features</a>
             <a href="pricing.html">Pricing</a>
-            <a href="Contact.html" class="active" style="color: var(--primary-color);">Contact</a>
-            <a href="#" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
+            <a href="Contact.html" class="active">Contact</a>
+        </div>
+
+        <a href="Contact.html" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
+
+        <div class="nav-links mobile-menu" id="mobileMenu">
+            <a href="../../index.html">Home</a>
+            <a href="f.html">Features</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="Contact.html" class="active">Contact</a>
+            <a href="Contact.html" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
         </div>
     </nav>
 
     <script>
         function toggleMenu() {
             const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('active');
+            if (menu) {
+                menu.classList.toggle('active');
+            }
         }
     </script>
 
@@ -816,101 +691,72 @@
             </div>
         </div>
     </section>
-    <style>
-        .pms-footer {
-            background-color: #0F172A;
-            /* Dark Theme Bg */
-            color: #9CA3AF;
-            /* Gray Text */
-            padding: 1.5rem 5%;
-            font-family: 'Inter', sans-serif;
-            border-top: 1px solid #1E293B;
-            font-size: 0.9rem;
-        }
 
-        .footer-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+    <footer class="footer">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+            <div class="row" style="display: flex; flex-wrap: wrap;">
 
-        .footer-center {
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
+                <div class="col-lg-4 mb-4 mb-lg-0" style="flex: 0 0 auto; width: 33.33333333%;">
+                    <a href="#" class="footer-brand">Cloud Care Systems</a>
+                    <p>
+                        A product by <strong>Coded Clouds</strong>. <br>
+                        Making healthcare management simple, efficient, and secure for everyone.
+                    </p>
+                    <div class="mt-4">
+                        <a href="https://www.facebook.com/profile.php?id=61584082650845" class="social-icon"><i
+                                class="bi bi-facebook"></i></a>
 
-        .footer-center strong {
-            color: #ffffff;
-            font-weight: 700;
-        }
-
-        .footer-links a {
-            color: #9CA3AF;
-            text-decoration: none;
-            margin-left: 20px;
-            transition: 0.3s;
-        }
-
-        .footer-links a:hover {
-            color: #ffffff;
-        }
-
-        @media (max-width: 768px) {
-            .footer-container {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .footer-links a {
-                margin: 0 10px;
-            }
-        }
-    </style>
-
-    <footer class="pms-footer">
-        <div class="footer-container">
-
-            <div class="footer-left">
-                &copy; 2026 Cloud Care System. All rights reserved.
-            </div>
-
-            <a href="https://codedclouds.org">
-                <div class="footer-center">
-                    Powered by <strong>CODED CLOUDS</strong> <i class="fa-solid fa-bolt"></i>
+                        <a href="https://www.linkedin.com/company/coded-clouds/" class="social-icon"><i
+                                class="bi bi-linkedin"></i></a>
+                    </div>
                 </div>
-            </a>
 
-            <div class="footer-links">
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
+                <div class="col-6 col-lg-2" style="flex: 0 0 auto; width: 16.66666667%;">
+                    <h5>Company</h5>
+                    <a href="f.html" class="footer-link">Feature</a>
+                    <a href="pricing.html" class="footer-link">pricing</a>
+                    <a href="Contact.html" class="footer-link">Contact</a>
+                </div>
+
+                <div class="col-lg-3 mt-4 mt-lg-0" style="flex: 0 0 auto; width: 25%;">
+                    <h5>Contact Us</h5>
+                    <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i> Lahore, Punjab, Pakistan</p>
+                    <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i> hashim@codedclouds.org</p>
+                    <p><i class="bi bi-telephone-fill me-2"></i> +966-557385262</p>
+                </div>
+
             </div>
 
+            <div class="footer-bottom">
+                <div class="row align-items-center"
+                    style="display: flex; align-items: center; justify-content: space-between;">
+
+                    <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+                        © 2026 Cloud Care Systems All rights reserved.
+                    </div>
+
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <span style="opacity: 0.7;">Powered by</span>
+                        <a href="https://codedclouds.org" target="_blank" class="shiny-link">
+                            Coded Clouds ⚡
+                        </a>
+                    </div>
+
+                    <div class="col-md-4 text-center text-md-end">
+                        <a href="../policies/privacy.html"
+                            class="text-white text-decoration-none small me-3 opacity-50">Privacy</a>
+                        <a href="../policies/terms.html"
+                            class="text-white text-decoration-none small opacity-50">Terms</a>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </footer>
     <script>
-        const menuToggle = document.getElementById('mobile-menu');
-        const navLinks = document.getElementById('nav-links');
-
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-
-            // Toggle Icon
-            const icon = menuToggle.querySelector('i');
-            if (navLinks.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark');
-            } else {
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
-            }
-        });
+        // Initialize Lucide icons
+        lucide.createIcons();
     </script>
-
 </body>
 
 </html>

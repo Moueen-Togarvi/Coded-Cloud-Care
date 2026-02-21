@@ -7,7 +7,10 @@
   <title>Pricing - Cloud Care Systems Smart Solution</title>
   <link rel="icon" type="image/png" href="../images/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/common.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <div class="mouse-cursor cursor-outer"></div>
   <div class="mouse-cursor cursor-inner"></div>
@@ -277,183 +280,6 @@
       color: inherit;
     }
 
-    .navbar {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 1200px;
-      /* background: rgba(255, 255, 255, 0.8) !important; */
-      background: rgba(255, 255, 255, 0.95) !important;
-      background: rgba(255, 255, 255, 0.95) !important;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 100px;
-      padding: 0.8rem 1.5rem !important;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 2000;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
-    }
-
-    @media (max-width: 991px) {
-      .navbar {
-        width: 95%;
-        border-radius: 30px;
-        padding: 0.6rem 1.2rem !important;
-        flex-wrap: wrap;
-        flex-wrap: wrap;
-      }
-
-      .nav-links {
-        display: none !important;
-      }
-
-      .mobile-menu {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-        gap: 15px;
-        padding-top: 20px;
-        text-align: center;
-      }
-
-      .mobile-menu.active {
-        display: flex !important;
-      }
-
-      .mobile-menu .btn {
-        color: #ffffff !important;
-        width: 100%;
-      }
-
-      .navbar-toggler {
-        border: none;
-        background: none;
-        color: var(--text-dark);
-        padding: 0;
-      }
-
-      .btn-nav-primary {
-        padding: 0.5rem 1.2rem !important;
-        font-size: 0.8rem !important;
-      }
-
-      #typewriter-text {
-        font-size: 1.5rem !important;
-        white-space: nowrap !important;
-      }
-
-      .pricing-header h1 {
-        font-size: 2rem !important;
-      }
-    }
-
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-
-    .brand-logo {
-      width: 28px;
-      height: 28px;
-    }
-
-    @media (min-width: 992px) {
-      .brand-logo {
-        width: 32px;
-        height: 32px;
-      }
-    }
-
-    .brand-text {
-      font-size: 16px;
-      font-weight: 800;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    @media (min-width: 992px) {
-      .brand-text {
-        font-size: 20px;
-      }
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-    }
-
-    .nav-links a {
-      color: var(--text-gray);
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    .nav-links a:hover,
-    .nav-links a.active {
-      color: var(--primary-color);
-    }
-
-    .btn-nav-primary {
-      background: var(--primary-color);
-      color: white !important;
-      padding: 0.7rem 1.8rem;
-      border-radius: 50px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      border: none;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    @media (min-width: 1200px) {
-      .btn-nav-primary {
-        padding: 0.7rem 2.2rem;
-        font-size: 0.95rem;
-      }
-    }
-
-    .btn-nav-primary:hover {
-      background: var(--primary-dark);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
-    }
-
-    /* Typewriter Cursor */
-    .type-cursor {
-      display: inline-block;
-      width: 3px;
-      height: 1.1em;
-      background-color: var(--primary-color);
-      margin-left: 4px;
-      vertical-align: middle;
-      animation: blink 0.8s infinite;
-    }
-
-    @keyframes blink {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0;
-      }
-    }
 
     /* --- Pricing Section --- */
     .pricing-section {
@@ -679,14 +505,6 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
-    /* Footer */
-    footer {
-      margin-top: 4rem;
-      background-color: #1f2937;
-      color: #d1d5db;
-      padding: 3rem 5%;
-      text-align: center;
-    }
 
     /* Responsive */
     @media (max-width: 768px) {
@@ -1055,39 +873,52 @@
       color: inherit;
     }
 
-    /* --- Navbar (Matching your Theme) --- */
+    <style>
+
+    /* Fixed navbar overlap/broken layout */
+    .mobile-menu {
+      display: none;
+    }
+
+    @media (max-width: 991px) {
+      .navbar {
+        flex-wrap: wrap;
+      }
+
+      .mobile-menu.active {
+        display: flex !important;
+      }
+    }
   </style>
   <script src="./pricing_config.js"></script>
   <nav class="navbar">
-    <div class="d-flex align-items-center justify-content-between w-100">
-      <a class="navbar-brand" href="../../index.html">
-        <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
-        <span class="brand-text">Cloud Care Systems.</span>
-      </a>
+    <a class="navbar-brand" href="../../index.html">
+      <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
+      <span class="brand-text">Cloud Care Systems.</span>
+    </a>
 
-      <!-- Mobile Toggle Button -->
-      <button class="navbar-toggler d-lg-none" type="button" onclick="toggleMenu()">
-        <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
-      </button>
+    <!-- Mobile Toggle Button -->
+    <button class="navbar-toggler d-lg-none" type="button" onclick="toggleMenu()">
+      <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
+    </button>
 
-      <!-- Desktop Nav Links -->
-      <div class="nav-links d-none d-lg-flex">
-        <a href="../../index.html">Home</a>
-        <a href="f.html">Features</a>
-        <a href="pricing.html" class="active" style="color: var(--primary-color); font-weight: 600;">Pricing</a>
-        <a href="Contact.html">Contact</a>
-      </div>
-
-      <a href="#" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
+    <!-- Desktop Nav Links -->
+    <div class="nav-links d-none d-lg-flex">
+      <a href="../../index.html">Home</a>
+      <a href="f.html">Features</a>
+      <a href="pricing.html" class="active" style="color: var(--primary-color); font-weight: 600;">Pricing</a>
+      <a href="Contact.html">Contact</a>
     </div>
 
+    <a href="Contact.html" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
+
     <!-- Mobile Menu (Collapsible) -->
-    <div class="nav-links mobile-menu d-lg-none" id="mobileMenu">
+    <div class="nav-links mobile-menu" id="mobileMenu">
       <a href="../../index.html">Home</a>
       <a href="f.html">Features</a>
       <a href="pricing.html" class="active" style="color: var(--primary-color);">Pricing</a>
       <a href="Contact.html">Contact</a>
-      <a href="#" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
+      <a href="Contact.html" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
     </div>
   </nav>
 
@@ -1308,7 +1139,18 @@
         </div>
       `).join('');
     }
+  </script>
 
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      if (menu) {
+        menu.classList.toggle('active');
+      }
+    }
+  </script>
+  <script>
     const textElement = document.getElementById('typewriter-text');
     const phrases = [
       'Pricing',
@@ -1353,14 +1195,68 @@
       type();
     });
   </script>
-  <footer style="margin-top: 4rem; background-color: #1f2937; color: #d1d5db; padding: 3rem 5%; text-align: center;">
-    <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
-      <a href="/Frontend/policies/terms.html" style="color: #9ca3af; text-decoration: none;">Terms & Conditions</a>
-      <a href="/Frontend/policies/privacy.html" style="color: #9ca3af; text-decoration: none;">Privacy Policy</a>
-      <a href="/Frontend/comp/Contact.html" style="color: #9ca3af; text-decoration: none;">Contact Us</a>
+  <footer class="footer">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+      <div class="row" style="display: flex; flex-wrap: wrap;">
+
+        <div class="col-lg-4 mb-4 mb-lg-0" style="flex: 0 0 auto; width: 33.33333333%;">
+          <a href="#" class="footer-brand">Cloud Care Systems</a>
+          <p>
+            A product by <strong>Coded Clouds</strong>. <br>
+            Making healthcare management simple, efficient, and secure for everyone.
+          </p>
+          <div class="mt-4">
+            <a href="https://www.facebook.com/profile.php?id=61584082650845" class="social-icon"><i
+                class="bi bi-facebook"></i></a>
+
+            <a href="https://www.linkedin.com/company/coded-clouds/" class="social-icon"><i
+                class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-2" style="flex: 0 0 auto; width: 16.66666667%;">
+          <h5>Company</h5>
+          <a href="f.html" class="footer-link">Feature</a>
+          <a href="pricing.html" class="footer-link">pricing</a>
+          <a href="Contact.html" class="footer-link">Contact</a>
+        </div>
+
+        <div class="col-lg-3 mt-4 mt-lg-0" style="flex: 0 0 auto; width: 25%;">
+          <h5>Contact Us</h5>
+          <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i> Lahore, Punjab, Pakistan</p>
+          <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i> hashim@codedclouds.org</p>
+          <p><i class="bi bi-telephone-fill me-2"></i> +966-557385262</p>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <div class="row align-items-center" style="display: flex; align-items: center; justify-content: space-between;">
+
+          <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+            © 2026 Cloud Care Systems All rights reserved.
+          </div>
+
+          <div class="col-md-4 text-center mb-3 mb-md-0">
+            <span style="opacity: 0.7;">Powered by</span>
+            <a href="https://codedclouds.org" target="_blank" class="shiny-link">
+              Coded Clouds ⚡
+            </a>
+          </div>
+
+          <div class="col-md-4 text-center text-md-end">
+            <a href="../policies/privacy.html" class="text-white text-decoration-none small me-3 opacity-50">Privacy</a>
+            <a href="../policies/terms.html" class="text-white text-decoration-none small opacity-50">Terms</a>
+          </div>
+
+        </div>
+      </div>
     </div>
-    <p>&copy; 2026 Cloud Care Systems Solutions. All rights reserved.</p>
   </footer>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
   </body>
 
 </html>
