@@ -1609,6 +1609,8 @@
             'Authorization': `Bearer ${token}`
           };
         }
+        // Force passing credentials for cookies (session id)
+        options.credentials = 'include';
         const response = await originalFetch(url, options);
 
         // Auto-redirect to SaaS login if unauthorized
@@ -4954,7 +4956,7 @@
         } else {
           employees.forEach((emp, index) => {
             // Clean and parse numbers
-            const payClean = emp.pay ? parseInt(emp.pay.toString().replace(/,/g, '')) || 0 : 0;
+            const payClean = emp.salary ? parseInt(emp.salary.toString().replace(/,/g, '')) || 0 : 0;
             const advanceClean = emp.advance
               ? parseInt(emp.advance.toString().replace(/,/g, '')) || 0
               : 0;
@@ -4972,11 +4974,13 @@
           <td class="px-4 py-3 font-semibold text-gray-800">${emp.name}</td>
           <td class="px-4 py-3 text-emerald-700 font-medium text-sm bg-[#fffbf0]/30 rounded">${emp.designation
               }</td>
-          <td class="px-4 py-3 text-gray-600 text-sm font-mono">${formatNumber(payClean)}</td>
+          <td class="px-4 py-3 text-gray-600 text-sm font-mono">${formatNumber(emp.salary)}</td>
           <td class="px-4 py-3 text-gray-600 text-sm font-mono">${formatNumber(advanceClean)}</td>
           <td class="px-4 py-3 font-bold text-gray-800 text-sm font-mono bg-gray-50">${formatNumber(
                 remaining
               )}</td>
+          <td class="px-4 py-3 text-gray-600 text-sm">${emp.duty_timings || ''}</td>
+          <td class="px-4 py-3 text-gray-600 text-sm">${emp.joinDate ? new Date(emp.joinDate).toLocaleDateString() : ''}</td>
           <td class="px-4 py-3 text-xs">
             <div class="text-gray-900 font-bold">${emp.phone || ''}</div>
             <div class="text-gray-500">${emp.cnic || ''}</div>
@@ -5022,13 +5026,19 @@
       const emp = teamData.find((e) => e.id === id);
       if (!emp) return;
 
-      document.getElementById('emp-id').value = emp.id;
-      document.getElementById('emp-name').value = emp.name;
-      document.getElementById('emp-designation').value = emp.designation;
-      document.getElementById('emp-pay').value = emp.pay;
-      document.getElementById('emp-advance').value = emp.advance;
-      document.getElementById('emp-timings').value = emp.duty_timings;
-      document.getElementById('emp-joining').value = emp.date_of_joining;
+      document.getElementById('emp-id').value = emp._id || emp.id;
+      document.getElementById('emp-name').value = emp.name || '';
+      document.getElementById('emp-designation').value = emp.designation || '';
+      document.getElementById('emp-pay').value = emp.salary || '';
+      document.getElementById('emp-advance').value = emp.advance || '';
+      // Parse duty timings into start and end
+      let start = '', end = '';
+      if (emp.duty_timings && emp.duty_timings.includes(' to ')) {
+        [start, end] = emp.duty_timings.split(' to ');
+      }
+      document.getElementById('emp-time-start').value = start;
+      document.getElementById('emp-time-end').value = end;
+      document.getElementById('emp-joining').value = emp.joinDate ? emp.joinDate.split('T')[0] : '';
       document.getElementById('emp-cnic').value = emp.cnic;
       document.getElementById('emp-phone').value = emp.phone;
 
@@ -5040,13 +5050,20 @@
     async function saveEmployee(e) {
       e.preventDefault();
       const id = document.getElementById('emp-id').value;
+      let dutyTimings = '';
+      const start = document.getElementById('emp-time-start').value;
+      const end = document.getElementById('emp-time-end').value;
+      if (start || end) {
+        dutyTimings = `${start} to ${end}`;
+      }
+
       const data = {
         name: document.getElementById('emp-name').value,
         designation: document.getElementById('emp-designation').value,
-        pay: document.getElementById('emp-pay').value,
+        salary: document.getElementById('emp-pay').value,
         advance: document.getElementById('emp-advance').value,
-        duty_timings: document.getElementById('emp-timings').value,
-        date_of_joining: document.getElementById('emp-joining').value,
+        duty_timings: dutyTimings,
+        joinDate: document.getElementById('emp-joining').value,
         cnic: document.getElementById('emp-cnic').value,
         phone: document.getElementById('emp-phone').value,
       };
@@ -8152,6 +8169,9 @@
                   Advance
                 </th>
                 <th class="px-4 py-3 text-left whitespace-nowrap font-semibold text-xs uppercase">
+                  Remaining
+                </th>
+                <th class="px-4 py-3 text-left whitespace-nowrap font-semibold text-xs uppercase">
                   Duty Timings
                 </th>
                 <th class="px-4 py-3 text-left whitespace-nowrap font-semibold text-xs uppercase">
@@ -8209,13 +8229,16 @@
 
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">Duty Timings</label>
-              <input type="text" id="emp-timings" class="w-full border p-2 rounded" placeholder="e.g. 9am to 5pm" />
+              <div class="flex gap-2">
+                <input type="time" id="emp-time-start" class="w-full border p-2 rounded" />
+                <span class="flex items-center text-gray-500">to</span>
+                <input type="time" id="emp-time-end" class="w-full border p-2 rounded" />
+              </div>
             </div>
 
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">Date of Joining</label>
-              <input type="text" id="emp-joining" class="w-full border p-2 rounded"
-                placeholder="e.g. September 4, 2024" />
+              <input type="date" id="emp-joining" class="w-full border p-2 rounded" />
             </div>
 
             <div>

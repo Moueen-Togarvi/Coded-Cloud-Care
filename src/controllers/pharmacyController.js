@@ -267,9 +267,6 @@ const recordSale = async (req, res) => {
  * Record a bulk medicine sale (multi-item)
  */
 const recordBulkSale = async (req, res) => {
-    // Start a mongoose session for the transaction
-    const session = await mongoose.startSession();
-
     try {
         const { Sale, Inventory, StockMovement, Revenue } = req.tenantModels;
         const { items, paymentMethod, customerId, customerName, soldBy, notes, discount = 0 } = req.body;
@@ -286,122 +283,113 @@ const recordBulkSale = async (req, res) => {
         const invoiceNumber = `INV-B-${Date.now()}-${saleCount + 1}`;
 
         let finalResponseData = {};
+        const saleResults = [];
+        let grandTotal = 0;
+        let totalProfit = 0;
 
-        // Run the transaction
-        await session.withTransaction(async () => {
-            const saleResults = [];
-            let grandTotal = 0;
-            let totalProfit = 0;
+        // Process each item
+        for (const item of items) {
+            const { medicineId, quantity } = item;
 
-            // Process each item
-            for (const item of items) {
-                const { medicineId, quantity } = item;
+            if (!medicineId || !quantity) continue;
 
-                if (!medicineId || !quantity) continue;
-
-                // Get medicine details within transaction
-                const medicine = await Inventory.findById(medicineId).session(session);
-                if (!medicine) {
-                    throw new Error(`Medicine not found for ID: ${medicineId}`);
-                }
-
-                // Check stock availability
-                if (medicine.quantity < quantity) {
-                    throw new Error(`Insufficient stock for ${medicine.name}. Available: ${medicine.quantity}`);
-                }
-
-                // Calculate amounts
-                const unitPrice = medicine.sellingPrice;
-                const costPrice = medicine.costPrice;
-                const subtotal = unitPrice * quantity;
-                const taxAmount = (subtotal * (medicine.taxRate || 0)) / 100;
-                const totalAmount = subtotal + taxAmount;
-                const profit = (unitPrice - costPrice) * quantity;
-
-                grandTotal += totalAmount;
-                totalProfit += profit;
-
-                // Create individual sale record
-                const newSale = new Sale({
-                    tenantId: req.user.userId,
-                    medicineId,
-                    medicineName: medicine.name,
-                    quantity,
-                    unitPrice,
-                    costPrice,
-                    totalAmount,
-                    discount: 0, // Individual discounts not handled yet
-                    taxAmount,
-                    profit,
-                    paymentMethod,
-                    customerId,
-                    customerName,
-                    soldBy,
-                    invoiceNumber,
-                    notes
-                });
-
-                await newSale.save({ session });
-
-                // Update medicine stock
-                const previousStock = medicine.quantity;
-                medicine.quantity -= quantity;
-                if (medicine.quantity === 0) {
-                    medicine.status = 'out-of-stock';
-                }
-                await medicine.save({ session });
-
-                // Record stock movement
-                const stockMovement = new StockMovement({
-                    tenantId: req.user.userId,
-                    medicineId,
-                    medicineName: medicine.name,
-                    type: 'sale',
-                    quantity: -quantity,
-                    previousStock,
-                    newStock: medicine.quantity,
-                    referenceId: newSale._id,
-                    referenceType: 'Sale',
-                    performedBy: soldBy,
-                    notes: `Bulk Sale: ${invoiceNumber}`
-                });
-
-                await stockMovement.save({ session });
-                saleResults.push(newSale);
+            const medicine = await Inventory.findById(medicineId);
+            if (!medicine) {
+                throw new Error(`Medicine not found for ID: ${medicineId}`);
             }
 
-            // Apply global discount to the summary (for response)
-            const finalTotal = grandTotal - discount;
-
-            // NEW: Record Revenue for Accounting Module
-            if (Revenue) {
-                const revenueRecord = new Revenue({
-                    tenantId: req.user.userId,
-                    source: 'pharmacy-sales',
-                    amount: finalTotal,
-                    category: 'Sales',
-                    description: `Pharmacy Sale: ${invoiceNumber}`,
-                    referenceType: 'Sale',
-                    referenceId: saleResults[0]?._id, // Use first sale as reference for the batch
-                    paymentMethod: paymentMethod?.toLowerCase() || 'cash',
-                    createdBy: soldBy,
-                    date: new Date()
-                });
-                await revenueRecord.save({ session });
+            // Check stock availability
+            if (medicine.quantity < quantity) {
+                throw new Error(`Insufficient stock for ${medicine.name}. Available: ${medicine.quantity}`);
             }
 
-            // Expose summary to outer scope for final response
-            finalResponseData = {
+            // Calculate amounts
+            const unitPrice = medicine.sellingPrice;
+            const costPrice = medicine.costPrice;
+            const subtotal = unitPrice * quantity;
+            const taxAmount = (subtotal * (medicine.taxRate || 0)) / 100;
+            const totalAmount = subtotal + taxAmount;
+            const profit = (unitPrice - costPrice) * quantity;
+
+            grandTotal += totalAmount;
+            totalProfit += profit;
+
+            // Create individual sale record
+            const newSale = new Sale({
+                tenantId: req.user.userId,
+                medicineId,
+                medicineName: medicine.name,
+                quantity,
+                unitPrice,
+                costPrice,
+                totalAmount,
+                discount: 0, // Individual discounts not handled yet
+                taxAmount,
+                profit,
+                paymentMethod,
+                customerId,
+                customerName,
+                soldBy,
                 invoiceNumber,
-                itemsCount: saleResults.length,
-                totalAmount: finalTotal,
-                profit: totalProfit - discount,
-                sales: saleResults
-            };
-        });
+                notes
+            });
 
-        // If withTransaction finishes without throwing, it means success!
-        session.endSession();
+            await newSale.save();
+
+            // Update medicine stock
+            const previousStock = medicine.quantity;
+            medicine.quantity -= quantity;
+            if (medicine.quantity === 0) {
+                medicine.status = 'out-of-stock';
+            }
+            await medicine.save();
+
+            // Record stock movement
+            const stockMovement = new StockMovement({
+                tenantId: req.user.userId,
+                medicineId,
+                medicineName: medicine.name,
+                type: 'sale',
+                quantity: -quantity,
+                previousStock,
+                newStock: medicine.quantity,
+                referenceId: newSale._id,
+                referenceType: 'Sale',
+                performedBy: soldBy,
+                notes: `Bulk Sale: ${invoiceNumber}`
+            });
+
+            await stockMovement.save();
+            saleResults.push(newSale);
+        }
+
+        // Apply global discount to the summary (for response)
+        const finalTotal = grandTotal - discount;
+
+        // NEW: Record Revenue for Accounting Module
+        if (Revenue) {
+            const revenueRecord = new Revenue({
+                tenantId: req.user.userId,
+                source: 'pharmacy-sales',
+                amount: finalTotal,
+                category: 'Sales',
+                description: `Pharmacy Sale: ${invoiceNumber}`,
+                referenceType: 'Sale',
+                referenceId: saleResults[0]?._id, // Use first sale as reference for the batch
+                paymentMethod: paymentMethod?.toLowerCase() || 'cash',
+                createdBy: soldBy,
+                date: new Date()
+            });
+            await revenueRecord.save();
+        }
+
+        finalResponseData = {
+            invoiceNumber,
+            itemsCount: saleResults.length,
+            totalAmount: finalTotal,
+            profit: totalProfit - discount,
+            sales: saleResults
+        };
 
         res.status(201).json({
             success: true,
@@ -410,16 +398,11 @@ const recordBulkSale = async (req, res) => {
         });
 
     } catch (error) {
-        // If anything threw an error inside the transaction, it rolls back everything and ends up here
-        session.endSession();
-        console.error('Record bulk sale error/rolled back:', error);
-
-        // Send a 400 if it was an explicit throw new Error from our logic,
-        // otherwise a 500 server error
+        console.error('Record bulk sale error:', error, error.stack);
         const isClientError = error.message.includes('Insufficient stock') || error.message.includes('not found');
         res.status(isClientError ? 400 : 500).json({
             success: false,
-            message: isClientError ? error.message : 'Failed to record bulk sale (Transaction Rolled Back)',
+            message: isClientError ? error.message : 'Failed to record bulk sale',
             error: error.message,
         });
     }

@@ -6,7 +6,7 @@
 (function () {
     const API_BASE_URL = window.location.origin + '/api';
 
-    const SESSION_TIMEOUT = 1 * 60 * 1000; // 1 minute
+    const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
 
     // Global helper to gracefully exit if token is missing or expired
     window.handleTokenExpiry = () => {

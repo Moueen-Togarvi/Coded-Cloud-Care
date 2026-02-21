@@ -253,6 +253,27 @@ router.put('/users/:id', async (req, res) => {
 });
 
 /**
+ * @route DELETE /api/admin/users/:id
+ * @desc Delete a user and their subscriptions permanently
+ */
+router.delete('/users/:id', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Also delete associated subscriptions
+        await Subscription.deleteMany({ userId: req.params.id });
+
+        res.json({ success: true, message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Delete User Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete user', error: error.message });
+    }
+});
+
+/**
  * @route GET /api/admin/system-users
  * @desc Get all platform administrators and staff
  */

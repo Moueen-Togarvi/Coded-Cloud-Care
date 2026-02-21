@@ -72,14 +72,16 @@ router.get('/', requireHospitalAuth, async (req, res) => {
             psychologist_name: psychMap[s.psychologist_id] || s.psychologist_id,
             date: s.date ? s.date.toISOString().split('T')[0] : '',
             time_slot: s.time_slot,
-            patient_ids: s.patient_ids,
-            patient_names: s.patient_ids.map((pid) => patientMap[pid] || 'Unknown'),
+            patient_ids: s.patient_ids || [],
+            patient_names: (s.patient_ids || []).map((pid) => patientMap[pid] || 'Unknown'),
             title: s.title,
             note: s.note,
             note_detail: s.note_detail,
             note_author: s.note_author,
             note_at: s.note_at ? s.note_at.toISOString() : null,
         }));
+
+        console.log(`[DEBUG] GET /api/psych-sessions returned ${result.length} sessions for tenantId ${tenantId}. Query:`, query);
 
         return res.json(result);
     } catch (error) {
@@ -103,7 +105,7 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
         }
 
         const dateVal = new Date(date);
-        dateVal.setHours(0, 0, 0, 0);
+        // Do not adjust hours, keep as UTC midnight so the ISO date string matches the input exactly
 
         const session = new PsychSession({
             tenantId,

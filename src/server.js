@@ -41,6 +41,8 @@ const hospitalOldBalancesRoutes = require('./routes/hospitalOldBalances');
 // Initialize Express app
 const app = express();
 
+app.set('trust proxy', 1); // Trust first proxy (Render/Vercel) to allow secure cookies
+
 // Session middleware for Hospital PMS (must be before routes)
 app.use(
   session({

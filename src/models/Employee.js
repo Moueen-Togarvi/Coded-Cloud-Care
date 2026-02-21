@@ -26,9 +26,28 @@ const employeeSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
+        advance: {
+            type: Number,
+            default: 0,
+        },
+        duty_timings: {
+            type: String,
+            trim: true,
+            default: '',
+        },
         joinDate: {
             type: Date,
             required: true,
+        },
+        cnic: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        phone: {
+            type: String,
+            trim: true,
+            default: '',
         },
         status: {
             type: String,
