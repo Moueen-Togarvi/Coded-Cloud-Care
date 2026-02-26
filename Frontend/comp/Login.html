@@ -301,6 +301,7 @@
       .navbar {
         flex-wrap: wrap;
       }
+
       .mobile-menu.active {
         display: flex !important;
       }
@@ -564,16 +565,19 @@
       <a href="f.html">Features</a>
       <a href="pricing.html">Pricing</a>
       <a href="Contact.html">Contact</a>
+      <div id="navbar-auth-ui"></div>
     </div>
 
-    <a href="Signup.html" class="btn-nav-primary">Sign Up</a>
+    <a href="Signup.html" class="btn-nav-primary btn-book-demo">Sign Up</a>
 
     <div class="nav-links mobile-menu" id="mobileMenu">
       <a href="../../index.html">Home</a>
       <a href="f.html">Features</a>
       <a href="pricing.html">Pricing</a>
       <a href="Contact.html">Contact</a>
-      <a href="Signup.html" class="btn-nav-primary" style="color: white !important; margin-top: 10px;">Sign Up</a>
+      <div id="mobile-navbar-auth-ui"></div>
+      <a href="Signup.html" class="btn-nav-primary btn-book-demo"
+        style="color: white !important; margin-top: 10px;">Sign Up</a>
     </div>
   </nav>
 
@@ -660,13 +664,17 @@
   </div>
 
   <script>
-    // Preserve product parameter in Signup link
+    // Preserve product and tier parameters in Signup link
     window.addEventListener('DOMContentLoaded', () => {
       const signupLink = document.getElementById('signup-link');
       const urlParams = new URLSearchParams(window.location.search);
       const productId = urlParams.get('product');
+      const tier = urlParams.get('tier');
+
       if (productId && signupLink) {
-        signupLink.href = `./Signup.html?product=${productId}`;
+        let newHref = `./Signup.html?product=${productId}`;
+        if (tier) newHref += `&tier=${tier}`;
+        signupLink.href = newHref;
       }
     });
   </script>

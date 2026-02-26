@@ -5,8 +5,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Product Pricing - Cloud Care Systems</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="../css/common.css">
 
     <!-- Load configuration early -->
     <script src="./pricing_config.js"></script>
@@ -42,133 +43,7 @@
             color: inherit;
         }
 
-        /* --- Navbar Styles (Matched with Pricing Page) --- */
-        .navbar {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 1200px;
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: 100px;
-            padding: 0.8rem 1.5rem !important;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 2000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s ease;
-        }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .brand-logo {
-            width: 28px;
-            height: 28px;
-        }
-
-        @media (min-width: 992px) {
-            .brand-logo {
-                width: 32px;
-                height: 32px;
-            }
-        }
-
-        .brand-text {
-            font-size: 16px;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        @media (min-width: 992px) {
-            .brand-text {
-                font-size: 20px;
-            }
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: var(--text-gray);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: var(--primary-color);
-        }
-
-        .btn-nav-primary {
-            background: var(--primary-gradient);
-            color: white !important;
-            padding: 0.6rem 1.4rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-            white-space: nowrap;
-        }
-
-        .btn-nav-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-        }
-
-        .mobile-menu {
-            display: none;
-        }
-
-        .navbar-toggler {
-            display: none;
-        }
-
-        /* Responsive Navbar */
-        @media (max-width: 991px) {
-            .navbar {
-                width: 95%;
-                border-radius: 30px;
-                padding: 0.6rem 1.2rem !important;
-                flex-wrap: wrap;
-            }
-
-            .nav-links {
-                display: none !important;
-            }
-
-            .navbar-toggler {
-                display: block;
-                border: none;
-                background: none;
-                font-size: 1.2rem;
-                cursor: pointer;
-                color: var(--text-dark);
-            }
-
-            .btn-nav-primary {
-                display: none;
-                /* Hide button on mobile unless in menu */
-            }
-        }
 
         /* --- Pricing Section --- */
         .pricing-section {
@@ -594,22 +469,37 @@
 <body>
 
     <nav class="navbar">
-        <div class="navbar-brand">
+        <a class="navbar-brand" href="../../index.html">
             <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
             <span class="brand-text">Cloud Care Systems.</span>
-        </div>
+        </a>
 
-        <!-- Mobile Toggler -->
-        <button class="navbar-toggler">
-            <i class="fa-solid fa-bars"></i>
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler d-lg-none" type="button" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
         </button>
 
-        <div class="nav-links">
+        <!-- Desktop Nav Links -->
+        <div class="nav-links d-none d-lg-flex">
             <a href="../../index.html">Home</a>
+            <a href="f.html">Features</a>
             <a href="pricing.html" class="active">Pricing</a>
             <a href="Contact.html">Contact</a>
+            <div id="navbar-auth-ui"></div>
         </div>
-        <a href="#" class="btn-nav-primary">Book a Demo</a>
+
+        <a href="Contact.html" class="btn-nav-primary btn-book-demo d-none d-lg-block">Book a Demo</a>
+
+        <!-- Mobile Menu (Collapsible) -->
+        <div class="nav-links mobile-menu" id="mobileMenu">
+            <a href="../../index.html">Home</a>
+            <a href="f.html">Features</a>
+            <a href="pricing.html" class="active">Pricing</a>
+            <a href="Contact.html">Contact</a>
+            <div id="mobile-navbar-auth-ui"></div>
+            <a href="Contact.html" class="btn-nav-primary btn-book-demo mt-2" style="color: white !important;">Book a
+                Demo</a>
+        </div>
     </nav>
 
     <section class="pricing-section">
@@ -624,84 +514,71 @@
             <!-- Tiered cards will be injected here -->
         </div>
     </section>
-    function renderTieredCards() {
-    // Hardcoded ID for this specific page
-    const productId = 'lab-reporting';
-
-    // Check if pricingData is loaded
-    if (typeof pricingData === 'undefined') {
-    console.error("pricingData is undefined. Script might not be loaded.");
-    document.getElementById('product-name').textContent = "Error Loading Data";
-    return;
-    }
-
-    const product = pricingData.find(p => p.id === productId);
-    if (!product) {
-    document.getElementById('product-name').textContent = "Product Not Found";
-    document.getElementById('product-desc').innerHTML = "Please select a product from the <a href='pricing.html'
-        style='color: var(--primary-color); text-decoration: underline;'>Pricing Page</a>.";
-    return;
-    }
-
-    document.getElementById('product-name').textContent = product.name;
-    document.getElementById('product-desc').textContent = product.description;
-
-    const container = document.getElementById('tiered-cards-container');
-
-    const tiers = [
-    { key: 'monthly', data: product.pricing.monthly, label: 'Monthly' },
-    { key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true },
-    { key: 'outright', data: product.pricing.outright, label: 'Lifetime' }
-    ];
-
-    container.innerHTML = tiers.map(tier => `
-    <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}">
-        ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
-        <div class="plan-tier">${tier.label} Access</div>
-        <div class="price-value">
-            <span class="currency">PKR</span> ${tier.data.price}
-            <span class="price-period">/${tier.data.period}</span>
-        </div>
-
-        <ul class="features-list">
-            ${product.features.map(f => `
-            <li><i class="fa-solid fa-circle-check"></i> ${f}</li>
-            `).join('')}
-        </ul>
-
-        <button id="btn-select-${tier.key}-${productId}" class="btn-select"
-            onclick="selectPlan('${product.id}', '${tier.key}')">
-            Select Plan
-        </button>
-    </div>
-    `).join('');
-    }
-
-    function selectPlan(planId, tierKey) {
-    const plan = pricingData.find(p => p.id === planId);
-    if (!plan) return;
-
-    const tier = plan.pricing[tierKey];
-
-    // Map tier keys to plan types expected by backend
-    const planTypeMap = {
-    'monthly': 'subscription',
-    'yearly': 'subscription',
-    'outright': 'one-time'
-    };
-
-    const planType = planTypeMap[tierKey] || 'subscription';
-    const planName = `${plan.name} - ${tier.label}`;
-    const price = tier.price;
-
-    // Redirect to signup with plan information
-    window.location.href =
-    `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
-    }
-
-    // Run when DOM is ready
-    document.addEventListener('DOMContentLoaded', renderTieredCards);
+    <script src="./payfast-checkout.js"></script>
+    <script>
+        // Auto-resume pending payment after login redirect
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('resume') === 'payment' && sessionStorage.getItem('pf_auto_resume') === '1') {
+                sessionStorage.removeItem('pf_auto_resume');
+                const intent = PayFastCheckout.getPendingIntent();
+                if (intent && (intent.tierKey === 'monthly' || intent.tierKey === 'yearly')) {
+                    setTimeout(() => PayFastCheckout.initiatePayment(intent.productSlug, intent.tierKey, null), 800);
+                }
+            }
+        });
     </script>
+    <script>
+        function renderTieredCards() {
+            const productId = 'lab-reporting';
+            if (typeof pricingData === 'undefined') { document.getElementById('product-name').textContent = "Error Loading Data"; return; }
+            const product = pricingData.find(p => p.id === productId);
+            if (!product) { document.getElementById('product-name').textContent = "Product Not Found"; return; }
+            document.getElementById('product-name').textContent = product.name;
+            document.getElementById('product-desc').textContent = product.description;
+
+            const container = document.getElementById('tiered-cards-container');
+            const tiers = [
+                { key: 'monthly', data: product.pricing.monthly, label: 'Monthly' },
+                { key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true },
+                { key: 'outright', data: product.pricing.outright, label: 'Lifetime' }
+            ];
+
+            const renderCard = (tier) => {
+                const isPaid = tier.key === 'monthly' || tier.key === 'yearly';
+                const pfBtn = isPaid ? `
+                  <button class="pf-pay-btn" onclick="selectPlan('${product.id}', '${tier.key}', this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <span>Pay with GoPayFast</span>
+                  </button>
+                  <div class="pf-badges"><span class="pf-badge">🔒 SSL</span><span class="pf-badge">💳 Visa/MC</span><span class="pf-badge">📱 JazzCash</span><span class="pf-badge">💚 EasyPaisa</span></div>` : '';
+                return `
+                <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}">
+                  ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
+                  <div class="plan-tier">${tier.label} Access</div>
+                  <div class="price-value">
+                    <span class="currency">PKR</span> ${tier.data.price}
+                    <span class="price-period">/${tier.data.period}</span>
+                  </div>
+                  <ul class="features-list">
+                    ${product.features.map(f => `<li><i class="fa-solid fa-circle-check"></i> ${f}</li>`).join('')}
+                  </ul>
+                  <button id="btn-select-${tier.key}-${productId}" class="btn-select" onclick="selectPlan('${product.id}', '${tier.key}', this)">
+                    ${tier.key === 'outright' ? 'Contact Sales' : 'Start Subscription'}
+                  </button>
+                  ${pfBtn}
+                </div>`;
+            };
+            if (container) container.innerHTML = tiers.map(t => renderCard(t)).join('');
+        }
+        function selectPlan(planId, tierKey, triggerBtn) {
+            PayFastCheckout.initiatePayment(planId, tierKey, triggerBtn);
+        }
+        document.addEventListener('DOMContentLoaded', renderTieredCards);
+    </script>
+
+
+
 </body>
 
 </html>

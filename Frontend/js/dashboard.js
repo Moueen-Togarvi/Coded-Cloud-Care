@@ -38,14 +38,13 @@ async function loadDashboardData() {
 
 // Display user information in the UI
 function displayUserInfo(user) {
-  const userNameElement = document.getElementById('userName');
-  if (userNameElement) userNameElement.textContent = user.companyName || user.email;
+  const name = user.companyName || user.email;
+  sessionStorage.setItem('userName', name);
 
-  const userInitialElement = document.getElementById('userInitial');
-  if (userInitialElement) userInitialElement.textContent = (user.companyName || 'U').charAt(0).toUpperCase();
-
-  const userEmailElement = document.getElementById('userEmail');
-  if (userEmailElement) userEmailElement.textContent = user.email;
+  // Refresh standard navbar UI
+  if (window.updateNavbarUI) {
+    window.updateNavbarUI();
+  }
 }
 
 // Render the product grid with subscription status

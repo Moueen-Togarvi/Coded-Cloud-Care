@@ -41,11 +41,17 @@ const register = async (req, res) => {
 
     // Find plan (optional — default to basic if not found)
     let plan = null;
-    if (planType) {
-      plan = await Plan.findOne({ planType, isActive: true });
+    if (planType && productId) {
+      plan = await Plan.findOne({ productSlug: productId, planType, isActive: true });
     }
+
+    // Fallback search
+    if (!plan && planType) {
+      plan = await Plan.findOne({ planType, productSlug: 'general', isActive: true });
+    }
+
     if (!plan) {
-      plan = await Plan.findOne({ isActive: true });
+      plan = await Plan.findOne({ planType: 'basic', productSlug: 'general', isActive: true });
     }
 
     // Provision tenant database
@@ -69,32 +75,43 @@ const register = async (req, res) => {
 
     await user.save();
 
-    // Agar productId diya hai to us product ka trial subscription create karo
+    // Agar productId diya hai AND planType subscription nahi hai to trial create karo
+    // (monthly/yearly plan ke liye trial skip karo — payment flow handle karega)
     let initialSubscription = null;
-    if (productId) {
+    if (productId && planType !== 'subscription') {
       const validSlugs = ['hospital-pms', 'pharmacy-pos', 'lab-reporting', 'quick-invoice', 'private-clinic-lite'];
       if (validSlugs.includes(productId)) {
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + TRIAL_DAYS);
+        // Only create trial if no subscription already exists
+        const existingSub = await Subscription.findOne({ userId: user._id, productSlug: productId });
+        if (!existingSub) {
+          const startDate = new Date();
+          const endDate = new Date();
+          endDate.setDate(endDate.getDate() + TRIAL_DAYS);
 
-        initialSubscription = await Subscription.create({
-          userId: user._id,
-          productSlug: productId,
-          planType: 'trial',
-          startDate,
-          endDate,
-          status: 'active',
-        });
+          initialSubscription = await Subscription.create({
+            userId: user._id,
+            productSlug: productId,
+            planType: 'trial',
+            startDate,
+            endDate,
+            status: 'active',
+          });
+        }
       }
     }
 
     // Generate JWT token
     const token = generateToken(user._id);
 
+    const message = initialSubscription
+      ? 'Registration successful! Your 3-day free trial has started.'
+      : (planType === 'subscription'
+        ? 'Registration successful! Proceeding to payment checkout.'
+        : 'Registration successful!');
+
     res.status(201).json({
       success: true,
-      message: 'Registration successful! Your 3-day free trial has started.',
+      message,
       data: {
         token,
         user: {

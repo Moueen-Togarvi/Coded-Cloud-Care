@@ -379,10 +379,12 @@
         position: fixed;
         top: 0;
         left: 0;
-        pointer-events: none; /* Click through */
+        pointer-events: none;
+        /* Click through */
         border-radius: 50%;
         transform: translate(-50%, -50%);
-        z-index: 9999; /* Sab se upar */
+        z-index: 9999;
+        /* Sab se upar */
         transition: width 0.3s, height 0.3s, background-color 0.3s;
     }
 
@@ -390,7 +392,8 @@
     .cursor-inner {
         width: 8px;
         height: 8px;
-        background-color: #4f46e5; /* Theme Purple */
+        background-color: #4f46e5;
+        /* Theme Purple */
     }
 
     /* Outer Ring with Medical Plus */
@@ -425,17 +428,21 @@
     }
 
     body.mouse-hover .cursor-inner {
-        opacity: 0; /* Dot gayab */
+        opacity: 0;
+        /* Dot gayab */
     }
 
     body.mouse-hover .cursor-outer::after {
         opacity: 1;
-        transform: scale(1.2) rotate(90deg); /* Rotate animation */
+        transform: scale(1.2) rotate(90deg);
+        /* Rotate animation */
     }
 
     /* Hide on Mobile */
     @media (max-width: 991px) {
-        .mouse-cursor { display: none; }
+        .mouse-cursor {
+            display: none;
+        }
     }
 
     /* --- BUBBLE STYLES --- */
@@ -446,8 +453,9 @@
         background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(79, 70, 229, 0.6));
         box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         pointer-events: none;
-        z-index: 9998; /* Cursor k neeche */
-        
+        z-index: 9998;
+        /* Cursor k neeche */
+
         /* Initial State for Animation */
         top: var(--start-y);
         left: var(--start-x);
@@ -464,32 +472,36 @@
             opacity: 0;
             top: var(--start-y);
         }
+
         10% {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
         }
+
         85% {
             /* Chatt (Ceiling) par pohanch gaya */
-            top: 0px; 
+            top: 0px;
             transform: translate(-50%, 0) scale(1);
             opacity: 0.8;
         }
+
         100% {
             /* Pop & Vanish */
             top: -10px;
-            transform: translate(-50%, -20px) scale(1.5); /* Thora phool kr phat gaya */
+            transform: translate(-50%, -20px) scale(1.5);
+            /* Thora phool kr phat gaya */
             opacity: 0;
         }
     }
 </style>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        
+    document.addEventListener("DOMContentLoaded", function () {
+
         // --- PART A: MOUSE TRACKER LOGIC ---
         const cursorInner = document.querySelector('.cursor-inner');
         const cursorOuter = document.querySelector('.cursor-outer');
-        
+
         let mouseX = 0;
         let mouseY = 0;
         let outerX = 0;
@@ -500,7 +512,7 @@
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
-            
+
             // Inner Dot moves instantly
             cursorInner.style.left = mouseX + 'px';
             cursorInner.style.top = mouseY + 'px';
@@ -510,10 +522,10 @@
         function animateCursor() {
             outerX += (mouseX - outerX) * speed;
             outerY += (mouseY - outerY) * speed;
-            
+
             cursorOuter.style.left = outerX + 'px';
             cursorOuter.style.top = outerY + 'px';
-            
+
             requestAnimationFrame(animateCursor);
         }
         animateCursor();
@@ -527,8 +539,8 @@
 
 
         // --- PART B: BUBBLE CLICK LOGIC ---
-        document.addEventListener('click', function(e) {
-            
+        document.addEventListener('click', function (e) {
+
             // Create Bubble
             const bubble = document.createElement('div');
             bubble.classList.add('magic-bubble');
@@ -544,7 +556,7 @@
 
             // 3. Dynamic Duration (Distance to Top)
             // Jitna neeche click, utna time lagega upar jane mein (Realistic Physics)
-            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8; 
+            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8;
             bubble.style.setProperty('--duration', `${duration}s`);
 
             // 4. Random Wobble (Thora left-right hilna)
@@ -556,11 +568,12 @@
             // Cleanup after animation
             setTimeout(() => {
                 bubble.remove();
-            }, duration * 1000 + 100); 
+            }, duration * 1000 + 100);
         });
 
     });
 </script>
+
 <body>
 
     <nav class="navbar">
@@ -578,8 +591,20 @@
             <a href="../../index.html">Home</a>
             <a href="pricing.html" class="active">Pricing</a>
             <a href="Contact.html">Contact</a>
+            <div id="navbar-auth-ui"></div>
         </div>
-        <a href="#" class="btn-nav-primary">Book a Demo</a>
+        <a href="Contact.html" class="btn-nav-primary btn-book-demo">Book a Demo</a>
+
+        <!-- Mobile Menu (Collapsible) -->
+        <div class="nav-links mobile-menu" id="mobileMenu">
+            <a href="../../index.html">Home</a>
+            <a href="f.html">Features</a>
+            <a href="pricing.html" class="active">Pricing</a>
+            <a href="Contact.html">Contact</a>
+            <div id="mobile-navbar-auth-ui"></div>
+            <a href="Contact.html" class="btn-nav-primary btn-book-demo mt-2" style="color: white !important;">Book a
+                Demo</a>
+        </div>
     </nav>
 
     <section class="pricing-section">

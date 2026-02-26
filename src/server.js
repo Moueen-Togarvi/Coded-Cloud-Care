@@ -17,6 +17,7 @@ const pharmacyRoutes = require('./routes/pharmacy');
 const accountingRoutes = require('./routes/accounting');
 const settingsRoutes = require('./routes/settings');
 const adminRoutes = require('./routes/admin');
+const paymentsRoutes = require('./routes/payments');
 
 // Hospital PMS routes
 const hospitalAuthRoutes = require('./routes/hospitalAuth');
@@ -84,10 +85,9 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Conditional Auth Alias (Session/Logout)
 app.use('/api/auth', (req, res, next) => {
-  // Only intercept specific endpoints if hospital session exists
+  // Only interrupt for Hospital PMS if it's SPECIFICALLY a session or logout request
+  // and the user has a hospital session active.
   if (req.session && req.session.hospitalUserId) {
-    // Allow hospitalAuthRoutes to handle session/logout checks
-    // Note: Login is handled via explicit /api/hospital/auth/login or redirects
     if (req.path === '/session' || req.path === '/logout') {
       return hospitalAuthRoutes(req, res, next);
     }
@@ -153,6 +153,7 @@ app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/accounting', accountingRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Hospital PMS routes (prefixed)
 app.use('/api/hospital/auth', hospitalAuthRoutes);

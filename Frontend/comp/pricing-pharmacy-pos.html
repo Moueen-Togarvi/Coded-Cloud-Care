@@ -468,33 +468,36 @@
 <body>
 
     <nav class="navbar">
-        <div class="d-flex align-items-center justify-content-between w-100">
-            <a class="navbar-brand" href="../../index.html">
-                <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
-                <span class="brand-text">Cloud Care Systems.</span>
-            </a>
+        <a class="navbar-brand" href="../../index.html">
+            <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
+            <span class="brand-text">Cloud Care Systems.</span>
+        </a>
 
-            <button class="navbar-toggler" type="button" onclick="toggleMenu()">
-                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
-            </button>
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler d-lg-none" type="button" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
+        </button>
 
-            <div class="nav-links d-none d-lg-flex">
-                <a href="../../index.html">Home</a>
-                <a href="f.html">Features</a>
-                <a href="pricing.html" class="active">Pricing</a>
-                <a href="Contact.html">Contact</a>
-            </div>
-
-            <a href="Contact.html" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
-        </div>
-
-        <!-- Mobile Menu (Collapsible) -->
-        <div class="nav-links mobile-menu d-lg-none" id="mobileMenu">
+        <!-- Desktop Nav Links -->
+        <div class="nav-links d-none d-lg-flex">
             <a href="../../index.html">Home</a>
             <a href="f.html">Features</a>
             <a href="pricing.html" class="active">Pricing</a>
             <a href="Contact.html">Contact</a>
-            <a href="Contact.html" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
+            <div id="navbar-auth-ui"></div>
+        </div>
+
+        <a href="Contact.html" class="btn-nav-primary btn-book-demo d-none d-lg-block">Book a Demo</a>
+
+        <!-- Mobile Menu (Collapsible) -->
+        <div class="nav-links mobile-menu" id="mobileMenu">
+            <a href="../../index.html">Home</a>
+            <a href="f.html">Features</a>
+            <a href="pricing.html" class="active">Pricing</a>
+            <a href="Contact.html">Contact</a>
+            <div id="mobile-navbar-auth-ui"></div>
+            <a href="Contact.html" class="btn-nav-primary btn-book-demo mt-2" style="color: white !important;">Book a
+                Demo</a>
         </div>
     </nav>
 
@@ -524,88 +527,73 @@
         </div>
     </section>
 
+    <script src="./payfast-checkout.js"></script>
+    <script>
+        // Auto-resume pending payment after login redirect
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('resume') === 'payment' && sessionStorage.getItem('pf_auto_resume') === '1') {
+                sessionStorage.removeItem('pf_auto_resume');
+                const intent = PayFastCheckout.getPendingIntent();
+                if (intent && (intent.tierKey === 'monthly' || intent.tierKey === 'yearly')) {
+                    setTimeout(() => PayFastCheckout.initiatePayment(intent.productSlug, intent.tierKey, null), 800);
+                }
+            }
+        });
+    </script>
     <script>
         function renderTieredCards() {
-            // Hardcoded ID for this specific page
             const productId = 'pharmacy-pos';
-
-            // Check if pricingData is loaded
-            if (typeof pricingData === 'undefined') {
-                console.error("pricingData is undefined. Script might not be loaded.");
-                document.getElementById('product-name').textContent = "Error Loading Data";
-                return;
-            }
-
+            if (typeof pricingData === 'undefined') { document.getElementById('product-name').textContent = "Error Loading Data"; return; }
             const product = pricingData.find(p => p.id === productId);
-            if (!product) {
-                document.getElementById('product-name').textContent = "Product Not Found";
-                document.getElementById('product-desc').innerHTML = "Please select a product from the <a href='pricing.html' style='color: var(--primary-color); text-decoration: underline;'>Pricing Page</a>.";
-                return;
-            }
-
+            if (!product) { document.getElementById('product-name').textContent = "Product Not Found"; return; }
             document.getElementById('product-name').textContent = product.name;
             document.getElementById('product-desc').textContent = product.description;
-
             const freeContainer = document.getElementById('free-tier-container');
             const container = document.getElementById('tiered-cards-container');
-
-            const freeTier = { key: 'free', data: product.pricing.free, label: 'Free Setup' };
+            const freeTier = { key: 'free', data: product.pricing.free, label: 'Free Trial' };
             const paidTiers = [
                 { key: 'monthly', data: product.pricing.monthly, label: 'Monthly' },
                 { key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true },
                 { key: 'outright', data: product.pricing.outright, label: 'Lifetime' }
             ];
-
-            const renderCard = (tier, isFree = false) => `
-        <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}" ${isFree ? 'style="max-width: 500px; margin: 0 auto; text-align: center; border: 2px dashed var(--primary-color);"' : ''}>
-          ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
-          ${isFree ? '<div class="featured-tag" style="background: var(--success); color: white;">Try for Free</div>' : ''}
-          <div class="plan-tier">${tier.label} Access</div>
-          <div class="price-value" ${isFree ? 'style="justify-content: center;"' : ''}>
-            <span class="currency">PKR</span> ${tier.data.price}
-            <span class="price-period">/${tier.data.period}</span>
-          </div>
-          
-          <ul class="features-list" ${isFree ? 'style="text-align: left; display: inline-block; margin-left: auto; margin-right: auto;"' : ''}>
-            ${product.features.map(f => `
-                <li><i class="fa-solid fa-circle-check"></i> ${f}</li>
-            `).join('')}
-          </ul>
-
-          <button id="btn-select-${tier.key}-${productId}" class="btn-select" style="${isFree ? 'background: var(--primary-color); color: white;' : ''}" onclick="selectPlan('${product.id}', '${tier.key}')">
-            ${isFree ? 'Get Started' : 'Select Plan'}
-          </button>
-        </div>
-      `;
-
-            if (freeContainer) freeContainer.innerHTML = renderCard(freeTier, true);
-            if (container) container.innerHTML = paidTiers.map(tier => renderCard(tier, false)).join('');
-        }
-
-        function selectPlan(planId, tierKey) {
-            const plan = pricingData.find(p => p.id === planId);
-            if (!plan) return;
-
-            const tier = plan.pricing[tierKey];
-
-            // Map tier keys to plan types expected by backend
-            const planTypeMap = {
-                'monthly': 'subscription',
-                'yearly': 'subscription',
-                'outright': 'one-time'
+            const renderCard = (tier, isFree = false) => {
+                const isPaid = tier.key === 'monthly' || tier.key === 'yearly';
+                const pfBtn = isPaid ? `
+                  <button class="pf-pay-btn" onclick="selectPlan('${product.id}', '${tier.key}', this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <span>Pay with GoPayFast</span>
+                  </button>
+                  <div class="pf-badges"><span class="pf-badge">🔒 SSL</span><span class="pf-badge">💳 Visa/MC</span><span class="pf-badge">📱 JazzCash</span><span class="pf-badge">💚 EasyPaisa</span></div>` : '';
+                return `
+                <div id="pricing-card-${tier.key}-${productId}" class="price-card ${tier.featured ? 'featured' : ''}" ${isFree ? 'style="max-width:500px;margin:0 auto;text-align:center;border:2px dashed var(--primary-color);"' : ''}>
+                  ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
+                  ${isFree ? '<div class="featured-tag" style="background:var(--success);color:white;">Try for Free</div>' : ''}
+                  <div class="plan-tier">${tier.label} Access</div>
+                  <div class="price-value" ${isFree ? 'style="justify-content:center;"' : ''}>
+                    <span class="currency">PKR</span> ${tier.data.price}
+                    <span class="price-period">/${tier.data.period}</span>
+                  </div>
+                  <ul class="features-list" ${isFree ? 'style="text-align:left;display:inline-block;"' : ''}>
+                    ${product.features.map(f => `<li><i class="fa-solid fa-circle-check"></i> ${f}</li>`).join('')}
+                  </ul>
+                  <button id="btn-select-${tier.key}-${productId}" class="btn-select" style="${isFree ? 'background:var(--primary-color);color:white;' : ''}" onclick="selectPlan('${product.id}', '${tier.key}', this)">
+                    ${isFree ? 'Start Free Trial' : tier.key === 'outright' ? 'Contact Sales' : 'Start Subscription'}
+                  </button>
+                  ${pfBtn}
+                </div>`;
             };
-
-            const planType = planTypeMap[tierKey] || 'subscription';
-            const planName = `${plan.name} - ${tier.label}`;
-            const price = tier.price;
-
-            // Redirect to signup with plan information
-            window.location.href = `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
+            if (freeContainer) freeContainer.innerHTML = renderCard(freeTier, true);
+            if (container) container.innerHTML = paidTiers.map(t => renderCard(t, false)).join('');
         }
-
-        // Run when DOM is ready
+        function selectPlan(planId, tierKey, triggerBtn) {
+            PayFastCheckout.initiatePayment(planId, tierKey, triggerBtn);
+        }
         document.addEventListener('DOMContentLoaded', renderTieredCards);
     </script>
+
+
+
     <footer class="footer">
         <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
             <div class="row" style="display: flex; flex-wrap: wrap; text-align: left;">

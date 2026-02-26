@@ -2420,16 +2420,20 @@
             <a href="./Frontend/comp/f.html">Features</a>
             <a href="./Frontend/comp/pricing.html">Pricing</a>
             <a href="./Frontend/comp/Contact.html">Contact</a>
+            <div id="navbar-auth-ui"></div>
         </div>
 
-        <a href="./Frontend/comp/Contact.html" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
+        <a href="./Frontend/comp/Contact.html" class="btn-nav-primary btn-book-demo d-none d-lg-block">Book a Demo</a>
 
         <div class="nav-links mobile-menu" id="mobileMenu">
             <a href="./index.html" class="active">Home</a>
             <a href="./Frontend/comp/f.html">Features</a>
             <a href="./Frontend/comp/pricing.html">Pricing</a>
             <a href="./Frontend/comp/Contact.html">Contact</a>
-            <a href="./Frontend/comp/Contact.html" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
+            <div id="mobile-navbar-auth-ui"></div>
+            <a href="./Frontend/comp/Contact.html" class="btn-nav-primary btn-book-demo mt-2"
+                style="color: white !important;">Book a
+                Demo</a>
         </div>
     </nav>
     <script>
@@ -2442,13 +2446,14 @@
     <style>
         /* Fixed navbar overlap/broken layout */
         .mobile-menu {
-          display: none;
+            display: none;
         }
 
         @media (max-width: 991px) {
             .navbar {
                 flex-wrap: wrap;
             }
+
             .mobile-menu {
                 display: none;
                 flex-direction: column;

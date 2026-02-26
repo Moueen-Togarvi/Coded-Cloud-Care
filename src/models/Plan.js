@@ -6,7 +6,11 @@ const planSchema = new mongoose.Schema(
       type: String,
       enum: ['white-label', 'subscription', 'one-time', 'basic'],
       required: true,
-      unique: true,
+    },
+    productSlug: {
+      type: String,
+      enum: ['hospital-pms', 'pharmacy-pos', 'lab-reporting', 'quick-invoice', 'private-clinic-lite', 'general'],
+      default: 'general',
     },
     planName: {
       type: String,
@@ -43,6 +47,7 @@ const planSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
+planSchema.index({ productSlug: 1, planType: 1, billingCycle: 1, isActive: 1 });
 planSchema.index({ planType: 1, isActive: 1 });
 
 const Plan = mongoose.model('Plan', planSchema);

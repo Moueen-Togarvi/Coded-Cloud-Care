@@ -437,9 +437,10 @@
       <a href="f.html">Features</a>
       <a href="pricing.html">Pricing</a>
       <a href="Contact.html">Contact</a>
+      <div id="navbar-auth-ui"></div>
     </div>
 
-    <a href="Login.html" class="btn-nav-primary">Login</a>
+    <a href="Login.html" class="btn-nav-primary btn-book-demo">Login</a>
 
     <!-- Mobile Menu (Collapsible) -->
     <div class="nav-links mobile-menu" id="mobileMenu">
@@ -447,7 +448,9 @@
       <a href="f.html">Features</a>
       <a href="pricing.html">Pricing</a>
       <a href="Contact.html">Contact</a>
-      <a href="Contact.html" class="btn-nav-primary" style="color: white !important; margin-top: 10px;">Book a Demo</a>
+      <div id="mobile-navbar-auth-ui"></div>
+      <a href="Contact.html" class="btn-nav-primary btn-book-demo"
+        style="color: white !important; margin-top: 10px;">Book a Demo</a>
     </div>
   </nav>
 
@@ -770,13 +773,20 @@
     </div>
 
     <script>
-      // Preserve product parameter in Login link
+      // Preserve product and tier parameters in Login link
       window.addEventListener('DOMContentLoaded', () => {
         const loginLink = document.querySelector('.signup-link a[href="./Login.html"]');
+        const navbarLoginLink = document.querySelector('.navbar a[href="Login.html"]');
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('product');
-        if (productId && loginLink) {
-          loginLink.href = `./Login.html?product=${productId}`;
+        const tier = urlParams.get('tier');
+
+        if (productId && (loginLink || navbarLoginLink)) {
+          let newHref = `./Login.html?product=${productId}`;
+          if (tier) newHref += `&tier=${tier}`;
+
+          if (loginLink) loginLink.href = newHref;
+          if (navbarLoginLink) navbarLoginLink.href = newHref;
         }
       });
     </script>

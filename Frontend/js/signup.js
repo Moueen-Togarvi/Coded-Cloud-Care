@@ -37,8 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
     : 'Select Software';
 
   // Map pricing page parameters to backend plan types
-  // Valid plan types: 'subscription', 'one-time', 'white-label', 'basic'
   let selectedPlan = 'subscription'; // default
+  let displayPlanName = planName;
+  let displayPrice = price;
+
+  // Find product info from config if available
+  const productData = (productId && window.pricingData)
+    ? window.pricingData.find(p => p.id === productId)
+    : null;
+
+  if (productId && productData) {
+    // If planName or price is missing, derive it from config
+    const tier = tierParam || 'monthly';
+    if (productData.pricing && productData.pricing[tier]) {
+      if (!displayPlanName || displayPlanName === 'Basic Plan') {
+        displayPlanName = productData.pricing[tier].label || (tier.charAt(0).toUpperCase() + tier.slice(1) + ' Plan');
+      }
+      if (!displayPrice) {
+        displayPrice = productData.pricing[tier].price;
+      }
+    }
+  }
 
   if (planParam === 'basic') {
     selectedPlan = 'basic';
@@ -51,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Display selected plan if provided
-  displaySelectedPlan(softwareName, planName, price);
+  displaySelectedPlan(softwareName, displayPlanName, displayPrice);
 
   const signupForm = document.querySelector('form');
   const submitButton = signupForm.querySelector('.btn-login');
@@ -126,25 +145,80 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.message || 'Registration failed');
       }
 
-      const token = data.data ? data.data.token : null;
-
-      // Save token if returned
       if (data.data && data.data.token) {
         saveAuthToken(data.data.token, productId);
+
+        // Save user name for navbar
+        if (data.data.user && data.data.user.companyName) {
+          sessionStorage.setItem('userName', data.data.user.companyName);
+        } else if (data.data.user && data.data.user.email) {
+          sessionStorage.setItem('userName', data.data.user.email.split('@')[0]);
+        }
       }
 
-      // Show success message
-      showSuccess('Account created successfully! Redirecting to Dashboard...');
+      // ── POST-REGISTRATION ROUTING BASED ON PLAN TYPE ────────────────────
+      // Determine what the user signed up for from URL params
+      const isTrialPlan = (planParam === 'trial' || tierParam === 'free');
+      const isPaidPlan = !isTrialPlan && (tierParam === 'monthly' || tierParam === 'yearly');
 
-      // DIRECT DASH: If we have a productId from the URL, redirect directly to that software
-      if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
-        const landingPage = window.PRODUCT_CONFIG[productId].landingPage;
-        // The landing page logic (auth-check.js) will handle the redirect to settings.html
-        window.location.href = landingPage;
+      if (isPaidPlan && productId && data.data && data.data.token) {
+        // PAID PLAN: User registered → now they're logged in → trigger PayFast checkout
+        showSuccess('Account created! Initiating payment checkout…');
+
+        // Give the token time to save, then load payfast-checkout.js and initiate
+        try {
+          // Save the pending intent so it survives any reload scenario
+          sessionStorage.setItem('pf_pending_payment', JSON.stringify({
+            productSlug: productId,
+            tierKey: tierParam || 'monthly',
+            savedAt: Date.now()
+          }));
+          sessionStorage.setItem('pf_auto_resume', '1');
+
+          // Redirect to the matching pricing page with resume=payment so PayFast auto-fires
+          setTimeout(() => {
+            window.location.href = `./pricing-${productId}.html?resume=payment`;
+          }, 1500);
+        } catch (_) {
+          // Fallback: just go to pricing page so user can click subscribe again
+          window.location.href = `./pricing-${productId}.html`;
+        }
+        return;
+      }
+
+      // ── FREE TRIAL: activate it via API ─────────────────────────────────
+      if (isTrialPlan && productId && data.data && data.data.token) {
+        try {
+          const trialResp = await fetch(`${API_BASE_URL}/subscriptions/trial`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${data.data.token}`,
+            },
+            body: JSON.stringify({ productSlug: productId }),
+          });
+          if (trialResp.ok) {
+            showSuccess('🎉 Account created & 3-day free trial started! Redirecting…');
+          } else {
+            showSuccess('Account created successfully! Redirecting…');
+          }
+        } catch (_) {
+          showSuccess('Account created successfully! Redirecting…');
+        }
       } else {
-        // Fallback to central dashboard
-        window.location.href = '/Frontend/comp/dashboard.html';
+        showSuccess('Account created successfully! Redirecting…');
       }
+
+      // ── Redirect to product dashboard (for trial / no product) ─────────
+      setTimeout(() => {
+        if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
+          const landingPage = window.PRODUCT_CONFIG[productId].landingPage;
+          window.location.href = landingPage;
+        } else {
+          window.location.href = '/Frontend/comp/dashboard.html';
+        }
+      }, 1500);
+
     } catch (error) {
       console.error('Signup error:', error);
       showError(error.message || 'Registration failed. Please try again.');
@@ -160,12 +234,16 @@ document.addEventListener('DOMContentLoaded', () => {
 function displaySelectedPlan(softwareName, planName, price) {
   const planInfoElement = document.getElementById('selectedPlanInfo');
   if (planInfoElement) {
+    const isFree = !price || price === '0' || planName.toLowerCase().includes('free');
+    const badgeColor = isFree ? '#10B981' : '#4F46E5';
+    const bgColor = isFree ? '#ECFDF5' : '#EEF2FF';
+
     planInfoElement.innerHTML = `
-      <div style="background: #EEF2FF; border: 2px solid #4F46E5; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center;">
-        <i class="fa-solid fa-check-circle" style="color: #4F46E5; font-size: 20px;"></i>
-        <p style="margin: 8px 0 0 0; color: #374151; font-weight: 600;">Subscribing to: <strong style="color: #4F46E5;">${softwareName}</strong></p>
-        <p style="margin: 5px 0 0 0; color: #6B7280; font-size: 14px;">Plan: <strong>${planName}</strong></p>
-        ${price ? `<p style="margin: 5px 0 0 0; color: #6B7280; font-size: 14px;">Price: <strong style="color: #4F46E5;">PKR ${price}</strong></p>` : ''}
+      <div style="background: ${bgColor}; border: 2px solid ${badgeColor}; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center;">
+        <i class="fa-solid fa-check-circle" style="color: ${badgeColor}; font-size: 20px;"></i>
+        <p style="margin: 8px 0 0 0; color: #374151; font-weight: 600;">Subscribing to: <strong style="color: ${badgeColor};">${softwareName}</strong></p>
+        <p style="margin: 5px 0 0 0; color: #6B7280; font-size: 14px;">Plan: <strong style="color: ${badgeColor}; text-transform: uppercase;">${planName}</strong></p>
+        ${!isFree ? `<p style="margin: 5px 0 0 0; color: #6B7280; font-size: 14px;">Price: <strong style="color: ${badgeColor};">PKR ${price}</strong></p>` : `<p style="margin: 5px 0 0 0; color: #10B981; font-weight: 700;">Enjoy your 3-Day Free Trial! 🚀</p>`}
       </div>
     `;
     planInfoElement.style.display = 'block';

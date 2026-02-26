@@ -15,21 +15,65 @@ const seedPlans = async () => {
 
     console.log('✓ Connected to Master Database');
 
-    // Check if plans already exist
-    const existingPlans = await Plan.find();
-    if (existingPlans.length > 0) {
-      console.log('⚠ Plans already exist. Skipping seed...');
-      console.log(`Found ${existingPlans.length} existing plans:`);
-      existingPlans.forEach((plan) => {
-        console.log(`  - ${plan.planName} (${plan.planType}): $${plan.price}/${plan.billingCycle}`);
-      });
-      await mongoose.connection.close();
-      return;
-    }
+    // For this migration, we want to update the plans. 
+    // We'll clear existing plans and re-seed to ensure consistency.
+    console.log('⚠ Clearing existing plans...');
+    await Plan.deleteMany({});
 
-    // Define default plans
-    const plans = [
+    const products = [
+      'hospital-pms',
+      'pharmacy-pos',
+      'lab-reporting',
+      'quick-invoice',
+      'private-clinic-lite'
+    ];
+
+    const plans = [];
+
+    // Add Monthly and Yearly plans for each product
+    products.forEach(product => {
+      const productName = product.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+      // Monthly Plan
+      plans.push({
+        productSlug: product,
+        planType: 'subscription',
+        planName: `${productName} Monthly`,
+        price: 20000,
+        billingCycle: 'monthly',
+        features: [
+          `Full ${productName} features`,
+          'Standard support',
+          'Regular updates',
+          'Cloud storage'
+        ],
+        trialDays: 3,
+        isActive: true,
+      });
+
+      // Yearly Plan
+      plans.push({
+        productSlug: product,
+        planType: 'subscription',
+        planName: `${productName} Yearly`,
+        price: 210000,
+        billingCycle: 'yearly',
+        features: [
+          `Full ${productName} features`,
+          'Priority support',
+          'Regular updates',
+          'Cloud storage',
+          'Discounted annual rate'
+        ],
+        trialDays: 3,
+        isActive: true,
+      });
+    });
+
+    // Add Global Plans (White Label and Basic)
+    plans.push(
       {
+        productSlug: 'general',
         planType: 'white-label',
         planName: 'White Label Partnership',
         price: 90000,
@@ -46,63 +90,25 @@ const seedPlans = async () => {
         isActive: true,
       },
       {
-        planType: 'subscription',
-        planName: 'Monthly Subscription',
-        price: 55000,
-        billingCycle: 'monthly',
-        features: [
-          'Full patient management system',
-          'Appointment scheduling',
-          'Staff management',
-          'Reports and analytics',
-          'Email support',
-          'Regular updates',
-        ],
-        trialDays: 3,
-        isActive: true,
-      },
-      {
-        planType: 'one-time',
-        planName: 'Lifetime License',
-        price: 100000,
-        billingCycle: 'once',
-        features: [
-          'One-time payment',
-          'Lifetime access',
-          'All core features',
-          'Self-hosted option',
-          'Basic support for 1 year',
-          'Free updates for 1 year',
-        ],
-        trialDays: 3,
-        isActive: true,
-      },
-      {
+        productSlug: 'general',
         planType: 'basic',
-        planName: 'Basic Plan',
+        planName: 'Basic Free Plan',
         price: 0,
         billingCycle: 'monthly',
         features: [
-          'Basic patient records',
+          'Basic features access',
           'Single user access',
           'Community support',
         ],
         trialDays: 3,
         isActive: true,
-      },
-    ];
+      }
+    );
 
     // Insert plans
     const createdPlans = await Plan.insertMany(plans);
 
-    console.log('\n✓ Successfully seeded plans:');
-    createdPlans.forEach((plan) => {
-      console.log(`  ✓ ${plan.planName} (${plan.planType})`);
-      console.log(`    Price: $${plan.price}/${plan.billingCycle}`);
-      console.log(`    Trial Days: ${plan.trialDays}`);
-      console.log(`    Features: ${plan.features.length} features`);
-      console.log('');
-    });
+    console.log(`\n✓ Successfully seeded ${createdPlans.length} plans.`);
 
     // Close connection
     await mongoose.connection.close();

@@ -81,7 +81,7 @@ const showInfo = (message) => {
 };
 
 // Token Management
-const SESSION_TIMEOUT = 1 * 60 * 1000; // 1 minute in milliseconds
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 const saveAuthToken = (token, productId) => {
   sessionStorage.setItem('authToken', token);
@@ -171,8 +171,54 @@ const checkAuthAndRedirect = () => {
 // Logout function
 const logout = () => {
   removeAuthToken();
-  window.location.href = '/Frontend/comp/Login.html';
+  window.location.href = '/index.html'; // Redirect to home after logout
 };
+
+// Navbar Auth UI Update
+const updateNavbarUI = () => {
+  const authContainer = document.getElementById('navbar-auth-ui');
+  const mobileAuthContainer = document.getElementById('mobile-navbar-auth-ui');
+  const bookDemoButtons = document.querySelectorAll('.btn-book-demo');
+
+  const isAuth = isAuthenticated();
+  const userName = sessionStorage.getItem('userName') || 'User';
+
+  // Toggle Book a Demo visibility
+  bookDemoButtons.forEach(btn => {
+    btn.style.display = isAuth ? 'none' : '';
+  });
+
+  if (!authContainer && !mobileAuthContainer) return;
+
+  const desktopHtml = isAuth
+    ? `<div class="nav-auth-info">
+         <span class="user-name">Hi, ${userName}</span>
+         <button class="btn-logout" onclick="logout()">Logout</button>
+       </div>`
+    : `<a href="/Frontend/comp/Login.html" class="btn-nav-login">Login</a>`;
+
+  const mobileHtml = isAuth
+    ? `<div class="nav-auth-info" style="justify-content: center; margin-top: 10px;">
+         <span class="user-name">Hi, ${userName}</span>
+         <button class="btn-logout" onclick="logout()" style="margin-left: 10px;">Logout</button>
+       </div>`
+    : `<a href="/Frontend/comp/Login.html" class="btn-nav-login" style="margin-top: 10px;">Login</a>`;
+
+  if (authContainer) authContainer.innerHTML = desktopHtml;
+  if (mobileAuthContainer) mobileAuthContainer.innerHTML = mobileHtml;
+};
+
+// Run UI update on load if authContainer exists
+document.addEventListener('DOMContentLoaded', updateNavbarUI);
+
+// Attach to window for global access
+window.logout = logout;
+window.updateNavbarUI = updateNavbarUI;
+window.isAuthenticated = isAuthenticated;
+window.saveAuthToken = saveAuthToken;
+window.removeAuthToken = removeAuthToken;
+window.verifySession = verifySession;
+window.authenticatedFetch = authenticatedFetch;
 
 // Make authenticated API requests
 const authenticatedFetch = async (url, options = {}) => {

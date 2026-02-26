@@ -873,8 +873,6 @@
       color: inherit;
     }
 
-    <style>
-
     /* Fixed navbar overlap/broken layout */
     .mobile-menu {
       display: none;
@@ -890,7 +888,9 @@
       }
     }
   </style>
+
   <script src="./pricing_config.js"></script>
+
   <nav class="navbar">
     <a class="navbar-brand" href="../../index.html">
       <img src="../images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
@@ -908,9 +908,10 @@
       <a href="f.html">Features</a>
       <a href="pricing.html" class="active" style="color: var(--primary-color); font-weight: 600;">Pricing</a>
       <a href="Contact.html">Contact</a>
+      <div id="navbar-auth-ui"></div>
     </div>
 
-    <a href="Contact.html" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
+    <a href="Contact.html" class="btn-nav-primary btn-book-demo d-none d-lg-block">Book a Demo</a>
 
     <!-- Mobile Menu (Collapsible) -->
     <div class="nav-links mobile-menu" id="mobileMenu">
@@ -918,14 +919,17 @@
       <a href="f.html">Features</a>
       <a href="pricing.html" class="active" style="color: var(--primary-color);">Pricing</a>
       <a href="Contact.html">Contact</a>
-      <a href="Contact.html" class="btn-nav-primary mt-2" style="color: white !important;">Book a Demo</a>
+      <div id="mobile-navbar-auth-ui"></div>
+      <a href="Contact.html" class="btn-nav-primary btn-book-demo mt-2" style="color: white !important;">Book a Demo</a>
     </div>
   </nav>
 
   <script>
     function toggleMenu() {
       const menu = document.getElementById('mobileMenu');
-      menu.classList.toggle('active');
+      if (menu) {
+        menu.classList.toggle('active');
+      }
     }
   </script>
 
@@ -947,13 +951,9 @@
       <div class="table-grid">
         <!-- Headers -->
         <div class="table-cell table-header table-label">Features</div>
-        <div class="table-cell table-header">
-          Lifetime License
-          <div class="table-badge">One-Time</div>
+        <div class="table-cell table-header">Lifetime License <div class="table-badge">One-Time</div>
         </div>
-        <div class="table-cell table-header">
-          Pro Subscription
-          <div class="table-badge">Best Value</div>
+        <div class="table-cell table-header">Pro Subscription <div class="table-badge">Best Value</div>
         </div>
 
         <!-- Feature Breakdown -->
@@ -1006,55 +1006,53 @@
       if (!container || !pricingData) return;
 
       container.innerHTML = pricingData.map(plan => `
-        <div class="price-card ${plan.highlight ? 'card-highlight' : 'card-standard'}" id="card-${plan.id}">
-          <div class="plan-name">${plan.name}</div>
-          
-          <div class="price-display" id="display-${plan.id}">
-            <span class="main-price">PKR ${plan.pricing.monthly.price}</span>
-            <span class="main-period">/${plan.pricing.monthly.period}</span>
-          </div>
+                <div class="price-card ${plan.highlight ? 'card-highlight' : 'card-standard'}" id="card-${plan.id}">
+                    <div class="plan-name">${plan.name}</div>
+                    <div class="price-display" id="display-${plan.id}">
+                        <span class="main-price">PKR ${plan.pricing.monthly.price}</span>
+                        <span class="main-period">/${plan.pricing.monthly.period}</span>
+                    </div>
+                    <p style="color: ${plan.highlight ? '#e0e7ff' : '#6b7280'}; font-size: 0.9rem; margin-bottom: 1.5rem">
+                        ${plan.description}
+                    </p>
+                    
+                    <div class="pricing-tiers">
+                        <div class="tier-item active" onclick="updateTier('${plan.id}', 'monthly')">
+                            <div class="tier-label">${plan.pricing.monthly.label}</div>
+                            <div class="tier-price-row">
+                                <span class="tier-price">PKR ${plan.pricing.monthly.price}</span>
+                                <span class="tier-period">/${plan.pricing.monthly.period}</span>
+                            </div>
+                        </div>
+                        <div class="tier-item" onclick="updateTier('${plan.id}', 'yearly')">
+                            <div class="tier-label">${plan.pricing.yearly.label}</div>
+                            <div class="tier-price-row">
+                                <span class="tier-price">PKR ${plan.pricing.yearly.price}</span>
+                                <span class="tier-period">/${plan.pricing.yearly.period}</span>
+                            </div>
+                        </div>
+                        <div class="tier-item" onclick="updateTier('${plan.id}', 'outright')">
+                            <div class="tier-label">${plan.pricing.outright.label}</div>
+                            <div class="tier-price-row">
+                                <span class="tier-price">PKR ${plan.pricing.outright.price}</span>
+                                <span class="tier-period">/${plan.pricing.outright.period}</span>
+                            </div>
+                        </div>
+                    </div>
 
-          <p style="color: ${plan.highlight ? '#e0e7ff' : '#6b7280'}; font-size: 0.9rem; margin-bottom: 1.5rem">
-            ${plan.description}
-          </p>
-
-          <div class="pricing-tiers">
-            <div class="tier-item active" onclick="updateTier('${plan.id}', 'monthly')">
-              <div class="tier-label">${plan.pricing.monthly.label}</div>
-              <div class="tier-price-row">
-                <span class="tier-price">PKR ${plan.pricing.monthly.price}</span>
-                <span class="tier-period">/${plan.pricing.monthly.period}</span>
-              </div>
-            </div>
-            <div class="tier-item" onclick="updateTier('${plan.id}', 'yearly')">
-              <div class="tier-label">${plan.pricing.yearly.label}</div>
-              <div class="tier-price-row">
-                <span class="tier-price">PKR ${plan.pricing.yearly.price}</span>
-                <span class="tier-period">/${plan.pricing.yearly.period}</span>
-              </div>
-            </div>
-            <div class="tier-item" onclick="updateTier('${plan.id}', 'outright')">
-              <div class="tier-label">${plan.pricing.outright.label}</div>
-              <div class="tier-price-row">
-                <span class="tier-price">PKR ${plan.pricing.outright.price}</span>
-                <span class="tier-period">/${plan.pricing.outright.period}</span>
-              </div>
-            </div>
-          </div>
-
-          <ul class="features-list">
-            ${plan.features.map(feature => `
-              <li><i class="fa-solid fa-check"></i> ${feature}</li>
-            `).join('')}
-          </ul>
-
-          <button class="btn-price ${plan.highlight ? 'btn-white' : 'btn-outline'}" 
-                  id="btn-${plan.id}"
-                  onclick="selectPlan('${plan.id}', 'monthly')">
-            Get ${plan.name}
-          </button>
-        </div>
-      `).join('');
+                    <ul class="features-list">
+                        ${plan.features.map(feature => `
+                            <li><i class="fa-solid fa-check"></i> ${feature}</li>
+                        `).join('')}
+                    </ul>
+                    
+                    <button class="btn-price ${plan.highlight ? 'btn-white' : 'btn-outline'}" 
+                            id="btn-${plan.id}"
+                            onclick="selectPlan('${plan.id}', 'monthly')">
+                        Get ${plan.name}
+                    </button>
+                </div>
+            `).join('');
     }
 
     function updateTier(planId, tierKey) {
@@ -1095,18 +1093,14 @@
       };
 
       const planType = planTypeMap[tierKey] || 'subscription';
+
       const planName = `${plan.name} - ${tier.label}`;
       const price = tier.price;
 
       // Redirect to signup with plan information
       window.location.href = `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // renderPricingCards(); // Commented out to avoid conflict with renderSoftwareCards
-    });
   </script>
-
 
   <script>
     function renderSoftwareCards() {
@@ -1126,13 +1120,11 @@
           <img src="${plan.image}" alt="${plan.name}" class="software-img">
           <div class="plan-name">${plan.name}</div>
           <p class="description">${plan.description}</p>
-          
           <ul class="features-list">
             ${plan.features.slice(0, 4).map(feature => `
               <li><i class="fa-solid fa-circle-check"></i> ${feature}</li>
             `).join('')}
           </ul>
-
           <a id="btn-view-pricing-${plan.id}" href="${pageMap[plan.id]}" class="btn-view-pricing">
             Get Started
           </a>
@@ -1141,24 +1133,9 @@
     }
   </script>
 
-
-  <script>
-    function toggleMenu() {
-      const menu = document.getElementById('mobileMenu');
-      if (menu) {
-        menu.classList.toggle('active');
-      }
-    }
-  </script>
   <script>
     const textElement = document.getElementById('typewriter-text');
-    const phrases = [
-      'Pricing',
-      'Value',
-      'Solutions',
-      'Integrity',
-      'Transparency'
-    ];
+    const phrases = ['Pricing', 'Value', 'Solutions', 'Integrity', 'Transparency'];
 
     let phraseIndex = 0;
     let charIndex = 0;
@@ -1195,64 +1172,52 @@
       type();
     });
   </script>
+
   <footer class="footer">
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
       <div class="row" style="display: flex; flex-wrap: wrap;">
-
         <div class="col-lg-4 mb-4 mb-lg-0" style="flex: 0 0 auto; width: 33.33333333%;">
           <a href="#" class="footer-brand">Cloud Care Systems</a>
-          <p>
-            A product by <strong>Coded Clouds</strong>. <br>
-            Making healthcare management simple, efficient, and secure for everyone.
-          </p>
+          <p>A product by <strong>Coded Clouds</strong>. <br>Making healthcare management simple, efficient, and secure
+            for everyone.</p>
           <div class="mt-4">
             <a href="https://www.facebook.com/profile.php?id=61584082650845" class="social-icon"><i
                 class="bi bi-facebook"></i></a>
-
             <a href="https://www.linkedin.com/company/coded-clouds/" class="social-icon"><i
                 class="bi bi-linkedin"></i></a>
           </div>
         </div>
-
         <div class="col-6 col-lg-2" style="flex: 0 0 auto; width: 16.66666667%;">
           <h5>Company</h5>
           <a href="f.html" class="footer-link">Feature</a>
           <a href="pricing.html" class="footer-link">pricing</a>
           <a href="Contact.html" class="footer-link">Contact</a>
         </div>
-
         <div class="col-lg-3 mt-4 mt-lg-0" style="flex: 0 0 auto; width: 25%;">
           <h5>Contact Us</h5>
-          <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i> Lahore, Punjab, Pakistan</p>
-          <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i> hashim@codedclouds.org</p>
-          <p><i class="bi bi-telephone-fill me-2"></i> +966-557385262</p>
+          <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i>Lahore, Punjab, Pakistan</p>
+          <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i>hashim@codedclouds.org</p>
+          <p><i class="bi bi-telephone-fill me-2"></i>+966-557385262</p>
         </div>
-
       </div>
-
       <div class="footer-bottom">
         <div class="row align-items-center" style="display: flex; align-items: center; justify-content: space-between;">
-
           <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
             © 2026 Cloud Care Systems All rights reserved.
           </div>
-
           <div class="col-md-4 text-center mb-3 mb-md-0">
             <span style="opacity: 0.7;">Powered by</span>
-            <a href="https://codedclouds.org" target="_blank" class="shiny-link">
-              Coded Clouds ⚡
-            </a>
+            <a href="https://codedclouds.org" target="_blank" class="shiny-link">Coded Clouds ⚡</a>
           </div>
-
           <div class="col-md-4 text-center text-md-end">
             <a href="../policies/privacy.html" class="text-white text-decoration-none small me-3 opacity-50">Privacy</a>
             <a href="../policies/terms.html" class="text-white text-decoration-none small opacity-50">Terms</a>
           </div>
-
         </div>
       </div>
     </div>
   </footer>
+
   <script>
     // Initialize Lucide icons
     lucide.createIcons();

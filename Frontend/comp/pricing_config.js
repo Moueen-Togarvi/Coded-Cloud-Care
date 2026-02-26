@@ -16,26 +16,21 @@ const pricingData = [
         pricing: {
             free: {
                 price: "0",
-                period: "forever",
-                label: "Free Tier"
-            },
-            free: {
-                price: "0",
-                period: "forever",
-                label: "Free Tier"
+                period: "3-day trial",
+                label: "Free Trial"
             },
             monthly: {
-                price: "10,000",
+                price: "20,000",
                 period: "month",
                 label: "Monthly Plan"
             },
             yearly: {
-                price: "100,000",
+                price: "210,000",
                 period: "year",
                 label: "Annual Plan"
             },
             outright: {
-                price: "300,000",
+                price: "Contact Us",
                 period: "once",
                 label: "Lifetime Access"
             }
@@ -58,21 +53,21 @@ const pricingData = [
         pricing: {
             free: {
                 price: "0",
-                period: "forever",
-                label: "Free Tier"
+                period: "3-day trial",
+                label: "Free Trial"
             },
             monthly: {
-                price: "4,000",
+                price: "20,000",
                 period: "month",
                 label: "Monthly Plan"
             },
             yearly: {
-                price: "40,000",
+                price: "210,000",
                 period: "year",
                 label: "Annual Plan"
             },
             outright: {
-                price: "120,000",
+                price: "Contact Us",
                 period: "once",
                 label: "Lifetime Access"
             }
@@ -95,21 +90,21 @@ const pricingData = [
         pricing: {
             free: {
                 price: "0",
-                period: "forever",
-                label: "Free Tier"
+                period: "3-day trial",
+                label: "Free Trial"
             },
             monthly: {
-                price: "5,000",
+                price: "20,000",
                 period: "month",
                 label: "Monthly Plan"
             },
             yearly: {
-                price: "50,000",
+                price: "210,000",
                 period: "year",
                 label: "Annual Plan"
             },
             outright: {
-                price: "150,000",
+                price: "Contact Us",
                 period: "once",
                 label: "Lifetime Access"
             }
@@ -132,21 +127,21 @@ const pricingData = [
         pricing: {
             free: {
                 price: "0",
-                period: "forever",
-                label: "Free Tier"
+                period: "3-day trial",
+                label: "Free Trial"
             },
             monthly: {
-                price: "1,500",
+                price: "20,000",
                 period: "month",
                 label: "Monthly Plan"
             },
             yearly: {
-                price: "15,000",
+                price: "210,000",
                 period: "year",
                 label: "Annual Plan"
             },
             outright: {
-                price: "40,000",
+                price: "Contact Us",
                 period: "once",
                 label: "Lifetime Access"
             }
@@ -169,21 +164,21 @@ const pricingData = [
         pricing: {
             free: {
                 price: "0",
-                period: "forever",
-                label: "Free Tier"
+                period: "3-day trial",
+                label: "Free Trial"
             },
             monthly: {
-                price: "2,500",
+                price: "20,000",
                 period: "month",
                 label: "Monthly Plan"
             },
             yearly: {
-                price: "25,000",
+                price: "210,000",
                 period: "year",
                 label: "Annual Plan"
             },
             outright: {
-                price: "70,000",
+                price: "Contact Us",
                 period: "once",
                 label: "Lifetime Access"
             }
