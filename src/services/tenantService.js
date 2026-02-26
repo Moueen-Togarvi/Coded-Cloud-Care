@@ -119,14 +119,16 @@ const provisionTenant = async (companyName) => {
   }
 };
 
+const connectionManager = require('../utils/ConnectionManager');
+
 /**
  * Get a connection to an existing tenant database
- * UPDATED: Returns the main connection to satisfy "one database" requirement
- * @param {string} tenantDbName - The name of the tenant database (kept for signature compatibility)
+ * UPDATED: Uses ConnectionManager for proper per-tenant isolation
+ * @param {string} tenantDbName - The name of the tenant database
  * @returns {mongoose.Connection} - Mongoose connection instance
  */
 const getTenantConnection = (tenantDbName) => {
-  return mongoose.connection;
+  return connectionManager.getConnection(tenantDbName);
 };
 
 module.exports = {

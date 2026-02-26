@@ -7,7 +7,7 @@ const {
   updateStaff,
   deleteStaff,
 } = require('../controllers/staffController');
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticate, authorize } = require('../middleware/authMiddleware');
 const { attachTenantModels } = require('../middleware/tenantMiddleware');
 const { validateStaffInput, validateObjectIdParam } = require('../middleware/validationMiddleware');
 
@@ -16,10 +16,11 @@ router.use(authenticate);
 router.use(attachTenantModels);
 
 // Staff routes with validation
-router.get('/', getAllStaff);
-router.get('/:id', validateObjectIdParam, getStaffById);
-router.post('/', validateStaffInput, createStaff);
-router.put('/:id', validateObjectIdParam, validateStaffInput, updateStaff);
-router.delete('/:id', validateObjectIdParam, deleteStaff);
+// Staff routes with validation (Admin only for security)
+router.get('/', authorize(['admin']), getAllStaff);
+router.get('/:id', authorize(['admin']), validateObjectIdParam, getStaffById);
+router.post('/', authorize(['admin']), validateStaffInput, createStaff);
+router.put('/:id', authorize(['admin']), validateObjectIdParam, validateStaffInput, updateStaff);
+router.delete('/:id', authorize(['admin']), validateObjectIdParam, deleteStaff);
 
 module.exports = router;

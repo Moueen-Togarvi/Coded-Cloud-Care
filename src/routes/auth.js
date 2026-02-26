@@ -10,11 +10,17 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) return res.status(500).json({ success: false, error: 'Logout failed' });
-        res.clearCookie('connect.sid');
+    res.clearCookie('authToken');
+    if (req.session) {
+        req.session.destroy((err) => {
+            if (err) return res.status(500).json({ success: false, error: 'Logout failed' });
+            res.clearCookie('connect.sid');
+            res.clearCookie('__Host-pms-sid'); // Clear new secure session cookie
+            return res.json({ success: true, message: 'Logged out successfully' });
+        });
+    } else {
         return res.json({ success: true, message: 'Logged out successfully' });
-    });
+    }
 });
 router.get('/session', bridgeHospitalAuth, getSession); // Legacy bridge for Hospital PMS
 

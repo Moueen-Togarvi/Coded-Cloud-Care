@@ -103,6 +103,14 @@ const register = async (req, res) => {
     // Generate JWT token
     const token = generateToken(user._id);
 
+    // Set Secure httpOnly cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
     const message = initialSubscription
       ? 'Registration successful! Your 3-day free trial has started.'
       : (planType === 'subscription'
@@ -199,37 +207,41 @@ const login = async (req, res) => {
     // Generate JWT token
     const token = generateToken(user._id);
 
-    // Hospital PMS session bridge (if user has hospital-pms subscription)
-    const hospitalSub = updatedSubs.find(s => s.productSlug === 'hospital-pms' && s.status === 'active' && now < s.endDate);
-
-    if (hospitalSub && req.session) {
-      req.session.hospitalUserId = user._id.toString();
-      req.session.hospitalTenantId = user._id.toString();
-      req.session.hospitalUsername = user.email;
-      req.session.hospitalName = user.companyName;
-      req.session.hospitalRole = 'Admin';
-      req.session.isMasterUser = true;
-    }
+    // Set Secure httpOnly cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
 
     res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
-        token,
+        token, // Keep for legacy
         user: {
           id: user._id,
           email: user.email,
           companyName: user.companyName,
           role: user.role,
         },
-        // Saari active subscriptions
-        subscriptions: updatedSubs.map((s) => ({
-          productSlug: s.productSlug,
-          planType: s.planType,
-          status: s.status,
-          endDate: s.endDate,
-          isAccessible: s.status === 'active' && now < s.endDate,
-        })),
+        // Saari active subscriptions with 5-day grace period
+        subscriptions: updatedSubs.map((s) => {
+          const expirationDate = new Date(s.endDate).getTime();
+          const gracePeriod = 5 * 24 * 60 * 60 * 1000; // 5 days
+          const isWithinGrace = Date.now() < (expirationDate + gracePeriod);
+
+          return {
+            productSlug: s.productSlug,
+            planType: s.planType,
+            status: s.status,
+            endDate: s.endDate,
+            isAccessible: s.status === 'active' && isWithinGrace,
+            isExpired: Date.now() > expirationDate,
+            isWithinGrace: isWithinGrace && Date.now() > expirationDate
+          };
+        }),
       },
     });
   } catch (error) {

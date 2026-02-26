@@ -3,6 +3,9 @@ const cors = require('cors');
 const path = require('path');
 const session = require('express-session');
 const compression = require('compression');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const { connectMasterDB } = require('./config/database');
@@ -42,6 +45,20 @@ const hospitalOldBalancesRoutes = require('./routes/hospitalOldBalances');
 // Initialize Express app
 const app = express();
 
+// ─── Security Hardening (Helmet) ──────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "script-src": ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+      "img-src": ["'self'", "data:", "https:", "http:"],
+    },
+  },
+}));
+
+// ─── Cookie Parser ───────────────────────────────────────────────────────────
+app.use(cookieParser());
+
 app.set('trust proxy', 1); // Trust first proxy (Render/Vercel) to allow secure cookies
 
 // Session middleware for Hospital PMS (must be before routes)
@@ -50,26 +67,56 @@ app.use(
     secret: process.env.SESSION_SECRET || 'hospital-pms-secret-key-change-in-production',
     resave: false,
     saveUninitialized: false,
+    name: '__Host-pms-sid', // More secure cookie name
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
+      sameSite: 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
 );
 
+// ─── Rate Limiting ───────────────────────────────────────────────────────────
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests, please try again later.' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10, // Limit login/register to 10 attempts per 15 mins
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many auth attempts. Please wait 15 minutes.' }
+});
+
+app.use('/api/', globalLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 // Middleware
 app.use(compression());
 app.use(
   cors({
-    origin: [
-      'https://dashboard-site-qbgb.onrender.com', // Production frontend
-      'http://localhost:3000', // Local development
-      'http://127.0.0.1:3000', // Local development alternative
-      'http://localhost:5500', // Live Server default port
-      'http://127.0.0.1:5500', // Live Server alternative
-      'null', // Opening HTML files directly (file://)
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'https://dashboard-site-qbgb.onrender.com',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500'
+      ];
+      // Allow requests with no origin (like mobile apps or curl) or if in allowed list
+      if (!origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV !== 'production' && origin === 'null')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

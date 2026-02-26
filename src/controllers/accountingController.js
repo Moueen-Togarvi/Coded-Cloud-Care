@@ -139,6 +139,13 @@ const createInvoice = async (req, res) => {
         // Generate invoice number
         const invoiceNumber = await generateInvoiceNumber(Invoice);
 
+        if (totalAmount < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invoice total amount cannot be negative',
+            });
+        }
+
         const newInvoice = new Invoice({
             tenantId: req.user.userId,
             invoiceNumber,
@@ -156,7 +163,8 @@ const createInvoice = async (req, res) => {
             dueDate,
             paymentTerms,
             notes,
-            createdBy
+            createdBy,
+            isActive: true
         });
 
         await newInvoice.save();
@@ -700,11 +708,19 @@ const createExpense = async (req, res) => {
             });
         }
 
+        if (expenseData.amount < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Expense amount cannot be negative',
+            });
+        }
+
         expenseData.expenseNumber = await generateExpenseNumber(Expense);
 
         const newExpense = new Expense({
             tenantId: req.user.userId,
-            ...expenseData
+            ...expenseData,
+            isActive: true
         });
         await newExpense.save();
 
@@ -770,7 +786,12 @@ const deleteExpense = async (req, res) => {
         const Expense = req.tenantModels.Expense;
         const { id } = req.params;
 
-        const expense = await Expense.findByIdAndDelete(id);
+        // Soft delete for financial audit trail
+        const expense = await Expense.findByIdAndUpdate(
+            id,
+            { isActive: false, updatedAt: new Date() },
+            { new: true }
+        );
 
         if (!expense) {
             return res.status(404).json({
@@ -781,7 +802,7 @@ const deleteExpense = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Expense deleted successfully',
+            message: 'Expense deleted (archived) successfully',
         });
     } catch (error) {
         console.error('Delete expense error:', error);

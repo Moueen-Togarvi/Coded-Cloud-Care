@@ -245,6 +245,7 @@ const invoiceSchema = new mongoose.Schema({
     }],
     notes: String,
     createdBy: String,
+    isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
@@ -304,6 +305,7 @@ const expenseSchema = new mongoose.Schema({
     recurringFrequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly'] },
     status: { type: String, enum: ['pending', 'approved', 'paid', 'rejected'], default: 'approved' },
     createdBy: String,
+    isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

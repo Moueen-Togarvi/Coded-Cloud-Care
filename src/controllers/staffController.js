@@ -128,7 +128,14 @@ const createStaff = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Staff member created successfully',
-            data: staff,
+            data: {
+                id: staff._id,
+                firstName: staff.firstName,
+                lastName: staff.lastName,
+                email: staff.email,
+                role: staff.role,
+                phone: staff.phone
+            },
         });
     } catch (error) {
         console.error('Create staff error:', error);

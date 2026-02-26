@@ -259,9 +259,20 @@ const PayFastCheckout = (() => {
         if (!isLoggedIn()) {
             // Save intent so login.js can resume after authentication
             savePendingIntent(productSlug, tierKey);
-            showToast('Please log in first. Your plan selection is saved!', 'info');
+            showToast('Please sign up first. Your plan selection is saved!', 'info');
+
+            // Get display details if possible
+            const amountText = (AMOUNT_DISPLAY[productSlug] || {})[tierKey] || '';
+            const productName = (window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productSlug])
+                ? window.PRODUCT_CONFIG[productSlug].name
+                : productSlug;
+
+            // Format price for URL (remove PKR and /month)
+            const cleanPrice = amountText.replace('PKR ', '').split('/')[0].trim();
+            const planLabel = tierKey.charAt(0).toUpperCase() + tierKey.slice(1) + ' Plan';
+
             setTimeout(() => {
-                window.location.href = `./Login.html?redirect=payment&product=${productSlug}&tier=${tierKey}`;
+                window.location.href = `./Signup.html?redirect=payment&product=${productSlug}&tier=${tierKey}&planName=${encodeURIComponent(planLabel)}&price=${encodeURIComponent(cleanPrice)}`;
             }, 1200);
             return;
         }

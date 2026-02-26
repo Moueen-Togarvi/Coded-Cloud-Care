@@ -25,6 +25,8 @@ const PaymentOrder = require('../models/PaymentOrder');
 const Subscription = require('../models/Subscription');
 const { getAccessToken, buildCheckoutFormData, validateIPN, PAYFAST_CHECKOUT_URL } = require('../services/payfastService');
 const Plan = require('../models/Plan');
+const RateLimit = require('../models/RateLimit');
+const TransactionLog = require('../models/TransactionLog');
 
 // ─── Plan Duration (days) ─────────────────────────────────────────────────────
 const PLAN_DURATION_DAYS = {
@@ -32,28 +34,14 @@ const PLAN_DURATION_DAYS = {
     yearly: 365,
 };
 
-// ─── Simple In-Memory Rate Limiter ────────────────────────────────────────────
-// Prevent a single user from spamming /initiate (max 5 attempts per 10 min)
-const initiateAttempts = new Map();
+// ─── Rate Limit Configuration ───────────────────────────────────────────────
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 
-const checkRateLimit = (userId) => {
-    const now = Date.now();
-    const key = String(userId);
-    const record = initiateAttempts.get(key) || { count: 0, windowStart: now };
-
-    if (now - record.windowStart > RATE_LIMIT_WINDOW_MS) {
-        // Reset window
-        initiateAttempts.set(key, { count: 1, windowStart: now });
-        return true;
-    }
-
-    if (record.count >= RATE_LIMIT_MAX) return false;
-
-    record.count += 1;
-    initiateAttempts.set(key, record);
-    return true;
+const checkRateLimitPersistence = async (userId) => {
+    const key = `payment_initiate_${userId}`;
+    const result = await RateLimit.checkLimit(key, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS);
+    return result.allowed;
 };
 
 // ─── Helper: generate a cryptographically secure unique ID ────────────────────
@@ -90,7 +78,8 @@ router.post('/payfast/initiate', authenticate, async (req, res) => {
         }
 
         // ── Rate limit check ─────────────────────────────────────────────────
-        if (!checkRateLimit(userId)) {
+        const isAllowed = await checkRateLimitPersistence(userId);
+        if (!isAllowed) {
             return res.status(429).json({
                 success: false,
                 message: 'Too many payment attempts. Please wait 10 minutes before trying again.',
@@ -127,6 +116,16 @@ router.post('/payfast/initiate', authenticate, async (req, res) => {
             basketId,
             payfastAccessToken: accessToken,
             status: 'pending',
+        });
+
+        // ── Log the initiation ───────────────────────────────────────────────
+        await TransactionLog.create({
+            userId,
+            type: 'PAYFAST_INITIATE',
+            internalOrderId,
+            basketId,
+            payload: { productSlug, planType, amount },
+            status: 'initiated'
         });
 
         // ── Build the checkout form data ─────────────────────────────────────
@@ -235,9 +234,16 @@ router.post('/payfast/ipn', async (req, res) => {
         order.subscriptionId = subscription._id;
         // Clear TTL so the order is NOT auto-deleted
         order.expiresAt = undefined;
-        await order.save();
-
-        console.log(`[PayFast IPN] SUCCESS — User: ${order.userId} subscribed to ${order.productSlug} (${order.planType}) until ${endDate.toISOString()}`);
+        // ── Log the IPN result ───────────────────────────────────────────────
+        await TransactionLog.create({
+            userId: order.userId,
+            type: 'PAYFAST_IPN',
+            internalOrderId: order.internalOrderId,
+            basketId: ipnData.BASKET_ID,
+            payload: ipnData,
+            status: order.status === 'success' ? 'success' : 'failed',
+            message: valid ? 'Payment successful' : reason
+        });
 
         return res.status(200).json({ received: true, activated: true });
     } catch (err) {

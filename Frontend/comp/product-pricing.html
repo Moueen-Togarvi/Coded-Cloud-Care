@@ -620,14 +620,18 @@
         </div>
     </section>
 
+    <!-- Load scripts -->
+    <script src="../js/auth.js"></script>
+    <script src="./payfast-checkout.js"></script>
+
     <script>
         function renderTieredCards() {
             const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('id');
+            // Standardize on 'product' instead of 'id'
+            const productId = urlParams.get('product') || urlParams.get('id');
 
-            // Check if pricingData is loaded
             if (typeof pricingData === 'undefined') {
-                console.error("pricingData is undefined. Script might not be loaded.");
+                console.error("pricingData is undefined.");
                 document.getElementById('product-name').textContent = "Error Loading Data";
                 return;
             }
@@ -639,41 +643,74 @@
                 return;
             }
 
+            // Update Page Meta
+            document.title = `${product.name} Pricing - Cloud Care Systems`;
             document.getElementById('product-name').textContent = product.name;
             document.getElementById('product-desc').textContent = product.description;
 
             const container = document.getElementById('tiered-cards-container');
 
-            const tiers = [
-                { key: 'monthly', data: product.pricing.monthly, label: 'Monthly' },
-                { key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true },
-                { key: 'outright', data: product.pricing.outright, label: 'Lifetime' }
-            ];
+            // Build Tiers
+            const tiers = [];
+
+            // 1. Add Free Trial if it exists for this product
+            if (product.pricing.free) {
+                tiers.push({ key: 'free', data: product.pricing.free, label: 'Free Trial' });
+            }
+
+            // 2. Add Subscription Tiers
+            if (product.pricing.monthly) tiers.push({ key: 'monthly', data: product.pricing.monthly, label: 'Monthly' });
+            if (product.pricing.yearly) tiers.push({ key: 'yearly', data: product.pricing.yearly, label: 'Yearly', featured: true });
+
+            // 3. Add Outright if exists
+            if (product.pricing.outright) tiers.push({ key: 'outright', data: product.pricing.outright, label: 'Lifetime' });
 
             container.innerHTML = tiers.map(tier => `
-        <div class="price-card ${tier.featured ? 'featured' : ''}">
-          ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
-          <div class="plan-tier">${tier.label} Access</div>
-          <div class="price-value">
-            <span class="currency">PKR</span> ${tier.data.price}
-            <span class="price-period">/${tier.data.period}</span>
-          </div>
-          
-          <ul class="features-list">
-            ${product.features.map(f => `
-                <li><i class="fa-solid fa-circle-check"></i> ${f}</li>
-            `).join('')}
-          </ul>
+                <div class="price-card ${tier.featured ? 'featured' : ''}">
+                    ${tier.featured ? '<div class="featured-tag">Most Popular</div>' : ''}
+                    <div class="plan-tier">${tier.label} Access</div>
+                    <div class="price-value">
+                        <span class="currency">PKR</span> ${tier.data.price}
+                        <span class="price-period">${tier.data.period ? '/' + tier.data.period : ''}</span>
+                    </div>
+                    
+                    <ul class="features-list">
+                        ${product.features.map(f => `
+                            <li><i class="fa-solid fa-circle-check"></i> ${f}</li>
+                        `).join('')}
+                    </ul>
 
-          <button class="btn-select" onclick="selectPlan('${product.id}', '${tier.key}')">
-            Select Plan
-          </button>
-        </div>
-      `).join('');
+                    <button class="btn-select" id="btn-${tier.key}" onclick="selectPlan('${product.id}', '${tier.key}', this)">
+                        ${tier.key === 'free' ? 'Start Free Trial' : 'Start Subscription'}
+                    </button>
+                </div>
+            `).join('');
         }
 
-        function selectPlan(id, tier) {
-            window.location.href = `./Signup.html?plan=${id}&tier=${tier}`;
+        /**
+         * Standardized Plan Selection
+         * Uses PayFastCheckout for paid plans
+         */
+        function selectPlan(planId, tierKey, triggerBtn) {
+            // Paid plans (PayFast)
+            if (tierKey === 'monthly' || tierKey === 'yearly') {
+                if (typeof PayFastCheckout !== 'undefined') {
+                    PayFastCheckout.initiatePayment(planId, tierKey, triggerBtn);
+                } else {
+                    // Fallback if script not loaded
+                    window.location.href = `./Signup.html?product=${planId}&tier=${tierKey}&plan=subscription`;
+                }
+                return;
+            }
+
+            // Free Trial
+            if (tierKey === 'free') {
+                window.location.href = `./Signup.html?plan=trial&product=${planId}&tier=free`;
+                return;
+            }
+
+            // Outright / Contact
+            window.location.href = `./Contact.html?inquiry=pricing&product=${planId}&tier=${tierKey}`;
         }
 
         // Run when DOM is ready

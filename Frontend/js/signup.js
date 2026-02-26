@@ -42,8 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let displayPrice = price;
 
   // Find product info from config if available
-  const productData = (productId && window.pricingData)
-    ? window.pricingData.find(p => p.id === productId)
+  const productData = (productId && typeof pricingData !== 'undefined')
+    ? pricingData.find(p => p.id === productId)
     : null;
 
   if (productId && productData) {
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function displaySelectedPlan(softwareName, planName, price) {
   const planInfoElement = document.getElementById('selectedPlanInfo');
   if (planInfoElement) {
-    const isFree = !price || price === '0' || planName.toLowerCase().includes('free');
+    const isFree = !price || price === '0' || planName.toLowerCase().includes('free') || planName.toLowerCase().includes('trial');
     const badgeColor = isFree ? '#10B981' : '#4F46E5';
     const bgColor = isFree ? '#ECFDF5' : '#EEF2FF';
 

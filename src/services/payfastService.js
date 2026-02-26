@@ -47,6 +47,8 @@ const validateConfig = () => {
     }
 };
 
+const TransactionLog = require('../models/TransactionLog');
+
 /**
  * getAccessToken()
  * ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +76,15 @@ const getAccessToken = async ({ amount, basketId, currency = 'PKR' }) => {
         const response = await payfastHttp.post(PAYFAST_TOKEN_URL, payload);
         const data = response.data;
 
+        // Log the successful token request
+        await TransactionLog.create({
+            type: 'PAYFAST_TOKEN_REQUEST',
+            basketId: basketId,
+            payload: { MERCHANT_ID: payload.MERCHANT_ID, TXNAMT: payload.TXNAMT, BASKET_ID: basketId },
+            response: data,
+            status: 'success'
+        }).catch(err => console.error('[PayFast Service] Failed to log token request:', err.message));
+
         // GoPayFast returns { ACCESS_TOKEN: "...", MERCHANT_ID: "..." }  on success
         if (!data || !data.ACCESS_TOKEN) {
             throw new Error(
@@ -83,6 +94,15 @@ const getAccessToken = async ({ amount, basketId, currency = 'PKR' }) => {
 
         return data.ACCESS_TOKEN;
     } catch (err) {
+        // Log the failed token request
+        await TransactionLog.create({
+            type: 'PAYFAST_TOKEN_REQUEST',
+            basketId: basketId,
+            payload: { MERCHANT_ID: payload.MERCHANT_ID, TXNAMT: payload.TXNAMT, BASKET_ID: basketId },
+            response: err.response ? err.response.data : { message: err.message },
+            status: 'failed'
+        }).catch(lerr => console.error('[PayFast Service] Failed to log failed token request:', lerr.message));
+
         if (err.response) {
             // PayFast returned an HTTP error
             throw new Error(

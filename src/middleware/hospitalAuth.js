@@ -80,11 +80,19 @@ const bridgeHospitalAuth = async (req, res, next) => {
         return next();
     }
 
-    // 2. Check for Master JWT Token
+    // 2. Check for Master JWT Token (Cookies or Header)
     try {
-        const authHeader = req.headers.authorization || req.headers['x-auth-token'];
-        if (authHeader) {
-            const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
+        let token = null;
+        if (req.cookies && req.cookies.authToken) {
+            token = req.cookies.authToken;
+        } else {
+            const authHeader = req.headers.authorization || req.headers['x-auth-token'];
+            if (authHeader) {
+                token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
+            }
+        }
+
+        if (token) {
             const decoded = verifyToken(token);
             const user = await User.findById(decoded.userId);
 

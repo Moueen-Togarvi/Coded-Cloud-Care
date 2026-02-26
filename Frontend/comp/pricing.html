@@ -1001,119 +1001,9 @@
   </section>
 
   <script>
-    function renderPricingCards() {
-      const container = document.getElementById('pricing-cards-container');
-      if (!container || !pricingData) return;
-
-      container.innerHTML = pricingData.map(plan => `
-                <div class="price-card ${plan.highlight ? 'card-highlight' : 'card-standard'}" id="card-${plan.id}">
-                    <div class="plan-name">${plan.name}</div>
-                    <div class="price-display" id="display-${plan.id}">
-                        <span class="main-price">PKR ${plan.pricing.monthly.price}</span>
-                        <span class="main-period">/${plan.pricing.monthly.period}</span>
-                    </div>
-                    <p style="color: ${plan.highlight ? '#e0e7ff' : '#6b7280'}; font-size: 0.9rem; margin-bottom: 1.5rem">
-                        ${plan.description}
-                    </p>
-                    
-                    <div class="pricing-tiers">
-                        <div class="tier-item active" onclick="updateTier('${plan.id}', 'monthly')">
-                            <div class="tier-label">${plan.pricing.monthly.label}</div>
-                            <div class="tier-price-row">
-                                <span class="tier-price">PKR ${plan.pricing.monthly.price}</span>
-                                <span class="tier-period">/${plan.pricing.monthly.period}</span>
-                            </div>
-                        </div>
-                        <div class="tier-item" onclick="updateTier('${plan.id}', 'yearly')">
-                            <div class="tier-label">${plan.pricing.yearly.label}</div>
-                            <div class="tier-price-row">
-                                <span class="tier-price">PKR ${plan.pricing.yearly.price}</span>
-                                <span class="tier-period">/${plan.pricing.yearly.period}</span>
-                            </div>
-                        </div>
-                        <div class="tier-item" onclick="updateTier('${plan.id}', 'outright')">
-                            <div class="tier-label">${plan.pricing.outright.label}</div>
-                            <div class="tier-price-row">
-                                <span class="tier-price">PKR ${plan.pricing.outright.price}</span>
-                                <span class="tier-period">/${plan.pricing.outright.period}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <ul class="features-list">
-                        ${plan.features.map(feature => `
-                            <li><i class="fa-solid fa-check"></i> ${feature}</li>
-                        `).join('')}
-                    </ul>
-                    
-                    <button class="btn-price ${plan.highlight ? 'btn-white' : 'btn-outline'}" 
-                            id="btn-${plan.id}"
-                            onclick="selectPlan('${plan.id}', 'monthly')">
-                        Get ${plan.name}
-                    </button>
-                </div>
-            `).join('');
-    }
-
-    function updateTier(planId, tierKey) {
-      const plan = pricingData.find(p => p.id === planId);
-      if (!plan) return;
-
-      const tier = plan.pricing[tierKey];
-
-      // Update price display
-      const display = document.getElementById(`display-${planId}`);
-      display.querySelector('.main-price').textContent = `PKR ${tier.price}`;
-      display.querySelector('.main-period').textContent = `/${tier.period}`;
-
-      // Update active tier UI
-      const card = document.getElementById(`card-${planId}`);
-      card.querySelectorAll('.tier-item').forEach(item => item.classList.remove('active'));
-
-      // Find the clicked tier item
-      const tierItems = card.querySelectorAll('.tier-item');
-      if (tierKey === 'monthly') tierItems[0].classList.add('active');
-      else if (tierKey === 'yearly') tierItems[1].classList.add('active');
-      else if (tierKey === 'outright') tierItems[2].classList.add('active');
-
-      // Update button action
-      const btn = document.getElementById(`btn-${planId}`);
-      btn.setAttribute('onclick', `selectPlan('${planId}', '${tierKey}')`);
-    }
-
-    function selectPlan(planId, tierKey) {
-      const plan = pricingData.find(p => p.id === planId);
-      const tier = plan.pricing[tierKey];
-
-      // Map tier keys to plan types expected by backend
-      const planTypeMap = {
-        'monthly': 'subscription',
-        'yearly': 'subscription',
-        'outright': 'one-time'
-      };
-
-      const planType = planTypeMap[tierKey] || 'subscription';
-
-      const planName = `${plan.name} - ${tier.label}`;
-      const price = tier.price;
-
-      // Redirect to signup with plan information
-      window.location.href = `./Signup.html?plan=${planType}&planName=${encodeURIComponent(planName)}&price=${encodeURIComponent(price)}&product=${planId}&tier=${tierKey}`;
-    }
-  </script>
-
-  <script>
     function renderSoftwareCards() {
       const container = document.getElementById('pricing-cards-container');
       if (!container || typeof pricingData === 'undefined') return;
-
-      const pageMap = {
-        'hospital-pms': 'pricing-hospital-pms.html',
-        'pharmacy-pos': 'pricing-pharmacy-pos.html',
-        'lab-reporting': 'in-progress.html',
-        'quick-invoice': 'in-progress.html',
-        'private-clinic-lite': 'in-progress.html'
-      };
 
       container.innerHTML = pricingData.map(plan => `
         <div id="pricing-software-card-${plan.id}" class="software-card ${plan.highlight ? 'highlight' : ''}">
@@ -1125,7 +1015,7 @@
               <li><i class="fa-solid fa-circle-check"></i> ${feature}</li>
             `).join('')}
           </ul>
-          <a id="btn-view-pricing-${plan.id}" href="${pageMap[plan.id]}" class="btn-view-pricing">
+          <a id="btn-view-pricing-${plan.id}" href="product-pricing.html?product=${plan.id}" class="btn-view-pricing">
             Get Started
           </a>
         </div>

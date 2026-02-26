@@ -84,8 +84,15 @@ const showInfo = (message) => {
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 const saveAuthToken = (token, productId) => {
-  sessionStorage.setItem('authToken', token);
-  sessionStorage.setItem('token', token);
+  // We no longer save the token to sessionStorage for better security (XSS)
+  // The server now handles the token via httpOnly cookies.
+
+  // We keep the legacy save if needed for specific non-browser clients, 
+  // but for the browser we prioritize cookies.
+  if (token) {
+    sessionStorage.setItem('authToken_legacy', token);
+  }
+
   sessionStorage.setItem('loginTimestamp', Date.now().toString());
 
   if (productId) {
@@ -94,10 +101,9 @@ const saveAuthToken = (token, productId) => {
     sessionStorage.removeItem('productId');
   }
 
-  // Clear localStorage to ensure no persistent sessions
+  // Clear legacy localStorage
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
-  localStorage.removeItem('productId');
 };
 
 const getAuthToken = () => {
@@ -105,12 +111,7 @@ const getAuthToken = () => {
 };
 
 const removeAuthToken = () => {
-  sessionStorage.removeItem('authToken');
-  sessionStorage.removeItem('token');
-  sessionStorage.removeItem('productId');
-  sessionStorage.removeItem('loginTimestamp');
-
-  // Also clear localStorage
+  sessionStorage.clear();
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
   localStorage.removeItem('productId');
@@ -118,9 +119,7 @@ const removeAuthToken = () => {
 
 // Check if user is authenticated and session is still valid
 const isAuthenticated = () => {
-  const token = getAuthToken();
-  if (!token) return false;
-
+  // Since authToken is now httpOnly, we check for the loginTimestamp as a 'soft' login indicator
   const loginTimestamp = sessionStorage.getItem('loginTimestamp');
   if (!loginTimestamp) return false;
 
@@ -132,8 +131,6 @@ const isAuthenticated = () => {
     return false;
   }
 
-  // Update timestamp on activity (optional but requested "always auth mangy")
-  // For "always auth" we might NOT want to update it, but let's stick to simple expiry for now.
   return true;
 };
 
@@ -222,23 +219,32 @@ window.authenticatedFetch = authenticatedFetch;
 
 // Make authenticated API requests
 const authenticatedFetch = async (url, options = {}) => {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error('No authentication token found');
-  }
-
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
     ...options.headers,
   };
 
-  const response = await fetch(url, { ...options, headers });
+  // If we have a legacy token in session, attach it (for transition period)
+  const token = sessionStorage.getItem('authToken_legacy');
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  // Ensure credentials are included so the browser sends the httpOnly cookie
+  const fetchOptions = {
+    ...options,
+    headers,
+    credentials: 'include'
+  };
+
+  const response = await fetch(url, fetchOptions);
 
   // If unauthorized, logout user
   if (response.status === 401) {
     removeAuthToken();
-    window.location.href = '/Frontend/comp/Login.html';
+    if (!url.includes('/api/auth/session')) { // Avoid loops on background checks
+      window.location.href = '/Frontend/comp/Login.html';
+    }
     throw new Error('Session expired. Please login again.');
   }
 

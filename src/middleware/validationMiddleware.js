@@ -47,7 +47,7 @@ const isValidObjectId = (id) => {
 /**
  * Validate numeric value
  */
-const isValidNumber = (value, min = null, max = null) => {
+const isValidNumber = (value, min = 0, max = null) => {
   const num = Number(value);
   if (isNaN(num)) return false;
   if (min !== null && num < min) return false;
