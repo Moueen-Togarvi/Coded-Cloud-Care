@@ -51,6 +51,7 @@ app.use(helmet({
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
       "script-src": ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+      "script-src-attr": ["'unsafe-inline'"],
       "img-src": ["'self'", "data:", "https:", "http:"],
     },
   },

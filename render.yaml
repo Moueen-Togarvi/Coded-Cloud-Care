@@ -1,10 +1,15 @@
 services:
-  # Frontend Static Site
+  # Multi-tenant PMS Web Service (Frontend + Backend)
   - type: web
-    name: pms-frontend
-    env: static
-    staticPublishPath: .
-    buildCommand: ""
+    name: coded-cloud-care
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
     headers:
       - path: /*
         name: Cache-Control

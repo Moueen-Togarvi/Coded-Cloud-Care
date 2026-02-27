@@ -2,9 +2,14 @@ const pricingData = [
     {
         id: "hospital-pms",
         name: "Hospital PMS",
-        description: "Complete Patient Management System for modern hospitals.",
+        description: "The all-in-one command center for your high-performing hospital.",
         highlight: true,
-        image: "../images/d2.png",
+        image: "../images/hospital_pms_new.png",
+        hardwareAddon: {
+            name: "ZKTeco K50",
+            image: "../images/zkteco_k50.png",
+            note: "Free biometric device with Annual Plan"
+        },
         features: [
             "Electronic Health Records (EHR)",
             "Appointment Scheduling",
@@ -39,9 +44,9 @@ const pricingData = [
     {
         id: "pharmacy-pos",
         name: "Pharmacy POS",
-        description: "Efficient Point of Sale for pharmacies.",
+        description: "Lightning-fast billing & inventory management for smart pharmacies.",
         highlight: false,
-        image: "../images/d1.png",
+        image: "../images/pharmacy_pos_ui_only.png",
         features: [
             "Quick Checkout",
             "Inventory Tracking",
@@ -153,6 +158,11 @@ const pricingData = [
         description: "Essential tools for private practitioners.",
         highlight: false,
         image: "../images/ai_v7_pastel.png",
+        hardwareAddon: {
+            name: "ZKTeco K50",
+            image: "../images/zkteco_k50.png",
+            note: "Free biometric device with Annual Plan"
+        },
         features: [
             "Basic Patient Records",
             "Appointment Calendar",

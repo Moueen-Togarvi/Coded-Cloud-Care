@@ -673,6 +673,17 @@
                         <span class="currency">PKR</span> ${tier.data.price}
                         <span class="price-period">${tier.data.period ? '/' + tier.data.period : ''}</span>
                     </div>
+
+                    ${product.hardwareAddon && tier.key === 'yearly' ? `
+                        <div class="hardware-addon" style="background: rgba(79, 70, 229, 0.05); border: 1px dashed var(--primary-color); border-radius: 10px; padding: 12px; margin: 15px 0; display: flex; align-items: center; gap: 12px;">
+                            <img src="${product.hardwareAddon.image}" style="width: 45px; height: 45px; object-fit: contain;">
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.75rem; color: var(--primary-color);">FREE HARDWARE INCLUDED</div>
+                                <div style="font-size: 0.7rem; color: var(--text-gray);">${product.hardwareAddon.note}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
                     
                     <ul class="features-list">
                         ${product.features.map(f => `
@@ -680,7 +691,7 @@
                         `).join('')}
                     </ul>
 
-                    <button class="btn-select" id="btn-${tier.key}" onclick="selectPlan('${product.id}', '${tier.key}', this)">
+                    <button class="btn-select select-plan-trigger" id="btn-${tier.key}" data-product="${product.id}" data-tier="${tier.key}">
                         ${tier.key === 'free' ? 'Start Free Trial' : 'Start Subscription'}
                     </button>
                 </div>
@@ -691,30 +702,77 @@
          * Standardized Plan Selection
          * Uses PayFastCheckout for paid plans
          */
-        function selectPlan(planId, tierKey, triggerBtn) {
+        /**
+         * Standardized Plan Selection
+         * Uses PayFastCheckout for paid plans
+         */
+        window.selectPlan = function (planId, tierKey, triggerBtn) {
+            console.log('[Pricing] Plan selected:', planId, tierKey);
+
             // Paid plans (PayFast)
             if (tierKey === 'monthly' || tierKey === 'yearly') {
                 if (typeof PayFastCheckout !== 'undefined') {
+                    console.log('[Pricing] Calling PayFastCheckout...');
                     PayFastCheckout.initiatePayment(planId, tierKey, triggerBtn);
                 } else {
-                    // Fallback if script not loaded
+                    console.warn('[Pricing] PayFastCheckout not found, falling back to Signup');
                     window.location.href = `./Signup.html?product=${planId}&tier=${tierKey}&plan=subscription`;
                 }
                 return;
             }
 
-            // Free Trial
-            if (tierKey === 'free') {
-                window.location.href = `./Signup.html?plan=trial&product=${planId}&tier=free`;
-                return;
-            }
+            try {
+                // Free Trial
+                if (tierKey === 'free') {
+                    console.log('[Pricing] Routing to Signup for Free Trial');
+                    window.location.href = `./Signup.html?plan=trial&product=${planId}&tier=free`;
+                    return;
+                }
 
-            // Outright / Contact
-            window.location.href = `./Contact.html?inquiry=pricing&product=${planId}&tier=${tierKey}`;
+                // Outright / Contact
+                console.log('[Pricing] Routing to Contact for Outright Plan');
+                window.location.href = `./Contact.html?inquiry=pricing&product=${planId}&tier=${tierKey}`;
+            } catch (err) {
+                console.error('[Pricing] Critical error in selectPlan:', err);
+                alert('An error occurred. Please try again or contact support.');
+            }
         }
 
         // Run when DOM is ready
-        document.addEventListener('DOMContentLoaded', renderTieredCards);
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTieredCards();
+
+            // Event Delegation for selectPlan
+            const container = document.getElementById('tiered-cards-container');
+            if (container) {
+                container.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.select-plan-trigger');
+                    if (btn) {
+                        const productId = btn.dataset.product;
+                        const tierKey = btn.dataset.tier;
+                        if (productId && tierKey) {
+                            selectPlan(productId, tierKey, btn);
+                        }
+                    }
+                });
+            }
+
+            // Auto-resume payment logic
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('resume') === 'payment') {
+                const productId = urlParams.get('product') || urlParams.get('id');
+                const tier = urlParams.get('tier') || 'monthly';
+                const triggerBtn = document.getElementById(`btn-${tier}`);
+
+                if (productId && typeof PayFastCheckout !== 'undefined') {
+                    console.log(`[Pricing] Auto-resuming payment for ${productId} (${tier})`);
+                    // Small delay to ensure render is complete
+                    setTimeout(() => {
+                        PayFastCheckout.initiatePayment(productId, tier, triggerBtn);
+                    }, 500);
+                }
+            }
+        });
     </script>
 </body>
 

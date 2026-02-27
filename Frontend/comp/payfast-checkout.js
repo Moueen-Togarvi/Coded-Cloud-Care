@@ -44,7 +44,7 @@ const PayFastCheckout = (() => {
     };
 
     // ── Auth helper — reads sessionStorage (same as auth.js) ──────────────────
-    const getToken = () => sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+    const getToken = () => sessionStorage.getItem('authToken') || sessionStorage.getItem('authToken_legacy') || sessionStorage.getItem('token');
     const isLoggedIn = () => {
         const token = getToken();
         if (!token) return false;
@@ -305,7 +305,7 @@ const PayFastCheckout = (() => {
         }
     };
 
-    return {
+    window.PayFastCheckout = {
         initiatePayment,
         resumePendingPaymentIfAny,
         handlePaymentStatusPage,
@@ -313,6 +313,8 @@ const PayFastCheckout = (() => {
         getPendingIntent,
         clearPendingIntent,
     };
+
+    return window.PayFastCheckout;
 })();
 
 // ── Inject CSS ───────────────────────────────────────────────────────────────

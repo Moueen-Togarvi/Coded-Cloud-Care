@@ -177,11 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Redirect to the matching pricing page with resume=payment so PayFast auto-fires
           setTimeout(() => {
-            window.location.href = `./pricing-${productId}.html?resume=payment`;
+            window.location.href = `./product-pricing.html?product=${productId}&resume=payment`;
           }, 1500);
         } catch (_) {
           // Fallback: just go to pricing page so user can click subscribe again
-          window.location.href = `./pricing-${productId}.html`;
+          window.location.href = `./product-pricing.html?product=${productId}`;
         }
         return;
       }

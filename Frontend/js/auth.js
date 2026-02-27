@@ -90,6 +90,7 @@ const saveAuthToken = (token, productId) => {
   // We keep the legacy save if needed for specific non-browser clients, 
   // but for the browser we prioritize cookies.
   if (token) {
+    sessionStorage.setItem('authToken', token);
     sessionStorage.setItem('authToken_legacy', token);
   }
 
@@ -107,7 +108,7 @@ const saveAuthToken = (token, productId) => {
 };
 
 const getAuthToken = () => {
-  return sessionStorage.getItem('authToken');
+  return sessionStorage.getItem('authToken') || sessionStorage.getItem('authToken_legacy');
 };
 
 const removeAuthToken = () => {
@@ -225,7 +226,7 @@ const authenticatedFetch = async (url, options = {}) => {
   };
 
   // If we have a legacy token in session, attach it (for transition period)
-  const token = sessionStorage.getItem('authToken_legacy');
+  const token = getAuthToken();
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }

@@ -1010,6 +1010,17 @@
           <img src="${plan.image}" alt="${plan.name}" class="software-img">
           <div class="plan-name">${plan.name}</div>
           <p class="description">${plan.description}</p>
+          
+          ${plan.hardwareAddon ? `
+            <div class="hardware-bonus-tag" style="background: rgba(79, 70, 229, 0.1); border: 1px dashed var(--primary-color); border-radius: 12px; padding: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+              <img src="${plan.hardwareAddon.image}" style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px;">
+              <div style="text-align: left;">
+                <div style="font-weight: 700; font-size: 0.8rem; color: var(--primary-color);">FREE DEVICE INCLUDED</div>
+                <div style="font-size: 0.75rem; color: #64748b;">${plan.hardwareAddon.note}</div>
+              </div>
+            </div>
+          ` : ''}
+
           <ul class="features-list">
             ${plan.features.slice(0, 4).map(feature => `
               <li><i class="fa-solid fa-circle-check"></i> ${feature}</li>
