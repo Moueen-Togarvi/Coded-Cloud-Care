@@ -1,4 +1,8 @@
 /* Shared Design Tokens & Root Variables */
+* {
+    box-sizing: border-box;
+}
+
 :root {
     --primary-color: #4f46e5;
     --primary-dark: #4338ca;
@@ -39,7 +43,8 @@
     border-radius: 100px;
     padding: 0.8rem 1.5rem !important;
     display: flex;
-    justify-content: space-between;
+    flex-direction: row !important;
+    justify-content: space-between !important;
     align-items: center;
     z-index: 2000;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);

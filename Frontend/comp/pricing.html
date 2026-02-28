@@ -506,13 +506,7 @@
     }
 
 
-    /* Responsive */
     @media (max-width: 768px) {
-      .navbar {
-        flex-direction: column;
-        gap: 1rem;
-      }
-
       .pricing-container {
         flex-direction: column;
         padding: 0 1rem;
@@ -545,7 +539,9 @@
       border: 1px solid #eaeaea;
       /* Very light border */
       text-align: left;
-      overflow: hidden;
+      overflow: visible;
+      height: auto;
+      min-height: min-content;
     }
 
     .software-card:hover {
@@ -899,7 +895,7 @@
 
     <!-- Mobile Toggle Button -->
     <button class="navbar-toggler d-lg-none" type="button" onclick="toggleMenu()">
-      <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
+      <i class="bi bi-list" style="font-size: 30px;"></i>
     </button>
 
     <!-- Desktop Nav Links -->
@@ -1077,7 +1073,7 @@
   <footer class="footer">
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
       <div class="row" style="display: flex; flex-wrap: wrap;">
-        <div class="col-lg-4 mb-4 mb-lg-0" style="flex: 0 0 auto; width: 33.33333333%;">
+        <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
           <a href="#" class="footer-brand">Cloud Care Systems</a>
           <p>A product by <strong>Coded Clouds</strong>. <br>Making healthcare management simple, efficient, and secure
             for everyone.</p>
@@ -1088,13 +1084,13 @@
                 class="bi bi-linkedin"></i></a>
           </div>
         </div>
-        <div class="col-6 col-lg-2" style="flex: 0 0 auto; width: 16.66666667%;">
+        <div class="col-6 col-lg-2">
           <h5>Company</h5>
           <a href="f.html" class="footer-link">Feature</a>
           <a href="pricing.html" class="footer-link">pricing</a>
           <a href="Contact.html" class="footer-link">Contact</a>
         </div>
-        <div class="col-lg-3 mt-4 mt-lg-0" style="flex: 0 0 auto; width: 25%;">
+        <div class="col-lg-3 col-md-6 mt-4 mt-lg-0">
           <h5>Contact Us</h5>
           <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i>Lahore, Punjab, Pakistan</p>
           <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i>hashim@codedclouds.org</p>

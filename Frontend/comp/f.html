@@ -509,221 +509,16 @@
         }
 
         @media (max-width: 991px) {
-            .navbar {
-                flex-wrap: wrap;
-            }
-
             .mobile-menu.active {
                 display: flex !important;
             }
         }
     </style>
 </head>
-<div class="mouse-cursor cursor-outer"></div>
-<div class="mouse-cursor cursor-inner"></div>
-
-<style>
-    /* --- MOUSE CURSOR STYLES --- */
-    .mouse-cursor {
-        position: fixed;
-        top: 0;
-        left: 0;
-        pointer-events: none;
-        /* Click through */
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 9999;
-        /* Sab se upar */
-        transition: width 0.3s, height 0.3s, background-color 0.3s;
-    }
-
-    /* Inner Dot */
-    .cursor-inner {
-        width: 8px;
-        height: 8px;
-        background-color: #4f46e5;
-        /* Theme Purple */
-    }
-
-    /* Outer Ring with Medical Plus */
-    .cursor-outer {
-        width: 40px;
-        height: 40px;
-        border: 1px solid rgba(79, 70, 229, 0.5);
-        background-color: rgba(79, 70, 229, 0.05);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(2px);
-    }
-
-    /* The Plus Sign (+) */
-    .cursor-outer::after {
-        content: '+';
-        font-family: Arial, sans-serif;
-        font-size: 20px;
-        color: #4f46e5;
-        font-weight: 300;
-        opacity: 0.6;
-        transition: all 0.3s ease;
-    }
-
-    /* Hover Effect (Expand) */
-    body.mouse-hover .cursor-outer {
-        width: 60px;
-        height: 60px;
-        background-color: rgba(79, 70, 229, 0.1);
-        border-color: #4f46e5;
-    }
-
-    body.mouse-hover .cursor-inner {
-        opacity: 0;
-        /* Dot gayab */
-    }
-
-    body.mouse-hover .cursor-outer::after {
-        opacity: 1;
-        transform: scale(1.2) rotate(90deg);
-        /* Rotate animation */
-    }
-
-    /* Hide on Mobile */
-    @media (max-width: 991px) {
-        .mouse-cursor {
-            display: none;
-        }
-    }
-
-    /* --- BUBBLE STYLES --- */
-    .magic-bubble {
-        position: fixed;
-        border-radius: 50%;
-        /* Glassy Purple Bubble */
-        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(79, 70, 229, 0.6));
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-        pointer-events: none;
-        z-index: 9998;
-        /* Cursor k neeche */
-
-        /* Initial State for Animation */
-        top: var(--start-y);
-        left: var(--start-x);
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0;
-
-        /* Animation Call */
-        animation: floatToCeiling var(--duration) ease-out forwards;
-    }
-
-    @keyframes floatToCeiling {
-        0% {
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 0;
-            top: var(--start-y);
-        }
-
-        10% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        85% {
-            /* Chatt (Ceiling) par pohanch gaya */
-            top: 0px;
-            transform: translate(-50%, 0) scale(1);
-            opacity: 0.8;
-        }
-
-        100% {
-            /* Pop & Vanish */
-            top: -10px;
-            transform: translate(-50%, -20px) scale(1.5);
-            /* Thora phool kr phat gaya */
-            opacity: 0;
-        }
-    }
-</style>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-
-        // --- PART A: MOUSE TRACKER LOGIC ---
-        const cursorInner = document.querySelector('.cursor-inner');
-        const cursorOuter = document.querySelector('.cursor-outer');
-
-        let mouseX = 0;
-        let mouseY = 0;
-        let outerX = 0;
-        let outerY = 0;
-        const speed = 0.15; // Elasticity Speed
-
-        // Track Mouse
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-
-            // Inner Dot moves instantly
-            cursorInner.style.left = mouseX + 'px';
-            cursorInner.style.top = mouseY + 'px';
-        });
-
-        // Animation Loop for Outer Ring
-        function animateCursor() {
-            outerX += (mouseX - outerX) * speed;
-            outerY += (mouseY - outerY) * speed;
-
-            cursorOuter.style.left = outerX + 'px';
-            cursorOuter.style.top = outerY + 'px';
-
-            requestAnimationFrame(animateCursor);
-        }
-        animateCursor();
-
-        // Hover Effect on Clickable Items
-        const clickables = document.querySelectorAll('a, button, .btn, .card, input, textarea');
-        clickables.forEach(el => {
-            el.addEventListener('mouseenter', () => document.body.classList.add('mouse-hover'));
-            el.addEventListener('mouseleave', () => document.body.classList.remove('mouse-hover'));
-        });
-
-
-        // --- PART B: BUBBLE CLICK LOGIC ---
-        document.addEventListener('click', function (e) {
-
-            // Create Bubble
-            const bubble = document.createElement('div');
-            bubble.classList.add('magic-bubble');
-
-            // 1. Random Size
-            const size = Math.random() * 20 + 15; // 15px se 35px
-            bubble.style.width = `${size}px`;
-            bubble.style.height = `${size}px`;
-
-            // 2. Position Set (CSS Variables)
-            bubble.style.setProperty('--start-x', `${e.clientX}px`);
-            bubble.style.setProperty('--start-y', `${e.clientY}px`);
-
-            // 3. Dynamic Duration (Distance to Top)
-            // Jitna neeche click, utna time lagega upar jane mein (Realistic Physics)
-            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8;
-            bubble.style.setProperty('--duration', `${duration}s`);
-
-            // 4. Random Wobble (Thora left-right hilna)
-            const wobble = (Math.random() - 0.5) * 30;
-            bubble.style.marginLeft = `${wobble}px`;
-
-            document.body.appendChild(bubble);
-
-            // Cleanup after animation
-            setTimeout(() => {
-                bubble.remove();
-            }, duration * 1000 + 100);
-        });
-
-    });
-</script>
 
 <body>
+    <div class="mouse-cursor cursor-outer"></div>
+    <div class="mouse-cursor cursor-inner"></div>
 
     <nav class="navbar">
         <a class="navbar-brand" href="../../index.html">
@@ -731,8 +526,8 @@
             <span class="brand-text">Cloud Care Systems.</span>
         </a>
 
-        <button class="navbar-toggler" type="button" onclick="toggleMenu()" style="display: none;">
-            <i class="fa-solid fa-bars" style="font-size: 24px;"></i>
+        <button class="navbar-toggler" type="button" onclick="toggleMenu()">
+            <i class="bi bi-list" style="font-size: 30px;"></i>
         </button>
 
         <div class="nav-links d-none d-lg-flex">
@@ -852,7 +647,7 @@
         <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
             <div class="row" style="display: flex; flex-wrap: wrap;">
 
-                <div class="col-lg-4 mb-4 mb-lg-0" style="flex: 0 0 auto; width: 33.33333333%;">
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
                     <a href="#" class="footer-brand">Cloud Care Systems</a>
                     <p>
                         A product by <strong>Coded Clouds</strong>. <br>
@@ -867,14 +662,14 @@
                     </div>
                 </div>
 
-                <div class="col-6 col-lg-2" style="flex: 0 0 auto; width: 16.66666667%;">
+                <div class="col-6 col-lg-2">
                     <h5>Company</h5>
                     <a href="f.html" class="footer-link">Feature</a>
                     <a href="pricing.html" class="footer-link">pricing</a>
                     <a href="Contact.html" class="footer-link">Contact</a>
                 </div>
 
-                <div class="col-lg-3 mt-4 mt-lg-0" style="flex: 0 0 auto; width: 25%;">
+                <div class="col-lg-3 col-md-6 mt-4 mt-lg-0">
                     <h5>Contact Us</h5>
                     <p class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i> Lahore, Punjab, Pakistan</p>
                     <p class="mb-2"><i class="bi bi-envelope-fill me-2"></i> hashim@codedclouds.org</p>
