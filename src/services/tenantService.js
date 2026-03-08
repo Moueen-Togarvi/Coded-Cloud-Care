@@ -53,6 +53,11 @@ const createTenantDatabase = async (tenantDbName) => {
     const AccountLedger = tenantConnection.model('AccountLedger', schemas.accountLedgerSchema);
     const TaxRecord = tenantConnection.model('TaxRecord', schemas.taxRecordSchema);
 
+    // Lab Models
+    const LabTest = tenantConnection.model('LabTest', schemas.labTestSchema);
+    const LabOrder = tenantConnection.model('LabOrder', schemas.labOrderSchema);
+    const LabReport = tenantConnection.model('LabReport', schemas.labReportSchema);
+
     // Wait for connection to be established
     await new Promise((resolve, reject) => {
       tenantConnection.once('open', resolve);
@@ -83,6 +88,11 @@ const createTenantDatabase = async (tenantDbName) => {
     await Expense.createCollection();
     await AccountLedger.createCollection();
     await TaxRecord.createCollection();
+
+    // Lab collections
+    await LabTest.createCollection();
+    await LabOrder.createCollection();
+    await LabReport.createCollection();
 
     const tenantDbUrl = `${process.env.MONGO_TENANT_BASE_URI}/${tenantDbName}`;
 

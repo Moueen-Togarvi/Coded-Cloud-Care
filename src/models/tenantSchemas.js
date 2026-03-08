@@ -9,11 +9,17 @@ const mongoose = require('mongoose');
 // Core Schemas
 const patientSchema = new mongoose.Schema({
     tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    patientCode: { type: String, trim: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: String,
     phone: String,
+    gender: { type: String, enum: ['male', 'female', 'other'] },
+    age: Number,
     dateOfBirth: Date,
+    cnic: String,
+    bloodGroup: String,
+    referredBy: String,
     address: String,
     medicalHistory: String,
     isActive: { type: Boolean, default: true },
@@ -219,7 +225,7 @@ const invoiceSchema = new mongoose.Schema({
     invoiceNumber: { type: String, unique: true, required: true },
     patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
     customerName: String,
-    type: { type: String, enum: ['patient', 'pharmacy', 'other'], default: 'patient' },
+    type: { type: String, enum: ['patient', 'pharmacy', 'lab', 'other'], default: 'patient' },
     items: [{
         description: String,
         amount: Number,
@@ -342,6 +348,117 @@ const taxRecordSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
+// Lab Management Schemas
+const labTestSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    code: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true },
+    category: { type: String, default: 'General' },
+    sampleType: { type: String, default: 'Blood' },
+    price: { type: Number, required: true, min: 0 },
+    turnaroundHours: { type: Number, default: 24, min: 1 },
+    normalRange: String,
+    unit: String,
+    description: String,
+    isActive: { type: Boolean, default: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+});
+
+labTestSchema.index({ tenantId: 1, code: 1 }, { unique: true });
+labTestSchema.index({ tenantId: 1, name: 1 });
+
+const labOrderSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    orderNumber: { type: String, required: true, unique: true, trim: true },
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true, index: true },
+    patientName: { type: String, required: true },
+    tests: [{
+        testId: { type: mongoose.Schema.Types.ObjectId, ref: 'LabTest', required: true },
+        code: String,
+        name: String,
+        sampleType: String,
+        price: { type: Number, required: true, min: 0 },
+        status: {
+            type: String,
+            enum: ['pending', 'processing', 'completed', 'cancelled'],
+            default: 'pending',
+        },
+        notes: String,
+    }],
+    priority: { type: String, enum: ['routine', 'urgent', 'stat'], default: 'routine' },
+    orderDate: { type: Date, default: Date.now },
+    sampleCollectedAt: Date,
+    status: {
+        type: String,
+        enum: ['registered', 'sample_collected', 'processing', 'completed', 'reported', 'cancelled'],
+        default: 'registered',
+    },
+    reportStatus: {
+        type: String,
+        enum: ['not_started', 'in_progress', 'ready', 'delivered'],
+        default: 'not_started',
+    },
+    billingStatus: {
+        type: String,
+        enum: ['unbilled', 'unpaid', 'partially_paid', 'paid', 'cancelled'],
+        default: 'unbilled',
+    },
+    invoiceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' },
+    subtotal: { type: Number, default: 0, min: 0 },
+    discountAmount: { type: Number, default: 0, min: 0 },
+    taxAmount: { type: Number, default: 0, min: 0 },
+    totalAmount: { type: Number, default: 0, min: 0 },
+    referredBy: String,
+    notes: String,
+    createdBy: String,
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+});
+
+labOrderSchema.index({ tenantId: 1, orderDate: -1 });
+labOrderSchema.index({ tenantId: 1, status: 1 });
+
+const labReportSchema = new mongoose.Schema({
+    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    reportNumber: { type: String, required: true, unique: true, trim: true },
+    orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'LabOrder', required: true, unique: true, index: true },
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+    patientName: String,
+    tests: [{
+        testId: { type: mongoose.Schema.Types.ObjectId, ref: 'LabTest' },
+        code: String,
+        name: String,
+        resultValue: String,
+        resultText: String,
+        unit: String,
+        normalRange: String,
+        flag: {
+            type: String,
+            enum: ['normal', 'high', 'low', 'critical', 'abnormal'],
+            default: 'normal',
+        },
+        remarks: String,
+    }],
+    summary: String,
+    interpretation: String,
+    recommendations: String,
+    verifiedBy: String,
+    verifiedAt: Date,
+    deliveredAt: Date,
+    status: {
+        type: String,
+        enum: ['draft', 'finalized', 'delivered'],
+        default: 'draft',
+    },
+    attachments: [String],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+});
+
+labReportSchema.index({ tenantId: 1, createdAt: -1 });
+labReportSchema.index({ tenantId: 1, status: 1 });
+
 module.exports = {
     // Core
     patientSchema,
@@ -360,5 +477,9 @@ module.exports = {
     revenueSchema,
     expenseSchema,
     accountLedgerSchema,
-    taxRecordSchema
+    taxRecordSchema,
+    // Lab
+    labTestSchema,
+    labOrderSchema,
+    labReportSchema,
 };

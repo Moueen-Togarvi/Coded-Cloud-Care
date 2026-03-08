@@ -80,8 +80,8 @@ const pricingData = [
     },
     {
         id: "lab-reporting",
-        name: "Lab Reporting",
-        description: "Streamlined pathology and diagnostic reporting.",
+        name: "Lab Management System",
+        description: "Complete workflow for diagnostics, reporting, and billing.",
         highlight: false,
         image: "../images/dash.png",
         features: [

@@ -71,6 +71,11 @@ class ConnectionManager {
         tenantModels.AccountLedger = connection.model('AccountLedger', schemas.accountLedgerSchema);
         tenantModels.TaxRecord = connection.model('TaxRecord', schemas.taxRecordSchema);
 
+        // Lab Models
+        tenantModels.LabTest = connection.model('LabTest', schemas.labTestSchema);
+        tenantModels.LabOrder = connection.model('LabOrder', schemas.labOrderSchema);
+        tenantModels.LabReport = connection.model('LabReport', schemas.labReportSchema);
+
         this.models.set(tenantDbName, tenantModels);
     }
 

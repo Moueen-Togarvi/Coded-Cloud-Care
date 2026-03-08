@@ -70,11 +70,10 @@ function displayProducts(userSubscriptions) {
     },
     {
       id: 'lab-reporting',
-      name: 'Lab Reporting',
-      description: 'Automated Lab Tests and Patient Report Generation.',
+      name: 'Lab Management System',
+      description: 'Sample tracking, reporting, invoicing, and lab operations.',
       icon: 'fa-flask',
-      color: '#f59e0b',
-      comingSoon: true
+      color: '#f59e0b'
     },
     {
       id: 'quick-invoice',

@@ -45,6 +45,11 @@ const attachTenantModels = async (req, res, next) => {
             Expense: tenantConnection.model('Expense', schemas.expenseSchema),
             AccountLedger: tenantConnection.model('AccountLedger', schemas.accountLedgerSchema),
             TaxRecord: tenantConnection.model('TaxRecord', schemas.taxRecordSchema),
+
+            // Lab Models
+            LabTest: tenantConnection.model('LabTest', schemas.labTestSchema),
+            LabOrder: tenantConnection.model('LabOrder', schemas.labOrderSchema),
+            LabReport: tenantConnection.model('LabReport', schemas.labReportSchema),
         };
 
         // Store connection for cleanup

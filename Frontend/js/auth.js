@@ -13,9 +13,9 @@ const PRODUCT_CONFIG = {
     description: 'Comprehensive pharmacy management solution'
   },
   'lab-reporting': {
-    name: 'Lab Reporting',
-    landingPage: '/Frontend/comp/in-progress.html',
-    description: 'Pathology and diagnostic reporting'
+    name: 'Lab Management System',
+    landingPage: '/lab-ms',
+    description: 'End-to-end pathology and diagnostics operations'
   },
   'quick-invoice': {
     name: 'Quick Invoice',

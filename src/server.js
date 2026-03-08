@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const { connectMasterDB } = require('./config/database');
+const { requireProductSubscription } = require('./middleware/productSubscriptionGuard');
 
 // Multi-tenant routes
 const authRoutes = require('./routes/auth');
@@ -21,6 +22,7 @@ const accountingRoutes = require('./routes/accounting');
 const settingsRoutes = require('./routes/settings');
 const adminRoutes = require('./routes/admin');
 const paymentsRoutes = require('./routes/payments');
+const labRoutes = require('./routes/lab');
 
 // Hospital PMS routes
 const hospitalAuthRoutes = require('./routes/hospitalAuth');
@@ -219,6 +221,7 @@ app.use('/api/accounting', accountingRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/lab', labRoutes);
 
 // Hospital PMS routes (prefixed)
 app.use('/api/hospital/auth', hospitalAuthRoutes);
@@ -249,6 +252,22 @@ app.use('/hospital/static', express.static(path.join(__dirname, '../Frontend/hos
 app.get(['/hospital-pms', '/hospital', '/pms'], (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend/hospital/index.html'));
 });
+
+// Serve Lab Management System frontend (protected by active subscription)
+const labMsGuard = requireProductSubscription('lab-reporting');
+app.get(['/lab-ms', '/lab-reporting', '/lab-management-system'], labMsGuard, (req, res) => {
+  res.sendFile(path.join(__dirname, '../Lab MS/Admin/admin.html'));
+});
+app.get('/lab-ms/index.html', labMsGuard, (req, res) => {
+  res.sendFile(path.join(__dirname, '../Lab MS/Admin/admin.html'));
+});
+app.use('/lab-ms', labMsGuard, express.static(path.join(__dirname, '../Lab MS'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    }
+  },
+}));
 
 // --- Secure Admin Portal URL Obfuscation ---
 app.get('/portal-secure-admin', (req, res) => {
