@@ -21,25 +21,41 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Find user by username
-        const user = await HospitalUser.findOne({ username: username.toLowerCase() });
-
-        if (!user) {
+        // Username is tenant-scoped in DB, so we must safely resolve collisions.
+        const candidates = await HospitalUser.find({ username: username.toLowerCase() }).limit(10);
+        if (!candidates.length) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid credentials',
             });
         }
 
-        // Check password
-        const isPasswordValid = await user.comparePassword(password);
+        const validUsers = [];
+        for (const candidate of candidates) {
+            // Compare against all matching usernames to avoid cross-tenant misrouting.
+            // eslint-disable-next-line no-await-in-loop
+            const isPasswordValid = await candidate.comparePassword(password);
+            if (isPasswordValid) {
+                validUsers.push(candidate);
+            }
+        }
 
-        if (!isPasswordValid) {
+        if (!validUsers.length) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid credentials',
             });
         }
+
+        if (validUsers.length > 1) {
+            return res.status(409).json({
+                success: false,
+                error: 'Ambiguous login',
+                message: 'Multiple accounts match these credentials. Please contact support.',
+            });
+        }
+
+        const user = validUsers[0];
 
         // Create session
         req.session.hospitalUserId = user._id.toString();
@@ -74,6 +90,7 @@ router.post('/login', async (req, res) => {
  * @access  Private
  */
 router.post('/logout', (req, res) => {
+    const sessionCookieName = process.env.SESSION_COOKIE_NAME || (process.env.NODE_ENV === 'production' ? '__Host-pms-sid' : 'pms-sid');
     req.session.destroy((err) => {
         if (err) {
             return res.status(500).json({
@@ -82,6 +99,9 @@ router.post('/logout', (req, res) => {
             });
         }
         res.clearCookie('connect.sid');
+        res.clearCookie('pms-sid');
+        res.clearCookie('__Host-pms-sid');
+        res.clearCookie(sessionCookieName);
         return res.json({
             success: true,
             message: 'Logged out',

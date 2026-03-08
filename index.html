@@ -15,8 +15,189 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
+        .img-dark {
+            display: none;
+        }
+
+        .img-light {
+            display: block;
+        }
+
+        [data-bs-theme="dark"] .img-light {
+            display: none;
+        }
+
+        [data-bs-theme="dark"] .img-dark {
+            display: block;
+        }
+
+        :root {
+            --primary-color: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 100px;
+            padding: 0.8rem 1.5rem !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2000;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            flex-wrap: nowrap;
+        }
+
+        .navbar>.d-flex {
+            flex-wrap: nowrap;
+            gap: 1rem;
+        }
+
+        .navbar-brand {
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 991px) {
+            .navbar {
+                width: 95%;
+                border-radius: 30px;
+                padding: 0.6rem 1.2rem !important;
+                flex-wrap: wrap;
+                /* Allow wrapping for mobile menu */
+            }
+
+            .nav-links {
+                display: none;
+                /* Hidden by default, toggled via JS */
+                width: 100%;
+                flex-direction: column;
+                gap: 1rem;
+                padding-top: 1rem;
+                padding-bottom: 0.5rem;
+                border-top: 1px solid rgba(0, 0, 0, 0.05);
+                margin-top: 0.5rem;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .btn-nav-primary {
+                display: none;
+                /* Hide 'Book a Demo' in main bar, move to menu if needed or keep hidden */
+            }
+
+            /* Reduced Brand Text Size */
+            .brand-text {
+                font-size: 14px !important;
+            }
+
+            .navbar-toggler {
+                display: block !important;
+                border: none;
+                background: none;
+                padding: 0;
+                color: #1e1b4b;
+            }
+        }
+
+        .navbar-toggler {
+            display: none;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 28px;
+            height: 28px;
+        }
+
+        @media (min-width: 992px) {
+            .brand-logo {
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        .brand-text {
+            font-size: 16px;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (min-width: 992px) {
+            .brand-text {
+                font-size: 20px;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .nav-links a {
+            color: var(--text-gray);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        .btn-nav-primary {
+            background: var(--primary-color);
+            color: white !important;
+            padding: 0.7rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: none;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        @media (min-width: 1200px) {
+            .btn-nav-primary {
+                padding: 0.7rem 2.2rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        .btn-nav-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
             font-family: 'Inter', sans-serif;
             transition: background-color 0.3s, color 0.3s;
             overflow-x: hidden;
@@ -223,8 +404,8 @@
                 display: flex !important;
             }
 
-            /* Ensure the parent column forces centering too */
-            .col-lg-6 {
+            /* Ensure hero content column centers only inside hero on mobile */
+            .hero-section .col-lg-6:first-child {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -1900,7 +2081,6 @@
         .theme-text-gradient {
             background: linear-gradient(to right, var(--theme-purple), #818cf8);
             -webkit-background-clip: text;
-            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -2089,7 +2269,93 @@
             font-size: 1.2rem;
             margin-right: 15px;
         }
-    </style>
+
+        /* --- Footer Styles --- */
+        .footer {
+            padding: 60px 0 30px 0;
+            background-color: #111827;
+            color: #d1d5db;
+            font-size: 0.95rem;
+        }
+
+        .footer-brand {
+            color: white;
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: block;
+            text-decoration: none;
+        }
+
+        .footer h5 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .footer-link {
+            color: #9ca3af;
+            text-decoration: none;
+            margin-bottom: 12px;
+            display: block;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #4f46e5;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            margin-right: 10px;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .social-icon:hover {
+            background: #4f46e5;
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px;
+            padding-top: 30px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .shiny-link {
+            font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #9ca3af 0%, #fff 50%, #9ca3af 100%);
+            background-size: 200% auto;
+            color: #fff;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine-anim 3s linear infinite;
+        }
+
+        @keyframes shine-anim {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .shiny-link:hover {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
     </style>
     <style>
         /* --- BENTO BOX GRID FEATURE SECTION --- */
@@ -2199,241 +2465,238 @@
         }
     </style>
 </head>
-
 <body>
-    <div class="mouse-cursor cursor-outer"></div>
-    <div class="mouse-cursor cursor-inner"></div>
+<div class="mouse-cursor cursor-outer"></div>
+<div class="mouse-cursor cursor-inner"></div>
 
-    <style>
-        /* --- MOUSE CURSOR STYLES --- */
+<style>
+    /* --- MOUSE CURSOR STYLES --- */
+    .mouse-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        /* Click through */
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        /* Sab se upar */
+        transition: width 0.3s, height 0.3s, background-color 0.3s;
+    }
+
+    /* Inner Dot */
+    .cursor-inner {
+        width: 8px;
+        height: 8px;
+        background-color: #4f46e5;
+        /* Theme Purple */
+    }
+
+    /* Outer Ring with Medical Plus */
+    .cursor-outer {
+        width: 40px;
+        height: 40px;
+        border: 1px solid rgba(79, 70, 229, 0.5);
+        background-color: rgba(79, 70, 229, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+    }
+
+    /* The Plus Sign (+) */
+    .cursor-outer::after {
+        content: '+';
+        font-family: Arial, sans-serif;
+        font-size: 20px;
+        color: #4f46e5;
+        font-weight: 300;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+    }
+
+    /* Hover Effect (Expand) */
+    body.mouse-hover .cursor-outer {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(79, 70, 229, 0.1);
+        border-color: #4f46e5;
+    }
+
+    body.mouse-hover .cursor-inner {
+        opacity: 0;
+        /* Dot gayab */
+    }
+
+    body.mouse-hover .cursor-outer::after {
+        opacity: 1;
+        transform: scale(1.2) rotate(90deg);
+        /* Rotate animation */
+    }
+
+    /* Hide on Mobile */
+    @media (max-width: 991px) {
         .mouse-cursor {
-            position: fixed;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            /* Click through */
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 9999;
-            /* Sab se upar */
-            transition: width 0.3s, height 0.3s, background-color 0.3s;
+            display: none;
         }
+    }
 
-        /* Inner Dot */
-        .cursor-inner {
-            width: 8px;
-            height: 8px;
-            background-color: #4f46e5;
-            /* Theme Purple */
-        }
+    /* --- BUBBLE STYLES --- */
+    .magic-bubble {
+        position: fixed;
+        border-radius: 50%;
+        /* Glassy Purple Bubble */
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(79, 70, 229, 0.6));
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        pointer-events: none;
+        z-index: 9998;
+        /* Cursor k neeche */
 
-        /* Outer Ring with Medical Plus */
-        .cursor-outer {
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(79, 70, 229, 0.5);
-            background-color: rgba(79, 70, 229, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(2px);
-        }
+        /* Initial State for Animation */
+        top: var(--start-y);
+        left: var(--start-x);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
 
-        /* The Plus Sign (+) */
-        .cursor-outer::after {
-            content: '+';
-            font-family: Arial, sans-serif;
-            font-size: 20px;
-            color: #4f46e5;
-            font-weight: 300;
-            opacity: 0.6;
-            transition: all 0.3s ease;
-        }
+        /* Animation Call */
+        animation: floatToCeiling var(--duration) ease-out forwards;
+    }
 
-        /* Hover Effect (Expand) */
-        body.mouse-hover .cursor-outer {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(79, 70, 229, 0.1);
-            border-color: #4f46e5;
-        }
-
-        body.mouse-hover .cursor-inner {
-            opacity: 0;
-            /* Dot gayab */
-        }
-
-        body.mouse-hover .cursor-outer::after {
-            opacity: 1;
-            transform: scale(1.2) rotate(90deg);
-            /* Rotate animation */
-        }
-
-        /* Hide on Mobile */
-        @media (max-width: 991px) {
-            .mouse-cursor {
-                display: none;
-            }
-        }
-
-        /* --- BUBBLE STYLES --- */
-        .magic-bubble {
-            position: fixed;
-            border-radius: 50%;
-            /* Glassy Purple Bubble */
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(79, 70, 229, 0.6));
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-            pointer-events: none;
-            z-index: 9998;
-            /* Cursor k neeche */
-
-            /* Initial State for Animation */
-            top: var(--start-y);
-            left: var(--start-x);
+    @keyframes floatToCeiling {
+        0% {
             transform: translate(-50%, -50%) scale(0);
             opacity: 0;
-
-            /* Animation Call */
-            animation: floatToCeiling var(--duration) ease-out forwards;
+            top: var(--start-y);
         }
 
-        @keyframes floatToCeiling {
-            0% {
-                transform: translate(-50%, -50%) scale(0);
-                opacity: 0;
-                top: var(--start-y);
-            }
-
-            10% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 1;
-            }
-
-            85% {
-                /* Chatt (Ceiling) par pohanch gaya */
-                top: 0px;
-                transform: translate(-50%, 0) scale(1);
-                opacity: 0.8;
-            }
-
-            100% {
-                /* Pop & Vanish */
-                top: -10px;
-                transform: translate(-50%, -20px) scale(1.5);
-                /* Thora phool kr phat gaya */
-                opacity: 0;
-            }
+        10% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
         }
-    </style>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        85% {
+            /* Chatt (Ceiling) par pohanch gaya */
+            top: 0px;
+            transform: translate(-50%, 0) scale(1);
+            opacity: 0.8;
+        }
 
-            // --- PART A: MOUSE TRACKER LOGIC ---
-            const cursorInner = document.querySelector('.cursor-inner');
-            const cursorOuter = document.querySelector('.cursor-outer');
+        100% {
+            /* Pop & Vanish */
+            top: -10px;
+            transform: translate(-50%, -20px) scale(1.5);
+            /* Thora phool kr phat gaya */
+            opacity: 0;
+        }
+    }
+</style>
 
-            let mouseX = 0;
-            let mouseY = 0;
-            let outerX = 0;
-            let outerY = 0;
-            const speed = 0.15; // Elasticity Speed
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
 
-            // Track Mouse
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
+        // --- PART A: MOUSE TRACKER LOGIC ---
+        const cursorInner = document.querySelector('.cursor-inner');
+        const cursorOuter = document.querySelector('.cursor-outer');
 
-                // Inner Dot moves instantly
-                cursorInner.style.left = mouseX + 'px';
-                cursorInner.style.top = mouseY + 'px';
-            });
+        let mouseX = 0;
+        let mouseY = 0;
+        let outerX = 0;
+        let outerY = 0;
+        const speed = 0.15; // Elasticity Speed
 
-            // Animation Loop for Outer Ring
-            function animateCursor() {
-                outerX += (mouseX - outerX) * speed;
-                outerY += (mouseY - outerY) * speed;
+        // Track Mouse
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
 
-                cursorOuter.style.left = outerX + 'px';
-                cursorOuter.style.top = outerY + 'px';
-
-                requestAnimationFrame(animateCursor);
-            }
-            animateCursor();
-
-            // Hover Effect on Clickable Items
-            const clickables = document.querySelectorAll('a, button, .btn, .card, input, textarea');
-            clickables.forEach(el => {
-                el.addEventListener('mouseenter', () => document.body.classList.add('mouse-hover'));
-                el.addEventListener('mouseleave', () => document.body.classList.remove('mouse-hover'));
-            });
-
-
-            // --- PART B: BUBBLE CLICK LOGIC ---
-            document.addEventListener('click', function (e) {
-
-                // Create Bubble
-                const bubble = document.createElement('div');
-                bubble.classList.add('magic-bubble');
-
-                // 1. Random Size
-                const size = Math.random() * 20 + 15; // 15px se 35px
-                bubble.style.width = `${size}px`;
-                bubble.style.height = `${size}px`;
-
-                // 2. Position Set (CSS Variables)
-                bubble.style.setProperty('--start-x', `${e.clientX}px`);
-                bubble.style.setProperty('--start-y', `${e.clientY}px`);
-
-                // 3. Dynamic Duration (Distance to Top)
-                // Jitna neeche click, utna time lagega upar jane mein (Realistic Physics)
-                const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8;
-                bubble.style.setProperty('--duration', `${duration}s`);
-
-                // 4. Random Wobble (Thora left-right hilna)
-                const wobble = (Math.random() - 0.5) * 30;
-                bubble.style.marginLeft = `${wobble}px`;
-
-                document.body.appendChild(bubble);
-
-                // Cleanup after animation
-                setTimeout(() => {
-                    bubble.remove();
-                }, duration * 1000 + 100);
-            });
-
+            // Inner Dot moves instantly
+            cursorInner.style.left = mouseX + 'px';
+            cursorInner.style.top = mouseY + 'px';
         });
-    </script>
+
+        // Animation Loop for Outer Ring
+        function animateCursor() {
+            outerX += (mouseX - outerX) * speed;
+            outerY += (mouseY - outerY) * speed;
+
+            cursorOuter.style.left = outerX + 'px';
+            cursorOuter.style.top = outerY + 'px';
+
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Hover Effect on Clickable Items
+        const clickables = document.querySelectorAll('a, button, .btn, .card, input, textarea');
+        clickables.forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('mouse-hover'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('mouse-hover'));
+        });
+
+
+        // --- PART B: BUBBLE CLICK LOGIC ---
+        document.addEventListener('click', function (e) {
+
+            // Create Bubble
+            const bubble = document.createElement('div');
+            bubble.classList.add('magic-bubble');
+
+            // 1. Random Size
+            const size = Math.random() * 20 + 15; // 15px se 35px
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+
+            // 2. Position Set (CSS Variables)
+            bubble.style.setProperty('--start-x', `${e.clientX}px`);
+            bubble.style.setProperty('--start-y', `${e.clientY}px`);
+
+            // 3. Dynamic Duration (Distance to Top)
+            // Jitna neeche click, utna time lagega upar jane mein (Realistic Physics)
+            const duration = (e.clientY / window.innerHeight) * 1.0 + 0.8;
+            bubble.style.setProperty('--duration', `${duration}s`);
+
+            // 4. Random Wobble (Thora left-right hilna)
+            const wobble = (Math.random() - 0.5) * 30;
+            bubble.style.marginLeft = `${wobble}px`;
+
+            document.body.appendChild(bubble);
+
+            // Cleanup after animation
+            setTimeout(() => {
+                bubble.remove();
+            }, duration * 1000 + 100);
+        });
+
+    });
+</script>
 
     <nav class="navbar">
-        <a class="navbar-brand" href="./index.html">
-            <img src="./Frontend/images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
-            <span class="brand-text">Cloud Care Systems.</span>
-        </a>
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <a class="navbar-brand" href="#">
+                <img src="./Frontend/images/logo.png" alt="Cloud Care Systems Logo" class="brand-logo">
+                <span class="brand-text">Cloud Care Systems.</span>
+            </a>
 
-        <button class="navbar-toggler" type="button" onclick="toggleMenu()">
-            <i class="bi bi-list" style="font-size: 30px;"></i>
-        </button>
+            <button class="navbar-toggler" type="button" onclick="toggleMenu()">
+                <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+            </button>
 
-        <div class="nav-links d-none d-lg-flex">
-            <a href="./index.html" class="active">Home</a>
-            <a href="./Frontend/comp/f.html">Features</a>
-            <a href="./Frontend/comp/pricing.html">Pricing</a>
-            <a href="./Frontend/comp/Contact.html">Contact</a>
-            <div id="navbar-auth-ui"></div>
+            <div class="nav-links d-none d-lg-flex">
+                <a href="./index.html" class="active">Home</a>
+                <a href="./Frontend/comp/f.html">Features</a>
+                <a href="./Frontend/comp/pricing.html">Pricing</a>
+                <a href="./Frontend/comp/Contact.html">Contact</a>
+            </div>
+
+            <a href="#" class="btn-nav-primary d-none d-lg-block">Book a Demo</a>
         </div>
 
-        <a href="./Frontend/comp/Contact.html" class="btn-nav-primary btn-book-demo d-none d-lg-block">Book a Demo</a>
-
-        <div class="nav-links mobile-menu" id="mobileMenu">
+        <div class="nav-links mobile-menu d-lg-none" id="mobileMenu">
             <a href="./index.html" class="active">Home</a>
             <a href="./Frontend/comp/f.html">Features</a>
             <a href="./Frontend/comp/pricing.html">Pricing</a>
             <a href="./Frontend/comp/Contact.html">Contact</a>
-            <div id="mobile-navbar-auth-ui"></div>
-            <a href="./Frontend/comp/Contact.html" class="btn-nav-primary btn-book-demo mt-2"
-                style="color: white !important;">Book a
-                Demo</a>
+            <a href="#" class="btn btn-custom-primary w-100 mt-2">Book a Demo</a>
         </div>
     </nav>
     <script>
@@ -2444,16 +2707,8 @@
         }
     </script>
     <style>
-        /* Fixed navbar overlap/broken layout */
-        .mobile-menu {
-            display: none;
-        }
-
+        /* Mobile Menu Specific Styles */
         @media (max-width: 991px) {
-            .navbar {
-                flex-wrap: wrap;
-            }
-
             .mobile-menu {
                 display: none;
                 flex-direction: column;
@@ -2486,10 +2741,8 @@
                     </p>
 
                     <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
-                        <a href="./Frontend/comp/Signup.html" class="btn btn-custom-primary btn-lg" id="get">Get Started
-                            Free</a>
-                        <a href="./Frontend/comp/Contact.html" class="btn btn-custom-outline btn-lg" id="talk">Talk to
-                            Sales</a>
+                        <a href="#" class="btn btn-custom-primary btn-lg" id="get">Get Started Free</a>
+                        <a href="#" class="btn btn-custom-outline btn-lg" id="talk">Talk to Sales</a>
                     </div>
 
                     <!-- 10/10 PREMIUM SOCIAL PROOF -->
@@ -2753,6 +3006,8 @@
                     }
                 </style>
             </div>
+
+        </div>
         </div>
     </section>
 
@@ -3229,7 +3484,7 @@
 
             <div class="light-bento-grid">
 
-                <a id="software-card-hospital" href="./Frontend/comp/pricing.html"
+                <a id="software-card-hospital" href="./Frontend/comp/pricing-hospital-pms.html"
                     class="glass-bento-card card-large-light">
                     <div class="card-content">
                         <div class="icon-holder-light">
@@ -3243,7 +3498,7 @@
                     <i class="bi bi-hospital bg-icon-light"></i>
                 </a>
 
-                <a id="software-card-pharmacy" href="./Frontend/comp/pricing.html"
+                <a id="software-card-pharmacy" href="./Frontend/comp/pricing-pharmacy-pos.html"
                     class="glass-bento-card card-tall-light">
                     <div class="card-content vertical-center">
                         <div class="icon-holder-light mb-3">
@@ -3255,21 +3510,22 @@
                     <i class="bi bi-capsule bg-icon-light"></i>
                 </a>
 
-                <a id="software-card-lab" href="./Frontend/comp/pricing.html" class="glass-bento-card card-small-light">
+                <a id="software-card-lab" href="./Frontend/comp/in-progress.html"
+                    class="glass-bento-card card-small-light">
                     <div class="card-content">
                         <div class="icon-holder-light">
-                            <img src="./Frontend/images/icons-p/lab.png" alt="Lab Icon">
+                            <img src="./Frontend/images/icons-p/testing.png" alt="Lab Icon">
                         </div>
                         <h3>Lab Reporting</h3>
                     </div>
                     <i class="bi bi-microscope bg-icon-light"></i>
                 </a>
 
-                <a id="software-card-clinic" href="./Frontend/comp/pricing.html"
+                <a id="software-card-clinic" href="./Frontend/comp/in-progress.html"
                     class="glass-bento-card card-medium-light">
                     <div class="card-content">
                         <div class="icon-holder-light">
-                            <img src="./Frontend/images/icons-p/priv.png" alt="Clinic Icon">
+                            <img src="./Frontend/images/icons-p/clinc.png" alt="Clinic Icon">
                         </div>
                         <div>
                             <h3>Private Clinic</h3>
@@ -3279,11 +3535,11 @@
                     <i class="bi bi-person-pulse bg-icon-light"></i>
                 </a>
 
-                <a id="software-card-inventory" href="./Frontend/comp/pricing.html"
+                <a id="software-card-inventory" href="./Frontend/comp/in-progress.html"
                     class="glass-bento-card card-wide-light">
                     <div class="card-content">
                         <div class="icon-holder-light">
-                            <img src="./Frontend/images/icons-p/inv.png" alt="Inventory Icon">
+                            <img src="./Frontend/images/icons-p/stock.png" alt="Inventory Icon">
                         </div>
                         <div>
                             <h3>Lab Inventory</h3>
@@ -3429,7 +3685,7 @@
                     <h5>Company</h5>
                     <a href="./comp/f.html" class="footer-link">Feature</a>
                     <a href="./comp/pricing.html" class="footer-link">pricing</a>
-                    <a href="./Frontend/comp/Contact.html" class="footer-link">Contact</a>
+                    <a href="./comp/Coontact.html" class="footer-link">Contact</a>
                 </div>
 
                 <div class="col-lg-3 mt-4 mt-lg-0">
@@ -3468,6 +3724,8 @@
 
                 </div>
             </div>
+        </div>
+        </div>
         </div>
     </footer>
 

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const { settingsSchema } = require('../models/tenantSchemas');
-const { requireHospitalAuth } = require('../middleware/hospitalAuth');
+const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hospitalAuth');
 const { cleanInputData } = require('../utils/hospitalHelpers');
 
 // Use existing model or create new one
@@ -57,11 +57,8 @@ router.get('/', requireHospitalAuth, async (req, res) => {
  * @desc    Update hospital settings/branding
  * @access  Private (Admin)
  */
-router.put('/', requireHospitalAuth, async (req, res) => {
+router.put('/', requireHospitalRole(['Admin']), async (req, res) => {
     try {
-        // Only Admin should update settings, but we'll allow all authentic users for now to avoid locking out single-user setups
-        // if (req.hospitalUser.role !== 'Admin') return res.status(403).json({ ... });
-
         const data = cleanInputData(req.body);
         const tenantId = req.hospitalUser.tenantId;
 

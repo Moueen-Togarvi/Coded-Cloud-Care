@@ -5465,7 +5465,10 @@
       try {
         const res = await fetch('/api/payment-records');
         if (res.ok) {
-          allPaymentRecords = await res.json();
+          const payload = await res.json();
+          allPaymentRecords = Array.isArray(payload)
+            ? payload
+            : (payload.records || payload.data || []);
           renderPaymentRecords(allPaymentRecords);
         } else {
           tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-500">

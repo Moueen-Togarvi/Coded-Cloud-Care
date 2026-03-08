@@ -106,7 +106,7 @@ const validatePatientInput = (req, res, next) => {
  * Validate staff input
  */
 const validateStaffInput = (req, res, next) => {
-  const { firstName, lastName, email, phone, role } = req.body;
+  const { firstName, lastName, email, phone, role, password } = req.body;
 
   // Required fields
   if (!firstName || !lastName || !email) {
@@ -127,6 +127,7 @@ const validateStaffInput = (req, res, next) => {
       message: 'Invalid email format',
     });
   }
+  req.body.email = String(email).trim().toLowerCase();
 
   // Validate phone if provided
   if (phone && !isValidPhone(phone)) {
@@ -142,6 +143,14 @@ const validateStaffInput = (req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Invalid role. Must be one of: ' + validRoles.join(', '),
+    });
+  }
+
+  // Optional login password when provisioning master account
+  if (password !== undefined && String(password).length < 8) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 8 characters long',
     });
   }
 

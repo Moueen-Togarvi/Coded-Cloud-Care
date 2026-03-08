@@ -50,9 +50,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "script-src": ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+      "script-src": ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://cdn.jsdelivr.net"],
       "script-src-attr": ["'unsafe-inline'"],
       "img-src": ["'self'", "data:", "https:", "http:"],
+      "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+      "font-src": ["'self'", "data:", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
     },
   },
 }));
@@ -62,17 +64,26 @@ app.use(cookieParser());
 
 app.set('trust proxy', 1); // Trust first proxy (Render/Vercel) to allow secure cookies
 
+const sessionSecret = process.env.SESSION_SECRET || process.env.JWT_SECRET;
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET (or JWT_SECRET fallback) must be configured');
+}
+const isProduction = process.env.NODE_ENV === 'production';
+const defaultSessionCookieName = isProduction ? '__Host-pms-sid' : 'pms-sid';
+const sessionCookieName = process.env.SESSION_COOKIE_NAME || defaultSessionCookieName;
+
 // Session middleware for Hospital PMS (must be before routes)
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'hospital-pms-secret-key-change-in-production',
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    name: '__Host-pms-sid', // More secure cookie name
+    name: sessionCookieName,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       httpOnly: true,
       sameSite: 'Lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -108,13 +119,18 @@ app.use(
         'https://dashboard-site-qbgb.onrender.com',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
+        'http://localhost:5000',
+        'http://127.0.0.1:5000',
         'http://localhost:5500',
-        'http://127.0.0.1:5500'
+        'http://127.0.0.1:5500',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173'
       ];
       // Allow requests with no origin (like mobile apps or curl) or if in allowed list
       if (!origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV !== 'production' && origin === 'null')) {
         callback(null, true);
       } else {
+        console.warn(`[CORS] Rejected request from origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -174,7 +190,10 @@ app.use('/api/call_meeting_tracker', hospitalCallMeetingRoutes);
 app.use('/api/utility_bills', hospitalUtilityBillsRoutes);
 app.use('/api/employees', hospitalEmployeesRoutes);
 app.use('/api/export', hospitalExportRoutes);
-app.use('/api/payment-records', hospitalExportRoutes);
+app.use('/api/payment-records', (req, res, next) => {
+  req.url = req.url === '/' ? '/payment-records' : `/payment-records${req.url}`;
+  return hospitalExportRoutes(req, res, next);
+});
 app.use('/api/reports', hospitalReportsRoutes);
 app.use('/api/psych-sessions', hospitalPsychSessionsRoutes);
 app.use('/api/attendance', hospitalAttendanceRoutes);
@@ -184,8 +203,6 @@ app.use('/api/users', hospitalUsersRoutes);
 // Alias for Settings (frontend calls /api/settings)
 app.use('/api/settings', (req, res, next) => {
   if (req.session && req.session.hospitalUserId) {
-    // return hospitalSettingsRoutes(req, res, next); -> Need to import it first!
-    // I will add the import next.
     return hospitalSettingsRoutes(req, res, next);
   }
   next();
@@ -216,7 +233,10 @@ app.use('/api/hospital/call_meeting_tracker', hospitalCallMeetingRoutes);
 app.use('/api/hospital/utility_bills', hospitalUtilityBillsRoutes);
 app.use('/api/hospital/employees', hospitalEmployeesRoutes);
 app.use('/api/hospital/export', hospitalExportRoutes);
-app.use('/api/hospital/payment-records', hospitalExportRoutes);
+app.use('/api/hospital/payment-records', (req, res, next) => {
+  req.url = req.url === '/' ? '/payment-records' : `/payment-records${req.url}`;
+  return hospitalExportRoutes(req, res, next);
+});
 app.use('/api/hospital/reports', hospitalReportsRoutes);
 app.use('/api/hospital/psych-sessions', hospitalPsychSessionsRoutes);
 app.use('/api/hospital/attendance', hospitalAttendanceRoutes);
@@ -241,7 +261,18 @@ app.use('/Frontend/admin/login.html', (req, res) => {
 });
 
 // Serve Frontend directory for Pharmacy and other apps
-app.use('/Frontend', express.static(path.join(__dirname, '../Frontend')));
+app.use('/Frontend', express.static(path.join(__dirname, '../Frontend'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    }
+  },
+}));
+
+// Block direct access to sensitive internal directories
+app.use(['/node_modules', '/db_data', '/src'], (req, res) => {
+  res.status(404).send('Not Found');
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -256,9 +287,16 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Serve static files from Frontend directory only (security: don't expose root)
-// Serve static files from root directory (to include index.html)
-app.use(express.static(path.join(__dirname, '../')));
+// Serve explicit public entry files (avoid exposing full repository tree)
+app.get(['/', '/index.html'], (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
+app.get('/terms.html', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.sendFile(path.join(__dirname, '../terms.html'));
+});
 
 // 404 handler
 app.use((req, res) => {

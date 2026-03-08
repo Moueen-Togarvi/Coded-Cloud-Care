@@ -34,6 +34,16 @@ const PLAN_DURATION_DAYS = {
     yearly: 365,
 };
 
+const normalizeIp = (rawIp) => {
+    let ip = String(rawIp || '').trim();
+    if (!ip) return '';
+    if (ip.startsWith('::ffff:')) ip = ip.slice(7);
+    if (/^\d{1,3}(?:\.\d{1,3}){3}:\d+$/.test(ip)) {
+        ip = ip.split(':')[0];
+    }
+    return ip;
+};
+
 // ─── Rate Limit Configuration ───────────────────────────────────────────────
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
@@ -167,6 +177,19 @@ router.post('/payfast/initiate', authenticate, async (req, res) => {
 router.post('/payfast/ipn', async (req, res) => {
     try {
         const ipnData = req.body;
+        const allowedIps = (process.env.PAYFAST_IP_ALLOWLIST || '')
+            .split(',')
+            .map((ip) => normalizeIp(ip))
+            .filter(Boolean);
+
+        if (allowedIps.length) {
+            const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0];
+            const sourceIp = normalizeIp(forwarded || req.ip || req.socket?.remoteAddress);
+            if (!allowedIps.includes(sourceIp)) {
+                console.warn('[PayFast IPN] Rejected source IP:', sourceIp);
+                return res.status(200).json({ received: true });
+            }
+        }
 
         console.log('[PayFast IPN] Received:', JSON.stringify(ipnData));
 
@@ -234,6 +257,8 @@ router.post('/payfast/ipn', async (req, res) => {
         order.subscriptionId = subscription._id;
         // Clear TTL so the order is NOT auto-deleted
         order.expiresAt = undefined;
+        await order.save();
+
         // ── Log the IPN result ───────────────────────────────────────────────
         await TransactionLog.create({
             userId: order.userId,

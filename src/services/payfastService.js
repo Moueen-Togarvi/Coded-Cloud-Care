@@ -193,6 +193,16 @@ const validateIPN = (ipnData, expectedAmount) => {
         };
     }
 
+    // Optional merchant integrity check (if provided in callback payload)
+    if (ipnData.MERCHANT_ID && process.env.PAYFAST_MERCHANT_ID) {
+        if (String(ipnData.MERCHANT_ID) !== String(process.env.PAYFAST_MERCHANT_ID)) {
+            return {
+                valid: false,
+                reason: `Merchant mismatch. Expected ${process.env.PAYFAST_MERCHANT_ID}, received ${ipnData.MERCHANT_ID}`,
+            };
+        }
+    }
+
     // Amount integrity check — parse carefully to handle decimal strings
     const receivedAmount = parseFloat(ipnData.TXNAMT);
     const expected = parseFloat(expectedAmount);

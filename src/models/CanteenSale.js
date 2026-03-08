@@ -19,7 +19,7 @@ const canteenSaleSchema = new mongoose.Schema(
         },
         item: {
             type: String,
-            required: true,
+            default: '',
             trim: true,
         },
         amount: {
@@ -35,6 +35,21 @@ const canteenSaleSchema = new mongoose.Schema(
             enum: ['sale', 'adjustment', 'other'],
             default: 'sale',
         },
+        entry_type: {
+            type: String,
+            enum: ['daily', 'other'],
+        },
+        recorded_by: {
+            type: String,
+            trim: true,
+        },
+        edited_by: {
+            type: String,
+            trim: true,
+        },
+        edited_at: {
+            type: Date,
+        },
     },
     {
         timestamps: true,
@@ -45,6 +60,7 @@ const canteenSaleSchema = new mongoose.Schema(
 canteenSaleSchema.index({ patient_id: 1 });
 canteenSaleSchema.index({ date: -1 });
 canteenSaleSchema.index({ type: 1 });
+canteenSaleSchema.index({ entry_type: 1 });
 
 const CanteenSale = mongoose.model('CanteenSale', canteenSaleSchema);
 

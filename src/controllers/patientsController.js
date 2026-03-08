@@ -10,7 +10,7 @@ const getAllPatients = async (req, res) => {
     try {
         const Patient = req.tenantModels.Patient;
 
-        const patients = await Patient.find({ isActive: true })
+        const patients = await Patient.find({ tenantId: req.user.userId, isActive: true })
             .sort({ createdAt: -1 })
             .select('-__v');
 
@@ -37,7 +37,7 @@ const getPatientById = async (req, res) => {
         const Patient = req.tenantModels.Patient;
         const { id } = req.params;
 
-        const patient = await Patient.findById(id);
+        const patient = await Patient.findOne({ _id: id, tenantId: req.user.userId });
 
         if (!patient) {
             return res.status(404).json({
@@ -116,8 +116,8 @@ const updatePatient = async (req, res) => {
         // Update the updatedAt timestamp
         updateData.updatedAt = new Date();
 
-        const patient = await Patient.findByIdAndUpdate(
-            id,
+        const patient = await Patient.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             updateData,
             { new: true, runValidators: true }
         );
@@ -152,8 +152,8 @@ const deletePatient = async (req, res) => {
         const Patient = req.tenantModels.Patient;
         const { id } = req.params;
 
-        const patient = await Patient.findByIdAndUpdate(
-            id,
+        const patient = await Patient.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             { isActive: false, updatedAt: new Date() },
             { new: true }
         );

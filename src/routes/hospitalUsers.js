@@ -57,6 +57,15 @@ router.post('/', requireHospitalRole(['Admin']), async (req, res) => {
             });
         }
 
+        const validRoles = ['Admin', 'Doctor', 'Psychologist', 'Canteen', 'General Staff'];
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid role',
+                message: `Role must be one of: ${validRoles.join(', ')}`,
+            });
+        }
+
         // Normalize email
         const normalizedEmail = normalizeEmail(email);
 

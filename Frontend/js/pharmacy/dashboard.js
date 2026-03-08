@@ -298,12 +298,15 @@ async function checkout() {
         const token = sessionStorage.getItem('token') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
         if (!token) return window.handleTokenExpiry();
 
+        const paymentMethodEl = document.getElementById('paymentMethod');
+        const selectedMethod = paymentMethodEl ? paymentMethodEl.value : 'cash';
+
         const payload = {
             items: cart.map(item => ({
                 medicineId: item._id,
                 quantity: item.qty
             })),
-            paymentMethod: 'cash', // Default for now
+            paymentMethod: selectedMethod,
             soldBy: 'Admin' // Default for now
         };
 

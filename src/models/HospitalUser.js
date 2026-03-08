@@ -26,7 +26,7 @@ const hospitalUserSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['Admin', 'Doctor', 'Psychologist'],
+            enum: ['Admin', 'Doctor', 'Psychologist', 'Canteen', 'General Staff'],
             required: true,
         },
         name: {

@@ -73,6 +73,17 @@ const adminAuthenticate = async (req, res, next) => {
     }
 };
 
+const requireAdminRole = (allowedRoles = []) => (req, res, next) => {
+    if (!allowedRoles.length) return next();
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+        return res.status(403).json({
+            success: false,
+            message: `Forbidden: requires ${allowedRoles.join(' or ')} role.`
+        });
+    }
+    return next();
+};
+
 // Protect all admin routes using the custom admin auth
 router.use(adminAuthenticate);
 
@@ -157,7 +168,7 @@ router.get('/users/:id', async (req, res) => {
  * @route PUT /api/admin/users/:id/status
  * @desc Toggle user active state (suspend/activate)
  */
-router.put('/users/:id/status', async (req, res) => {
+router.put('/users/:id/status', requireAdminRole(['superadmin']), async (req, res) => {
     try {
         const { isActive } = req.body;
         const user = await User.findByIdAndUpdate(
@@ -184,7 +195,7 @@ router.put('/users/:id/status', async (req, res) => {
  * @route PUT /api/admin/users/:id/plan
  * @desc Change a user's subscription plan directly
  */
-router.put('/users/:id/plan', async (req, res) => {
+router.put('/users/:id/plan', requireAdminRole(['superadmin']), async (req, res) => {
     try {
         const { productSlug, planType, endDate } = req.body;
 
@@ -224,7 +235,7 @@ router.put('/users/:id/plan', async (req, res) => {
  * @route PUT /api/admin/users/:id
  * @desc Update user basic information (Email, Company Name, etc.)
  */
-router.put('/users/:id', async (req, res) => {
+router.put('/users/:id', requireAdminRole(['superadmin']), async (req, res) => {
     try {
         const { email, companyName, phone } = req.body;
         const updateData = {};
@@ -256,7 +267,7 @@ router.put('/users/:id', async (req, res) => {
  * @route DELETE /api/admin/users/:id
  * @desc Delete a user and their subscriptions permanently
  */
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/:id', requireAdminRole(['superadmin']), async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) {
@@ -290,7 +301,7 @@ router.get('/system-users', async (req, res) => {
  * @route POST /api/admin/system-users
  * @desc Create a new platform administrator or staff
  */
-router.post('/system-users', async (req, res) => {
+router.post('/system-users', requireAdminRole(['superadmin']), async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
         if (!name || !email || !password || !role) {
@@ -323,7 +334,7 @@ router.post('/system-users', async (req, res) => {
  * @route DELETE /api/admin/system-users/:id
  * @desc Delete a system administrator or staff
  */
-router.delete('/system-users/:id', async (req, res) => {
+router.delete('/system-users/:id', requireAdminRole(['superadmin']), async (req, res) => {
     try {
         // Prevent self-deletion
         if (req.user.userId === req.params.id) {

@@ -109,7 +109,7 @@ const createItem = async (req, res) => {
 
         // Check for duplicate SKU if provided
         if (itemData.sku) {
-            const existingItem = await Inventory.findOne({ sku: itemData.sku });
+            const existingItem = await Inventory.findOne({ sku: itemData.sku, tenantId: req.user.userId });
             if (existingItem) {
                 return res.status(400).json({
                     success: false,
@@ -279,7 +279,7 @@ const recordBulkSale = async (req, res) => {
         }
 
         // Generate a single invoice number for the entire transaction
-        const saleCount = await Sale.countDocuments();
+        const saleCount = await Sale.countDocuments({ tenantId: req.user.userId });
         const invoiceNumber = `INV-B-${Date.now()}-${saleCount + 1}`;
 
         let finalResponseData = {};
@@ -293,7 +293,7 @@ const recordBulkSale = async (req, res) => {
 
             if (!medicineId || !quantity) continue;
 
-            const medicine = await Inventory.findById(medicineId);
+            const medicine = await Inventory.findOne({ _id: medicineId, tenantId: req.user.userId });
             if (!medicine) {
                 throw new Error(`Medicine not found for ID: ${medicineId}`);
             }

@@ -41,7 +41,14 @@ async function handleLogin(e) {
             const token = data.data.token;
             const user = data.data.user;
 
-            localStorage.setItem('token', token);
+            if (typeof window.saveAuthToken === 'function') {
+                window.saveAuthToken(token, 'pharmacy-pos');
+            } else {
+                sessionStorage.setItem('authToken', token);
+                sessionStorage.setItem('loginTimestamp', Date.now().toString());
+                sessionStorage.setItem('productId', 'pharmacy-pos');
+            }
+            localStorage.removeItem('token');
             localStorage.setItem('user', JSON.stringify(user));
 
             showAlert('Login successful! Redirecting...', 'success');

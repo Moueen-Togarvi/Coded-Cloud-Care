@@ -134,7 +134,8 @@
                 <div class="flex items-center gap-2">
                     <span class="material-icons-round text-accent-green text-sm">phone</span>
                     <span id="header-support-phone"
-                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">+966-557385262 / +92 302 5815858</span>
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">+966-557385262 / +92 302
+                        5815858</span>
                 </div>
             </div>
 
@@ -165,12 +166,23 @@
                                 <p class="text-xs text-slate-500">Scan QR/Barcode to add medicines to pending bill</p>
                             </div>
                         </div>
-                        <div class="flex gap-2">
-                            <button class="px-3 py-1.5 bg-slate-800 text-[10px] font-bold rounded text-slate-300">Hold
-                                (F4)</button>
-                            <button onclick="checkout()"
-                                class="px-3 py-1.5 bg-primary-blue text-[10px] font-bold rounded text-white shadow-lg shadow-primary-blue/20 hover:bg-blue-600 transition-colors">Checkout
-                                (F12)</button>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <select id="paymentMethod"
+                                class="px-3 py-1.5 bg-slate-800 text-[10px] font-bold rounded text-white border-none focus:ring-1 focus:ring-primary-blue">
+                                <option value="cash">CASH</option>
+                                <option value="card">CARD</option>
+                                <option value="jazzcash">JAZZCASH</option>
+                                <option value="easypaisa">EASYPAISA</option>
+                                <option value="other">OTHER</option>
+                            </select>
+                            <div class="flex gap-2">
+                                <button
+                                    class="px-3 py-1.5 bg-slate-800 text-[10px] font-bold rounded text-slate-300">Hold
+                                    (F4)</button>
+                                <button onclick="checkout()"
+                                    class="px-3 py-1.5 bg-primary-blue text-[10px] font-bold rounded text-white shadow-lg shadow-primary-blue/20 hover:bg-blue-600 transition-colors">Checkout
+                                    (F12)</button>
+                            </div>
                         </div>
                     </div>
 

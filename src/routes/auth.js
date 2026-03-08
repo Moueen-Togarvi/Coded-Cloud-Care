@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getProfile, getSession } = require('../controllers/authController');
+const { register, login, getProfile, getSession, resetPasswordWithToken } = require('../controllers/authController');
 const { authenticate } = require('../middleware/authMiddleware');
 
 const { bridgeHospitalAuth } = require('../middleware/hospitalAuth');
@@ -9,13 +9,17 @@ const router = express.Router();
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+router.post('/reset', resetPasswordWithToken);
 router.post('/logout', (req, res) => {
+    const sessionCookieName = process.env.SESSION_COOKIE_NAME || (process.env.NODE_ENV === 'production' ? '__Host-pms-sid' : 'pms-sid');
     res.clearCookie('authToken');
     if (req.session) {
         req.session.destroy((err) => {
             if (err) return res.status(500).json({ success: false, error: 'Logout failed' });
             res.clearCookie('connect.sid');
-            res.clearCookie('__Host-pms-sid'); // Clear new secure session cookie
+            res.clearCookie('pms-sid');
+            res.clearCookie('__Host-pms-sid');
+            res.clearCookie(sessionCookieName);
             return res.json({ success: true, message: 'Logged out successfully' });
         });
     } else {

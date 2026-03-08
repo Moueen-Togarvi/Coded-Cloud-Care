@@ -66,19 +66,26 @@ const getStaffById = async (req, res) => {
 const createStaff = async (req, res) => {
     try {
         const Staff = req.tenantModels.Staff;
-        const User = require('../models/User'); // Import User model
+        const User = require('../models/User');
         const { firstName, lastName, email, role, phone, password } = req.body;
+        const normalizedEmail = String(email || '').trim().toLowerCase();
 
         // Validate required fields
-        if (!firstName || !lastName || !email || !password) {
+        if (!firstName || !lastName || !normalizedEmail) {
             return res.status(400).json({
                 success: false,
-                message: 'First name, last name, email, and password are required',
+                message: 'First name, last name, and email are required',
+            });
+        }
+        if (password && String(password).length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 8 characters long when provided',
             });
         }
 
         // Check if email already exists in this tenant (Staff collection)
-        const existingStaff = await Staff.findOne({ email, tenantId: req.user.userId });
+        const existingStaff = await Staff.findOne({ email: normalizedEmail, tenantId: req.user.userId });
         if (existingStaff) {
             return res.status(400).json({
                 success: false,
@@ -87,7 +94,7 @@ const createStaff = async (req, res) => {
         }
 
         // Check if email already exists in main User collection
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -95,35 +102,52 @@ const createStaff = async (req, res) => {
             });
         }
 
-        // 1. Create Staff record in tenant context
+        // 1) Create staff profile inside tenant DB
         const staff = new Staff({
             tenantId: req.user.userId,
             firstName,
             lastName,
-            email,
+            email: normalizedEmail,
             role: role || 'staff',
             phone,
         });
-
         await staff.save();
 
-        // 2. Create User record in main collection for login access
-        const staffUser = new User({
-            email,
-            passwordHash: password, // Will be hashed by pre-save hook
-            companyName: req.user.companyName, // Inherit from creator
-            contactInfo: {
-                phone: phone || '',
-                address: '',
-            },
-            tenantDbName: req.user.tenantDbName, // Link to same tenant
-            tenantDbUrl: req.user.tenantDbUrl || '',
-            role: 'staff',
-            isActive: true,
-            is_verified: true, // Auto-verify staff created by admin
-        });
-
-        await staffUser.save();
+        // 2) Best-effort master login account provisioning (optional)
+        let loginProvisioned = false;
+        const warnings = [];
+        if (password) {
+            const ownerUser = await User.findById(req.user.userId).select('companyName tenantDbName tenantDbUrl');
+            if (!ownerUser) {
+                warnings.push('Tenant owner account not found; login account was not provisioned.');
+            } else {
+                try {
+                    const staffUser = new User({
+                        email: normalizedEmail,
+                        passwordHash: password,
+                        companyName: ownerUser.companyName,
+                        contactInfo: {
+                            phone: phone || '',
+                            address: '',
+                        },
+                        termsAccepted: true,
+                        tenantDbName: ownerUser.tenantDbName,
+                        tenantDbUrl: ownerUser.tenantDbUrl,
+                        role: 'staff',
+                        isActive: true,
+                        is_verified: true,
+                    });
+                    await staffUser.save();
+                    loginProvisioned = true;
+                } catch (provisionError) {
+                    if (provisionError.code === 11000 && String(provisionError.message).includes('tenantDbName')) {
+                        warnings.push('Staff profile created, but login provisioning is disabled by current User tenantDbName uniqueness constraints.');
+                    } else {
+                        warnings.push(`Staff profile created, but login provisioning failed: ${provisionError.message}`);
+                    }
+                }
+            }
+        }
 
         res.status(201).json({
             success: true,
@@ -134,8 +158,10 @@ const createStaff = async (req, res) => {
                 lastName: staff.lastName,
                 email: staff.email,
                 role: staff.role,
-                phone: staff.phone
+                phone: staff.phone,
+                loginProvisioned,
             },
+            warnings: warnings.length ? warnings : undefined,
         });
     } catch (error) {
         console.error('Create staff error:', error);
@@ -193,7 +219,7 @@ const updateStaff = async (req, res) => {
 const deleteStaff = async (req, res) => {
     try {
         const Staff = req.tenantModels.Staff;
-        const User = require('../models/User'); // Import User model
+        const User = require('../models/User');
         const { id } = req.params;
 
         // 1. Deactivate in Staff collection
@@ -212,7 +238,7 @@ const deleteStaff = async (req, res) => {
 
         // 2. Deactivate in main User collection to revoke login access
         await User.findOneAndUpdate(
-            { email: staff.email },
+            { email: staff.email, tenantDbName: req.user.tenantDbName },
             { isActive: false }
         );
 

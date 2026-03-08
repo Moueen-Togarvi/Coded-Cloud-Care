@@ -169,7 +169,7 @@ router.delete('/:id', requireHospitalRole(['Admin']), async (req, res) => {
         }
 
         // Delete associated records
-        await PatientRecord.deleteMany({ patient_id: req.params.id });
+        await PatientRecord.deleteMany({ patient_id: req.params.id, tenantId });
 
         return res.json({
             success: true,

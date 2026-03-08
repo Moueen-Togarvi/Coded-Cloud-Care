@@ -216,7 +216,6 @@ window.isAuthenticated = isAuthenticated;
 window.saveAuthToken = saveAuthToken;
 window.removeAuthToken = removeAuthToken;
 window.verifySession = verifySession;
-window.authenticatedFetch = authenticatedFetch;
 
 // Make authenticated API requests
 const authenticatedFetch = async (url, options = {}) => {
@@ -251,6 +250,8 @@ const authenticatedFetch = async (url, options = {}) => {
 
   return response;
 };
+
+window.authenticatedFetch = authenticatedFetch;
 
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {

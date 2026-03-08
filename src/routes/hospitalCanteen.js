@@ -5,6 +5,7 @@ const CanteenSale = require('../models/CanteenSale');
 const HospitalPatient = require('../models/HospitalPatient');
 const { requireHospitalAuth, requireHospitalRole } = require('../middleware/hospitalAuth');
 const { cleanInputData } = require('../utils/hospitalHelpers');
+const VALID_ENTRY_TYPES = ['daily', 'other'];
 
 /**
  * @route   POST /api/hospital/canteen/sales
@@ -14,15 +15,24 @@ const { cleanInputData } = require('../utils/hospitalHelpers');
 router.post('/sales', requireHospitalAuth, async (req, res) => {
     try {
         const data = cleanInputData(req.body);
+        const entryType = data.entry_type || (data.type === 'other' ? 'other' : 'daily');
+        const parsedAmount = Number(data.amount);
+        if (!data.patient_id || Number.isNaN(parsedAmount)) {
+            return res.status(400).json({ success: false, error: 'patient_id and numeric amount are required' });
+        }
+        if (!VALID_ENTRY_TYPES.includes(entryType)) {
+            return res.status(400).json({ success: false, error: 'entry_type must be daily or other' });
+        }
 
         const tenantId = req.hospitalUser.tenantId;
         const sale = new CanteenSale({
             tenantId,
             patient_id: data.patient_id,
             item: data.item,
-            amount: parseInt(data.amount),
+            amount: Math.trunc(parsedAmount),
             date: data.date ? new Date(data.date) : new Date(),
-            type: data.type || 'sale',
+            type: data.type || (entryType === 'other' ? 'other' : 'sale'),
+            entry_type: entryType,
         });
 
         await sale.save();
@@ -337,6 +347,16 @@ router.post('/daily-entry', requireHospitalRole(['Admin', 'Canteen']), async (re
         const userRole = req.session?.hospitalRole;
         const username = req.session?.hospitalUsername || 'Unknown';
 
+        if (Number.isNaN(amount)) {
+            return res.status(400).json({ success: false, error: 'Amount must be a valid number' });
+        }
+        if (!VALID_ENTRY_TYPES.includes(entryType)) {
+            return res.status(400).json({ success: false, error: 'entry_type must be daily or other' });
+        }
+        if (Number.isNaN(entryDate.getTime())) {
+            return res.status(400).json({ success: false, error: 'Date must be valid' });
+        }
+
         const startOfDay = new Date(entryDate);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(startOfDay);
@@ -377,6 +397,7 @@ router.post('/daily-entry', requireHospitalRole(['Admin', 'Canteen']), async (re
                 date: entryDate,
                 amount,
                 entry_type: entryType,
+                type: entryType === 'other' ? 'other' : 'sale',
                 item: data.item || '',
                 recorded_by: username,
             });

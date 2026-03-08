@@ -9,8 +9,9 @@
 const getAllAppointments = async (req, res) => {
     try {
         const Appointment = req.tenantModels.Appointment;
+        const tenantId = req.user.userId;
 
-        const appointments = await Appointment.find()
+        const appointments = await Appointment.find({ tenantId })
             .populate('patientId', 'firstName lastName email phone')
             .sort({ appointmentDate: -1 })
             .select('-__v');
@@ -38,7 +39,7 @@ const getAppointmentById = async (req, res) => {
         const Appointment = req.tenantModels.Appointment;
         const { id } = req.params;
 
-        const appointment = await Appointment.findById(id)
+        const appointment = await Appointment.findOne({ _id: id, tenantId: req.user.userId })
             .populate('patientId', 'firstName lastName email phone');
 
         if (!appointment) {
@@ -67,7 +68,7 @@ const getAppointmentById = async (req, res) => {
  */
 const createAppointment = async (req, res) => {
     try {
-        const Appointment = req.tenantModels.Appointment;
+        const { Appointment, Patient } = req.tenantModels;
         const { patientId, appointmentDate, appointmentType, duration, notes } = req.body;
 
         // Validate required fields
@@ -75,6 +76,14 @@ const createAppointment = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Patient ID and appointment date are required',
+            });
+        }
+
+        const patient = await Patient.findOne({ _id: patientId, tenantId: req.user.userId, isActive: true });
+        if (!patient) {
+            return res.status(404).json({
+                success: false,
+                message: 'Patient not found for this tenant',
             });
         }
 
@@ -120,8 +129,8 @@ const updateAppointment = async (req, res) => {
         // Update the updatedAt timestamp
         updateData.updatedAt = new Date();
 
-        const appointment = await Appointment.findByIdAndUpdate(
-            id,
+        const appointment = await Appointment.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             updateData,
             { new: true, runValidators: true }
         ).populate('patientId', 'firstName lastName email phone');
@@ -156,8 +165,8 @@ const cancelAppointment = async (req, res) => {
         const Appointment = req.tenantModels.Appointment;
         const { id } = req.params;
 
-        const appointment = await Appointment.findByIdAndUpdate(
-            id,
+        const appointment = await Appointment.findOneAndUpdate(
+            { _id: id, tenantId: req.user.userId },
             { status: 'cancelled', updatedAt: new Date() },
             { new: true }
         ).populate('patientId', 'firstName lastName email phone');

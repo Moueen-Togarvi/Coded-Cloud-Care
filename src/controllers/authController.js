@@ -1,8 +1,9 @@
 const User = require('../models/User');
 const Plan = require('../models/Plan');
 const Subscription = require('../models/Subscription');
+const HospitalUser = require('../models/HospitalUser');
 const { provisionTenant } = require('../services/tenantService');
-const { generateToken } = require('../utils/jwt');
+const { generateToken, verifyToken } = require('../utils/jwt');
 
 const TRIAL_DAYS = 3;
 
@@ -325,9 +326,59 @@ const getSession = async (req, res) => {
   }
 };
 
+/**
+ * Reset password via one-time reset token
+ * Expected token payload:
+ * { userId, purpose: 'password-reset', target: 'hospital-user' | 'saas-user', tenantId? }
+ */
+const resetPasswordWithToken = async (req, res) => {
+  try {
+    const { token, new_password } = req.body || {};
+    if (!token || !new_password) {
+      return res.status(400).json({ success: false, message: 'token and new_password are required' });
+    }
+
+    if (String(new_password).length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long' });
+    }
+
+    const decoded = verifyToken(token);
+    if (decoded.purpose !== 'password-reset') {
+      return res.status(400).json({ success: false, message: 'Invalid reset token purpose' });
+    }
+
+    if (decoded.target === 'saas-user') {
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      user.passwordHash = new_password;
+      await user.save();
+      return res.json({ success: true, message: 'Password reset successfully' });
+    }
+
+    const hospitalQuery = { _id: decoded.userId };
+    if (decoded.tenantId) {
+      hospitalQuery.tenantId = decoded.tenantId;
+    }
+
+    const hospitalUser = await HospitalUser.findOne(hospitalQuery);
+    if (!hospitalUser) {
+      return res.status(404).json({ success: false, message: 'Hospital user not found' });
+    }
+
+    hospitalUser.password = new_password;
+    await hospitalUser.save();
+    return res.json({ success: true, message: 'Password reset successfully' });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+  }
+};
+
 module.exports = {
   register,
   login,
   getProfile,
   getSession,
+  resetPasswordWithToken,
 };

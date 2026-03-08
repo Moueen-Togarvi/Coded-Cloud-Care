@@ -17,7 +17,10 @@
     };
 
     const checkPharmacyAuth = async () => {
-        const token = sessionStorage.getItem('authToken');
+        const token =
+            sessionStorage.getItem('authToken') ||
+            sessionStorage.getItem('authToken_legacy') ||
+            localStorage.getItem('token');
         const productId = sessionStorage.getItem('productId');
         const loginTimestamp = sessionStorage.getItem('loginTimestamp');
 

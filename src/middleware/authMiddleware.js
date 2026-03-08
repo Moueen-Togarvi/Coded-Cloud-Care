@@ -53,6 +53,8 @@ const authenticate = async (req, res, next) => {
       email: user.email,
       companyName: user.companyName,
       tenantDbName: user.tenantDbName,
+      tenantDbUrl: user.tenantDbUrl,
+      role: user.role,
     };
 
     next();
@@ -75,13 +77,14 @@ const authorize = (roles = []) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    // Master users (SaaS owners) are Super Admins for their tenant
-    if (!req.isStaff) {
+    if (!roles.length) {
       return next();
     }
 
-    // Staff members check
-    if (roles.length && !roles.includes(req.staffRole)) {
+    const normalizedAllowed = roles.map((role) => String(role).toLowerCase());
+    const currentRole = req.isStaff ? req.staffRole : req.user.role;
+
+    if (!currentRole || !normalizedAllowed.includes(String(currentRole).toLowerCase())) {
       return res.status(403).json({
         success: false,
         message: `Forbidden: Access requires ${roles.join(' or ')} role.`,
