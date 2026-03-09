@@ -17,8 +17,13 @@ const getSettings = async (req, res) => {
                 clinicPhone: '',
                 clinicEmail: req.user.email || '',
                 pharmacyName: req.user.companyName ? `${req.user.companyName} Pharmacy` : 'My Pharmacy',
-                pharmacyEmail: req.user.email || ''
+                pharmacyEmail: req.user.email || '',
+                isOnboardingComplete: false,
             });
+        } else if (typeof settings.isOnboardingComplete !== 'boolean') {
+            // Backfill legacy settings documents that predate onboarding flag.
+            settings.isOnboardingComplete = false;
+            await settings.save();
         }
 
         res.status(200).json({

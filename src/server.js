@@ -23,6 +23,7 @@ const settingsRoutes = require('./routes/settings');
 const adminRoutes = require('./routes/admin');
 const paymentsRoutes = require('./routes/payments');
 const labRoutes = require('./routes/lab');
+const quickInvoiceRoutes = require('./routes/quickInvoice');
 
 // Hospital PMS routes
 const hospitalAuthRoutes = require('./routes/hospitalAuth');
@@ -56,7 +57,7 @@ app.use(helmet({
       "script-src-attr": ["'unsafe-inline'"],
       "img-src": ["'self'", "data:", "https:", "http:"],
       "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net", "https://unpkg.com"],
-      "font-src": ["'self'", "data:", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+      "font-src": ["'self'", "data:", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
     },
   },
 }));
@@ -222,6 +223,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/lab', labRoutes);
+app.use('/api/quick-invoice', quickInvoiceRoutes);
 
 // Hospital PMS routes (prefixed)
 app.use('/api/hospital/auth', hospitalAuthRoutes);
@@ -256,18 +258,39 @@ app.get(['/hospital-pms', '/hospital', '/pms'], (req, res) => {
 // Serve Lab Management System frontend (protected by active subscription)
 const labMsGuard = requireProductSubscription('lab-reporting');
 app.get(['/lab-ms', '/lab-reporting', '/lab-management-system'], labMsGuard, (req, res) => {
-  res.sendFile(path.join(__dirname, '../Lab MS/Admin/admin.html'));
+  res.sendFile(path.join(__dirname, '../Frontend/lab-ms/Admin/admin.html'));
 });
 app.get('/lab-ms/index.html', labMsGuard, (req, res) => {
-  res.sendFile(path.join(__dirname, '../Lab MS/Admin/admin.html'));
+  res.sendFile(path.join(__dirname, '../Frontend/lab-ms/Admin/admin.html'));
 });
-app.use('/lab-ms', labMsGuard, express.static(path.join(__dirname, '../Lab MS'), {
+app.use('/lab-ms', labMsGuard, express.static(path.join(__dirname, '../Frontend/lab-ms'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.html')) {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     }
   },
 }));
+
+// Serve QuickInvoice frontend (protected by active subscription)
+const quickInvoiceGuard = requireProductSubscription('quick-invoice');
+app.get(['/quick-invoice', '/quickinvoice'], quickInvoiceGuard, (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/quick-invoice/Adminstration/admin.html'));
+});
+app.get(['/quick-invoice/index.html', '/quickinvoice/index.html'], quickInvoiceGuard, (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/quick-invoice/Adminstration/admin.html'));
+});
+app.use(['/quick-invoice', '/quickinvoice'], quickInvoiceGuard, express.static(path.join(__dirname, '../Frontend/quick-invoice'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    }
+  },
+}));
+// Keep legacy absolute links inside QuickInvoice templates working
+app.use('/Adminstration', quickInvoiceGuard, express.static(path.join(__dirname, '../Frontend/quick-invoice/Adminstration')));
+app.use('/Accountant', quickInvoiceGuard, express.static(path.join(__dirname, '../Frontend/quick-invoice/Accountant')));
+app.use('/Sales Person', quickInvoiceGuard, express.static(path.join(__dirname, '../Frontend/quick-invoice/Sales Person')));
+app.use('/viewer', quickInvoiceGuard, express.static(path.join(__dirname, '../Frontend/quick-invoice/viewer')));
 
 // --- Secure Admin Portal URL Obfuscation ---
 app.get('/portal-secure-admin', (req, res) => {

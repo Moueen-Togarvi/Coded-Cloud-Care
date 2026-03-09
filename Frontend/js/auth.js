@@ -19,7 +19,7 @@ const PRODUCT_CONFIG = {
   },
   'quick-invoice': {
     name: 'Quick Invoice',
-    landingPage: '/Frontend/comp/in-progress.html',
+    landingPage: '/quick-invoice',
     description: 'Fast and easy invoicing'
   },
   'private-clinic-lite': {

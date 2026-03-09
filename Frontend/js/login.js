@@ -101,6 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // ── Check for a pending PayFast payment intent (saved before login redirect) ──
       const pendingPayment = sessionStorage.getItem('pf_pending_payment');
       const tierParam = urlParams.get('tier'); // e.g. 'monthly' or 'yearly'
+      const productLandingPage = (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId])
+        ? window.PRODUCT_CONFIG[productId].landingPage
+        : '/Frontend/comp/dashboard.html';
 
       // ── Case 1: Resume a payment intent that was saved BEFORE login ──────
       if (pendingPayment) {
@@ -139,11 +142,61 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // ── Case 3: Normal redirect — go to product dashboard ────────────────
-      if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
-        const landingPage = window.PRODUCT_CONFIG[productId].landingPage;
+      // ── Case 3: Login URL has tier=free/trial → ensure trial is active ──
+      if (productId && (tierParam === 'free' || tierParam === 'trial')) {
+        const subscriptions = Array.isArray(data?.data?.subscriptions) ? data.data.subscriptions : [];
+        const hasAccessibleSub = subscriptions.some((sub) => sub.productSlug === productId && sub.isAccessible);
+
+        if (!hasAccessibleSub) {
+          try {
+            const trialResp = await fetch(`${API_BASE_URL}/subscriptions/trial`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${data.data.token}`,
+              },
+              credentials: 'include',
+              body: JSON.stringify({ productSlug: productId }),
+            });
+
+            let trialData = {};
+            try {
+              trialData = await trialResp.json();
+            } catch (_) {
+              trialData = {};
+            }
+
+            if (!trialResp.ok) {
+              const alreadyUsed = trialData.code === 'TRIAL_ALREADY_USED';
+              const stillActive = alreadyUsed
+                && trialData.currentStatus === 'active'
+                && trialData.endDate
+                && (new Date(trialData.endDate).getTime() > Date.now());
+
+              if (!stillActive) {
+                showError(trialData.message || 'Free trial is not available for this product.');
+                window.location.href = `./product-pricing.html?product=${productId}`;
+                return;
+              }
+            }
+          } catch (trialError) {
+            console.error('Trial activation error:', trialError);
+            showError(trialError.message || 'Unable to activate free trial.');
+            window.location.href = `./product-pricing.html?product=${productId}`;
+            return;
+          }
+        }
+
+        showSuccess('Free trial is active. Redirecting to setup…');
         sessionStorage.setItem('productId', productId);
-        window.location.href = landingPage;
+        window.location.href = productLandingPage;
+        return;
+      }
+
+      // ── Case 4: Normal redirect — go to product dashboard ────────────────
+      if (productId && window.PRODUCT_CONFIG && window.PRODUCT_CONFIG[productId]) {
+        sessionStorage.setItem('productId', productId);
+        window.location.href = productLandingPage;
       } else {
         // Fallback to central dashboard
         window.location.href = '/Frontend/comp/dashboard.html';

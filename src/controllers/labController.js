@@ -16,30 +16,6 @@ const buildNumber = (prefix) => {
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const DEFAULT_LAB_TESTS = [
-  { code: 'CBC', name: 'Complete Blood Count', category: 'Hematology', sampleType: 'Blood', price: 1500, turnaroundHours: 8 },
-  { code: 'LIPID', name: 'Lipid Profile', category: 'Biochemistry', sampleType: 'Blood', price: 2200, turnaroundHours: 12 },
-  { code: 'LFT', name: 'Liver Function Test', category: 'Biochemistry', sampleType: 'Blood', price: 2800, turnaroundHours: 12 },
-  { code: 'RFT', name: 'Renal Function Test', category: 'Biochemistry', sampleType: 'Blood', price: 2800, turnaroundHours: 12 },
-  { code: 'HBA1C', name: 'HbA1c', category: 'Endocrinology', sampleType: 'Blood', price: 1800, turnaroundHours: 24 },
-];
-
-const ensureDefaultLabCatalog = async (LabTest, tenantId) => {
-  const count = await LabTest.countDocuments({ tenantId });
-  if (count > 0) return;
-
-  const items = DEFAULT_LAB_TESTS.map((t) => ({
-    tenantId,
-    ...t,
-    isActive: true,
-  }));
-  try {
-    await LabTest.insertMany(items, { ordered: false });
-  } catch (_) {
-    // Ignore duplicate race conditions on first bootstrap.
-  }
-};
-
 const getDashboardSummary = async (req, res) => {
   try {
     const { Patient, LabOrder, LabReport, Invoice } = req.tenantModels;
@@ -54,7 +30,7 @@ const getDashboardSummary = async (req, res) => {
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
 
-    const [totalPatients, pendingReports, completedToday, testsTodayAgg, revenueAgg, outstandingAgg, recentOrders] =
+    const [totalPatients, pendingReports, completedToday, testsTodayAgg, revenueAgg, outstandingAgg, activeCases, reportsIssued, newToday, recentOrders] =
       await Promise.all([
         Patient.countDocuments({ tenantId, isActive: true }),
         LabReport.countDocuments({ tenantId, status: { $in: ['draft'] } }),
@@ -72,6 +48,9 @@ const getDashboardSummary = async (req, res) => {
           { $match: { tenantId, type: 'lab', status: { $in: ['unpaid', 'partially_paid', 'overdue'] } } },
           { $group: { _id: null, outstanding: { $sum: '$balance' }, count: { $sum: 1 } } },
         ]),
+        LabOrder.countDocuments({ tenantId, status: { $in: ['registered', 'sample_collected', 'processing'] } }),
+        LabReport.countDocuments({ tenantId }),
+        Patient.countDocuments({ tenantId, isActive: true, createdAt: { $gte: startOfToday, $lte: endOfToday } }),
         LabOrder.find({ tenantId })
           .sort({ createdAt: -1 })
           .limit(5)
@@ -90,6 +69,9 @@ const getDashboardSummary = async (req, res) => {
           testsToday,
           pendingReports,
           completedToday,
+          activeCases,
+          reportsIssued,
+          newToday,
           billedThisMonth: revenue.billed,
           collectedThisMonth: revenue.collected,
           outstandingAmount: outstanding.outstanding,
@@ -348,7 +330,6 @@ const getLabTests = async (req, res) => {
   try {
     const { LabTest } = req.tenantModels;
     const { search = '', category = '', activeOnly = 'true' } = req.query;
-    await ensureDefaultLabCatalog(LabTest, req.user.userId);
 
     const query = { tenantId: req.user.userId };
     if (activeOnly === 'true') {
