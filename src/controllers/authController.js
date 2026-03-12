@@ -139,10 +139,14 @@ const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration error details:', {
+      message: error.message,
+      stack: error.stack,
+      body: { ...req.body, password: '***' }
+    });
     res.status(500).json({
       success: false,
-      message: 'Registration failed',
+      message: 'Registration failed: ' + error.message,
       error: error.message,
     });
   }
@@ -246,10 +250,14 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error details:', {
+      message: error.message,
+      stack: error.stack,
+      email: req.body.email
+    });
     res.status(500).json({
       success: false,
-      message: 'Login failed',
+      message: 'Login failed: ' + error.message,
       error: error.message,
     });
   }
